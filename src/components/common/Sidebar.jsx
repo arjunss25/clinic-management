@@ -1,0 +1,166 @@
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { navigationConfig } from '../../config/navigation';
+import { HiChevronLeft, HiChevronRight } from 'react-icons/hi2';
+
+const PRODUCT_NAME = 'CareNexus'; // Example product name
+
+const Sidebar = ({ role = 'patient' }) => {
+  const location = useLocation();
+  const navItems = navigationConfig[role] || [];
+  const [hoveredItem, setHoveredItem] = useState(null);
+  const [collapsed, setCollapsed] = useState(false);
+
+  const isActive = (path) => {
+    if (path === `/${role}`) {
+      return location.pathname === path;
+    }
+    return location.pathname.startsWith(path);
+  };
+
+  return (
+    <div
+      className={`${
+        collapsed ? 'w-20' : 'w-64'
+      } min-h-screen bg-white border-r border-gray-200  flex flex-col transition-all duration-300 relative z-100`}
+    >
+      {/* Collapse Button - Positioned outside the header */}
+      <button
+        className={`
+          absolute top-6 z-10 p-1.5 
+          rounded-full bg-[#FFF8F8] hover:bg-[#E9DFC3]/80 transition-all duration-200
+          border-2 border-[#E9DFC3] shadow-sm hover:shadow-md
+          ${collapsed ? '-right-4' : '-right-4'}
+        `}
+        aria-label={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+        onClick={() => setCollapsed((prev) => !prev)}
+      >
+        {collapsed ? (
+          <HiChevronRight className="w-4 h-4 text-[#0118D8]" />
+        ) : (
+          <HiChevronLeft className="w-4 h-4 text-[#0118D8]" />
+        )}
+      </button>
+
+      {/* Header */}
+      <div className={`border-b border-gray-50 bg-gradient-to-r from-white to-[#E9DFC3]/40 flex items-center px-4 py-5 ${
+        collapsed ? 'justify-center' : ''
+      }`}>
+        {/* Product Logo & Name */}
+        <div className="flex items-center space-x-3">
+          {/* Logo */}
+          <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-[#0118D8] to-[#1B56FD] shadow-lg">
+            <svg
+              className="w-6 h-6"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#FFF8F8"
+              strokeWidth={2}
+            >
+              <circle cx="12" cy="12" r="10" fill="#FFF8F8" opacity="0.18" />
+              <path
+                d="M11.99 7V17M17 12H7"
+                stroke="#0118D8"
+                strokeWidth={2.2}
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+          {/* Product Name & Role */}
+          {!collapsed && (
+            <div>
+              <h1 className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-[#0118D8] to-[#1B56FD] text-transparent bg-clip-text drop-shadow">
+                {PRODUCT_NAME}
+              </h1>
+              <p className="text-xs mt-0.5 text-[#1B56FD] font-semibold capitalize tracking-wider">{role} portal</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 px-2 py-6">
+        <div className="space-y-1">
+          {navItems.map((item, index) => {
+            const active = isActive(item.path);
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className="relative group flex items-center"
+                onMouseEnter={() => setHoveredItem(index)}
+                onMouseLeave={() => setHoveredItem(null)}
+              >
+                {/* Active indicator */}
+                <span
+                  className={`absolute left-0 top-0 bottom-0 w-1 rounded-r-full bg-[#0118D8] transition-all duration-300 ${
+                    active ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
+                <div
+                  className={`
+                    flex items-center rounded-xl w-full min-h-[48px]
+                    px-0 ${collapsed ? 'justify-center' : 'px-4'}
+                    py-3
+                    text-sm font-medium transition-all duration-300
+                    ${active
+                      ? 'bg-[#0118D8]/10 text-[#0118D8] shadow-sm'
+                      : `text-gray-600 hover:bg-gray-50/80 hover:text-[#0118D8] hover:shadow-sm ${
+                          hoveredItem === index && !collapsed ? 'bg-gray-50/80 shadow-sm' : ''
+                        }`}
+                  `}
+                  title={collapsed ? item.name : undefined}
+                >
+                  <span
+                    className={
+                      'flex items-center justify-center w-7 h-7 transition-colors duration-300 ' +
+                      (active
+                        ? 'text-[#0118D8] scale-110'
+                        : 'text-gray-400 group-hover:text-[#1B56FD] group-hover:scale-105')
+                    }
+                  >
+                    {item.icon && <item.icon className="w-5 h-5" />}
+                  </span>
+                  {!collapsed && (
+                    <span className="ml-3">{item.name}</span>
+                  )}
+                  {/* Chevron for active (desktop, not collapsed) */}
+                  {!collapsed && active && (
+                    <svg
+                      className="w-4 h-4 text-[#0118D8] ml-auto"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+
+      {/* Footer */}
+      {!collapsed && (
+        <div className="px-4 py-5 border-t border-gray-50 bg-gradient-to-r from-gray-50 to-white">
+          <div className="flex items-center justify-between text-sm text-gray-400">
+            <span className="font-medium">v2.1.0</span>
+            <div className="flex items-center space-x-2">
+              <div className="w-2.5 h-2.5 bg-green-400 rounded-full shadow-sm"></div>
+              <span className="font-medium text-gray-500">Online</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Sidebar;

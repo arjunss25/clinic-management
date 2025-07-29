@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #0118D8;
+  --color-primary-blue: #0118D8;
+  --color-secondary: #1B56FD;
+  --color-secondary-blue: #1B56FD;
+  --color-beige: #E9DFC3;
+  --color-beige-warm: #E9DFC3;
+  --color-white: #FFFFFF;
+  --color-white-off: #FFF8F8;
+}
+
+/* Custom utility classes */
+@layer components {
+  .bg-gradient-primary {
+    @apply bg-gradient-to-r from-primary to-secondary;
+  }
+  
+  .text-gradient-primary {
+    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+  }
+}
