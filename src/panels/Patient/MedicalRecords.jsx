@@ -339,7 +339,7 @@ const MedicalRecords = () => {
         <div className="p-6 border-b border-[#E9DFC3] bg-gradient-to-r from-[#FFF8F8] to-white">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-xl font-bold text-gray-900">Your Medical Records</h3>
+              <h3 className="text-xl font-medium text-gray-900">Your Medical Records</h3>
               <p className="text-gray-600 mt-1">{filteredRecords.length} records found</p>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -456,7 +456,7 @@ const MedicalRecords = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/50 backdrop-blur-xs z-500 flex items-center justify-center p-4"
       onClick={closeModal}
     >
       <motion.div
