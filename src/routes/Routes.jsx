@@ -10,6 +10,7 @@ import OtpVerification from '../panels/Auth/OtpVerification';
 // Patient Panel Imports
 import PatientDashboard from '../panels/Patient/Dashboard';
 import PatientAppointments from '../panels/Patient/Appointments';
+import PatientBookedAppointments from '../panels/Patient/BookedPatientAppointments';
 import PatientProfile from '../panels/Patient/Profile';
 import PatientMedicalRecords from '../panels/Patient/MedicalRecords';
 
@@ -39,6 +40,10 @@ const AppRoutes = () => {
       <Route path="/patient" element={<PatientLayout />}>
         <Route index element={<PatientDashboard />} />
         <Route path="appointments" element={<PatientAppointments />} />
+        <Route
+          path="booked-appointments"
+          element={<PatientBookedAppointments />}
+        />
         <Route path="profile" element={<PatientProfile />} />
         <Route path="medical-records" element={<PatientMedicalRecords />} />
       </Route>
