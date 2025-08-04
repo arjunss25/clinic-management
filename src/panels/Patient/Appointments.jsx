@@ -109,6 +109,25 @@ const mockAppointments = [
     status: 'confirmed',
     location: 'Room 150',
   },
+  // Add waitlist appointments
+  {
+    date: `${yyyy}-${pad(mm)}-08`,
+    time: '10:00',
+    doctor: 'Dr. Sarah Smith',
+    specialty: 'Cardiology',
+    status: 'waitlist',
+    location: 'Room 201',
+    waitlistPosition: 1,
+  },
+  {
+    date: `${yyyy}-${pad(mm)}-10`,
+    time: '14:00',
+    doctor: 'Dr. Michael Johnson',
+    specialty: 'General Practice',
+    status: 'waitlist',
+    location: 'Room 105',
+    waitlistPosition: 2,
+  },
 ];
 
 const mockAvailability = [
@@ -153,11 +172,23 @@ const mockAvailability = [
       { time: '11:00', doctor: 'Dr. Emily Davis', specialty: 'Dermatology' },
     ],
   },
+  // Add dates with no availability (fully booked)
+  {
+    date: `${yyyy}-${pad(mm)}-08`,
+    slots: [], // No available slots
+  },
+  {
+    date: `${yyyy}-${pad(mm)}-10`,
+    slots: [], // No available slots
+  },
 ];
 
 const statusChip = (status) => {
   if (status === 'confirmed') {
     return 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200';
+  }
+  if (status === 'waitlist') {
+    return 'bg-amber-50 text-amber-700 ring-1 ring-amber-200';
   }
   return 'bg-rose-50 text-rose-700 ring-1 ring-rose-200';
 };
@@ -176,6 +207,14 @@ const PatientScheduler = () => {
 
   // Modal for day details
   const [showDayModal, setShowDayModal] = useState(false);
+  
+  // Waitlist booking state
+  const [showWaitlistBooking, setShowWaitlistBooking] = useState(false);
+  const [waitlistBookingInfo, setWaitlistBookingInfo] = useState({
+    date: '',
+    doctor: '',
+    specialty: '',
+  });
 
   const monthMatrix = useMemo(
     () => getMonthMatrix(currentMonth.getFullYear(), currentMonth.getMonth()),
@@ -242,6 +281,23 @@ const PatientScheduler = () => {
     setShowBooking(false);
   };
 
+  const handleWaitlistBook = (date, doctor, specialty) => {
+    setWaitlistBookingInfo({
+      date,
+      doctor,
+      specialty,
+    });
+    setShowWaitlistBooking(true);
+  };
+
+  const handleWaitlistSubmit = (e) => {
+    if (e) e.preventDefault();
+    alert(
+      `Waitlist appointment requested with ${waitlistBookingInfo.doctor} (${waitlistBookingInfo.specialty}) on ${waitlistBookingInfo.date}. You will be notified when a slot becomes available.`
+    );
+    setShowWaitlistBooking(false);
+  };
+
   const isSameDay = (a, b) =>
     a.getFullYear() === b.getFullYear() &&
     a.getMonth() === b.getMonth() &&
@@ -283,6 +339,10 @@ const PatientScheduler = () => {
                   style={{ background: COLORS.secondary }}
                 />
                 <span className="hidden sm:inline">Availability</span>
+              </span>
+              <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-amber-700 bg-amber-50 ring-1 ring-amber-200">
+                <span className="w-2 h-2 rounded-full bg-amber-600" />
+                <span className="hidden sm:inline">Waitlist</span>
               </span>
               <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-rose-700 bg-rose-50 ring-1 ring-rose-200">
                 <span className="w-2 h-2 rounded-full bg-rose-600" />
@@ -451,21 +511,29 @@ const PatientScheduler = () => {
                             background:
                               appt.status === 'confirmed'
                                 ? 'linear-gradient(135deg, #ecfdf5, #d1fae5)'
+                                : appt.status === 'waitlist'
+                                ? 'linear-gradient(135deg, #fffbeb, #fef3c7)'
                                 : 'linear-gradient(135deg, #fef2f2, #fee2e2)',
                             color:
                               appt.status === 'confirmed'
                                 ? '#047857'
+                                : appt.status === 'waitlist'
+                                ? '#d97706'
                                 : '#dc2626',
                             border:
                               appt.status === 'confirmed'
                                 ? '1px solid #a7f3d0'
+                                : appt.status === 'waitlist'
+                                ? '1px solid #fde68a'
                                 : '1px solid #fecaca',
                             boxShadow:
                               appt.status === 'confirmed'
                                 ? '0 2px 4px rgba(5, 122, 85, 0.1)'
+                                : appt.status === 'waitlist'
+                                ? '0 2px 4px rgba(217, 119, 6, 0.1)'
                                 : '0 2px 4px rgba(220, 38, 38, 0.1)',
                           }}
-                          title={`${appt.doctor} • ${appt.specialty} • ${appt.time}`}
+                          title={`${appt.doctor} • ${appt.specialty} • ${appt.time}${appt.status === 'waitlist' ? ` • Waitlist #${appt.waitlistPosition}` : ''}`}
                         >
                           <span
                             className="flex items-center justify-center w-2 h-2 sm:w-3 sm:h-3 rounded-full text-[6px] sm:text-[8px] font-bold"
@@ -473,11 +541,13 @@ const PatientScheduler = () => {
                               background:
                                 appt.status === 'confirmed'
                                   ? '#10b981'
+                                  : appt.status === 'waitlist'
+                                  ? '#f59e0b'
                                   : '#ef4444',
                               color: 'white',
                             }}
                           >
-                            {appt.status === 'confirmed' ? '✓' : '✗'}
+                            {appt.status === 'confirmed' ? '✓' : appt.status === 'waitlist' ? '⏳' : '✗'}
                           </span>
                           <span className="font-semibold hidden sm:inline">
                             {appt.time}
@@ -750,12 +820,109 @@ const PatientScheduler = () => {
                       ))}
                     </div>
                   ) : (
-                    <p
-                      className="text-xs sm:text-sm"
-                      style={{ color: COLORS.textMuted }}
-                    >
-                      No availability.
-                    </p>
+                    <div className="space-y-3">
+                      <p
+                        className="text-xs sm:text-sm"
+                        style={{ color: COLORS.textMuted }}
+                      >
+                        No available slots for this date.
+                      </p>
+                      
+                      {/* Waitlist Options */}
+                      <div className="space-y-2">
+                        <h5
+                          className="text-xs sm:text-sm font-medium"
+                          style={{ color: COLORS.text }}
+                        >
+                          Join Waitlist
+                        </h5>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleWaitlistBook(
+                                formatDate(selectedDate),
+                                'Dr. Sarah Smith',
+                                'Cardiology'
+                              )
+                            }
+                            className="flex items-center justify-between rounded-lg p-2 sm:p-3 transition shadow-sm text-left"
+                            style={{
+                              background: 'linear-gradient(135deg, #fffbeb, #fef3c7)',
+                              border: '1px solid #fde68a',
+                            }}
+                            title="Join waitlist for Cardiology"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p
+                                className="text-xs sm:text-sm font-semibold"
+                                style={{ color: '#d97706' }}
+                              >
+                                Cardiology
+                              </p>
+                              <p
+                                className="text-xs truncate"
+                                style={{ color: '#92400e' }}
+                              >
+                                Dr. Sarah Smith
+                              </p>
+                            </div>
+                            <span
+                              className="text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full flex-shrink-0 ml-2"
+                              style={{
+                                background: '#fef3c7',
+                                color: '#d97706',
+                                border: '1px solid #fde68a',
+                              }}
+                            >
+                              Waitlist
+                            </span>
+                          </button>
+                          
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleWaitlistBook(
+                                formatDate(selectedDate),
+                                'Dr. Michael Johnson',
+                                'General Practice'
+                              )
+                            }
+                            className="flex items-center justify-between rounded-lg p-2 sm:p-3 transition shadow-sm text-left"
+                            style={{
+                              background: 'linear-gradient(135deg, #fffbeb, #fef3c7)',
+                              border: '1px solid #fde68a',
+                            }}
+                            title="Join waitlist for General Practice"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p
+                                className="text-xs sm:text-sm font-semibold"
+                                style={{ color: '#d97706' }}
+                              >
+                                General Practice
+                              </p>
+                              <p
+                                className="text-xs truncate"
+                                style={{ color: '#92400e' }}
+                              >
+                                Dr. Michael Johnson
+                              </p>
+                            </div>
+                            <span
+                              className="text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full flex-shrink-0 ml-2"
+                              style={{
+                                background: '#fef3c7',
+                                color: '#d97706',
+                                border: '1px solid #fde68a',
+                              }}
+                            >
+                              Waitlist
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
@@ -864,13 +1031,13 @@ const PatientScheduler = () => {
                       className="block text-xs sm:text-sm font-medium mb-1"
                       style={{ color: COLORS.text }}
                     >
-                      Your Name
+                      Reason for Visit
                     </label>
-                    <input
-                      type="text"
+                    <textarea
                       required
-                      placeholder="Enter your full name"
-                      className="w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 transition text-sm sm:text-base"
+                      placeholder="Brief description of your symptoms or reason for visit"
+                      rows="3"
+                      className="w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 transition text-sm sm:text-base resize-none"
                       style={{
                         background: COLORS.white,
                         border: `1px solid ${COLORS.border}`,
@@ -916,6 +1083,162 @@ const PatientScheduler = () => {
                     Location will be shared in confirmation.
                   </span>
                 </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Waitlist Booking Modal */}
+        {showWaitlistBooking ? (
+          <div
+            className="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4"
+            style={{
+              background: 'rgba(15, 23, 42, 0.35)',
+              backdropFilter: 'saturate(140%) blur(6px)',
+            }}
+            onClick={() => setShowWaitlistBooking(false)}
+          >
+            <div
+              className="w-full max-w-sm sm:max-w-md rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+              style={{
+                background: COLORS.surface,
+                border: `1px solid ${COLORS.border}`,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                className="px-4 sm:px-6 py-3 sm:py-4 border-b flex items-center justify-between"
+                style={{ background: COLORS.white, borderColor: COLORS.border }}
+              >
+                <h3
+                  className="text-base sm:text-lg font-semibold"
+                  style={{ color: COLORS.text }}
+                >
+                  Join Waitlist
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowWaitlistBooking(false)}
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl transition flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background: COLORS.white,
+                    color: COLORS.textMuted,
+                    border: `1px solid ${COLORS.border}`,
+                  }}
+                  aria-label="Close waitlist booking"
+                >
+                  <FaTimes className="w-3 h-3 sm:w-4 sm:h-4" />
+                </button>
+              </div>
+
+              <div className="p-4 sm:p-6 space-y-4">
+                <div
+                  className="rounded-lg sm:rounded-xl p-3"
+                  style={{
+                    border: `1px solid ${COLORS.border}`,
+                    background: 'linear-gradient(135deg, #fffbeb, #fef3c7)',
+                  }}
+                >
+                  <p
+                    className="text-xs sm:text-sm"
+                    style={{ color: '#92400e' }}
+                  >
+                    Doctor:{' '}
+                    <span
+                      className="font-semibold"
+                      style={{ color: '#d97706' }}
+                    >
+                      {waitlistBookingInfo.doctor}
+                    </span>
+                  </p>
+                  <p
+                    className="text-xs sm:text-sm"
+                    style={{ color: '#92400e' }}
+                  >
+                    Specialty:{' '}
+                    <span
+                      className="font-semibold"
+                      style={{ color: '#d97706' }}
+                    >
+                      {waitlistBookingInfo.specialty}
+                    </span>
+                  </p>
+                  <p
+                    className="text-xs sm:text-sm"
+                    style={{ color: '#92400e' }}
+                  >
+                    Date:{' '}
+                    <span
+                      className="font-semibold"
+                      style={{ color: '#d97706' }}
+                    >
+                      {waitlistBookingInfo.date}
+                    </span>
+                  </p>
+                  <p
+                    className="text-xs sm:text-sm mt-2"
+                    style={{ color: '#92400e' }}
+                  >
+                    ⏳ You'll be notified when a slot becomes available
+                  </p>
+                </div>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleWaitlistSubmit(e);
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <label
+                      className="block text-xs sm:text-sm font-medium mb-1"
+                      style={{ color: COLORS.text }}
+                    >
+                      Reason for Visit
+                    </label>
+                    <textarea
+                      required
+                      placeholder="Brief description of your symptoms or reason for visit"
+                      rows="3"
+                      className="w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 transition text-sm sm:text-base resize-none"
+                      style={{
+                        background: COLORS.white,
+                        border: `1px solid ${COLORS.border}`,
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                        color: COLORS.text,
+                        outline: 'none',
+                      }}
+                      onChange={() => {}}
+                    />
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                    <button
+                      type="submit"
+                      className="flex-1 py-2.5 rounded-lg sm:rounded-xl font-medium text-white shadow-sm transition text-sm sm:text-base"
+                      style={{
+                        background: 'linear-gradient(135deg, #d97706, #f59e0b)',
+                      }}
+                    >
+                      Join Waitlist
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowWaitlistBooking(false)}
+                      className="flex-1 py-2.5 rounded-lg sm:rounded-xl font-medium transition text-sm sm:text-base"
+                      style={{
+                        background: COLORS.gray50,
+                        color: COLORS.text,
+                        border: `1px solid ${COLORS.border}`,
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+
+
               </div>
             </div>
           </div>

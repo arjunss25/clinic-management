@@ -18,6 +18,7 @@ import PatientMedicalRecords from '../panels/Patient/MedicalRecords';
 import DoctorDashboard from '../panels/Doctor/Dashboard';
 import DoctorAppointments from '../panels/Doctor/Appointments';
 import DoctorPatients from '../panels/Doctor/Patients';
+import DoctorPatientProfile from '../panels/Doctor/PatientProfile';
 
 // Staff Panel Imports
 import StaffDashboard from '../panels/Staff/Dashboard';
@@ -53,6 +54,7 @@ const AppRoutes = () => {
         <Route index element={<DoctorDashboard />} />
         <Route path="appointments" element={<DoctorAppointments />} />
         <Route path="patients" element={<DoctorPatients />} />
+        <Route path="patients/:patientId" element={<DoctorPatientProfile />} />
       </Route>
 
       {/* Staff Routes */}

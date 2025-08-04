@@ -15,7 +15,16 @@ const Sidebar = ({ role = 'patient' }) => {
     if (path === `/${role}`) {
       return location.pathname === path;
     }
-    return location.pathname.startsWith(path);
+    // Check if the current path starts with the item path or if it's a sub-item
+    const isPathActive = location.pathname.startsWith(path);
+    const hasSubItems = navItems.find(item => item.path === path)?.subItems;
+    
+    if (hasSubItems) {
+      // For items with sub-items, check if current path matches any sub-item path
+      return isPathActive || hasSubItems.some(subItem => location.pathname === subItem.path);
+    }
+    
+    return isPathActive;
   };
 
   return (

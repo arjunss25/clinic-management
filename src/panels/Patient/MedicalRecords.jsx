@@ -493,7 +493,7 @@ const MedicalRecords = () => {
               filteredRecords.map((record, index) => (
                 <div
                   key={record.id}
-                  className="p-6 transition-colors"
+                  className="p-6 transition-colors group relative"
                   style={{ background: COLORS.surface }}
                 >
                   {record.isRecent && (
@@ -596,10 +596,10 @@ const MedicalRecords = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        className="p-2.5 rounded-xl transition flex items-center justify-center"
+                        className="p-2.5 rounded-xl transition flex items-center justify-center hover:scale-105"
                         style={{
                           background: COLORS.white,
                           color: COLORS.primary,
@@ -611,7 +611,7 @@ const MedicalRecords = () => {
                       </button>
                       <button
                         type="button"
-                        className="p-2.5 rounded-xl transition flex items-center justify-center"
+                        className="p-2.5 rounded-xl transition flex items-center justify-center hover:scale-105"
                         style={{
                           background: COLORS.white,
                           color: COLORS.secondary,
@@ -623,7 +623,7 @@ const MedicalRecords = () => {
                       </button>
                       <button
                         type="button"
-                        className="p-2.5 rounded-xl transition flex items-center justify-center"
+                        className="p-2.5 rounded-xl transition flex items-center justify-center hover:scale-105 hover:bg-red-50"
                         style={{
                           background: COLORS.white,
                           color: COLORS.danger,

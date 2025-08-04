@@ -11,6 +11,16 @@ export const navigationConfig = {
       name: 'Appointments',
       path: '/patient/appointments',
       icon: FaCalendarAlt, // Export the component itself
+      subItems: [
+        {
+          name: 'Book Appointments',
+          path: '/patient/appointments',
+        },
+        {
+          name: 'Appointment History',
+          path: '/patient/booked-appointments',
+        },
+      ],
     },
     {
       name: 'Medical Records',

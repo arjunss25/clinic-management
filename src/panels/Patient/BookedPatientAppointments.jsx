@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FaClock,
   FaUser,
@@ -12,6 +13,7 @@ import {
   FaHistory,
   FaCalendarAlt,
   FaCalendarDay,
+  FaArrowLeft,
 } from 'react-icons/fa';
 
 // Modernized theme colors (reduced beige/off-white usage)
@@ -165,6 +167,11 @@ const BookedPatientAppointments = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const navigate = useNavigate();
+
+  const handleBackToAppointments = () => {
+    navigate('/patient/appointments');
+  };
 
   const filteredAppointments = useMemo(() => {
     let filtered = mockBookedAppointments;
@@ -235,6 +242,22 @@ const BookedPatientAppointments = () => {
             </span>
           </div>
         </div>
+
+          <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleBackToAppointments}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition shadow-sm"
+                style={{
+                  background: COLORS.white,
+                  color: COLORS.primary,
+                  border: `1px solid ${COLORS.border}`,
+                }}
+              >
+                <FaArrowLeft className="w-4 h-4" />
+                Back to Appointments
+              </button>
+            </div>
 
         {/* Filters */}
         <div

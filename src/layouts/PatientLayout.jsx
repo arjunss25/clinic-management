@@ -1,9 +1,29 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../components/common/Sidebar';
 import Navbar from '../components/common/Navbar';
 
 const PatientLayout = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    const scrollToTop = () => {
+      // Find the main element and scroll it to top
+      const mainElement = document.querySelector('main');
+      if (mainElement) {
+        mainElement.scrollTo(0, 0);
+      }
+    };
+
+    // Scroll to top when pathname changes
+    scrollToTop();
+    
+    // Also try after a short delay to ensure DOM is updated
+    const timeoutId = setTimeout(scrollToTop, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, [pathname]);
+
   return (
     <div className="flex h-screen bg-[#F8FAFC]">
       {/* Sidebar */}
