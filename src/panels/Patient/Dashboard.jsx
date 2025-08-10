@@ -205,102 +205,116 @@ const Dashboard = () => {
       </motion.div>
 
       {/* Daily Health Tip - Redesigned */}
-<motion.div
-  variants={containerVariants}
-  initial="hidden"
-  animate="visible"
-  className="bg-white rounded-xl border border-[#E9DFC3]/70 shadow-sm overflow-hidden"
->
-  <motion.div variants={itemVariants}>
-    {/* Header with gradient background */}
-    <div className="bg-gradient-to-r from-[#0118D8] to-[#1B56FD] px-6 py-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <FaHeartbeat className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-white">
-              Daily Health Tip
-            </h3>
-            <p className="text-white/80 text-sm">Personalized wellness insight</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center rounded-full bg-white/20 backdrop-blur-sm text-white px-3 py-1 text-xs font-medium">
-            Today
-          </span>
-        </div>
-      </div>
-    </div>
-
-    {/* Content */}
-    <div className="p-6">
-      <div className="flex items-start gap-4">
-        {/* Icon indicator */}
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0118D8]/10 to-[#1B56FD]/10 flex items-center justify-center flex-shrink-0 mt-1">
-          <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#0118D8] to-[#1B56FD] flex items-center justify-center">
-            <span className="text-white text-xs font-bold">💧</span>
-          </div>
-        </div>
-
-        {/* Tip content */}
-        <div className="flex-1 space-y-4">
-          <div className="space-y-3">
-            <h4 className="text-xl font-semibold text-gray-900 leading-tight">
-              Stay Hydrated for Optimal Health
-            </h4>
-            <p className="text-gray-600 leading-relaxed">
-              Drinking 8-10 glasses of water daily helps maintain healthy blood pressure, 
-              supports kidney function, and keeps your skin glowing. Try adding lemon or 
-              cucumber for a refreshing twist!
-            </p>
-          </div>
-
-          {/* Action items */}
-          <div className="bg-gradient-to-br from-[#0118D8]/5 to-[#1B56FD]/5 rounded-lg p-4 border border-[#E9DFC3]/50">
-            <h5 className="text-sm font-semibold text-[#0118D8] mb-2">Quick Tips:</h5>
-            <ul className="space-y-1 text-sm text-gray-600">
-              <li className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#1B56FD]" />
-                Start your day with a glass of water
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#1B56FD]" />
-                Keep a water bottle at your desk
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#1B56FD]" />
-                Set reminders every 2 hours
-              </li>
-            </ul>
-          </div>
-
-          {/* Footer metadata */}
-          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-            <div className="flex items-center gap-4 text-xs text-gray-500">
-              <span className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#0118D8] to-[#1B56FD]" />
-                Tip #247 of 365
-              </span>
-              <span className="flex items-center gap-1.5">
-                <FaCalendarAlt className="w-3 h-3 text-gray-400" />
-                Updated daily at 6 AM
-              </span>
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="bg-white rounded-xl border border-[#E9DFC3]/70 shadow-sm overflow-hidden"
+      >
+        <motion.div variants={itemVariants}>
+          {/* Header with gradient background */}
+          <div className="bg-gradient-to-r from-[#0118D8] to-[#1B56FD] px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <FaHeartbeat className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-white">
+                    Daily Health Tip
+                  </h3>
+                  <p className="text-white/80 text-xs">
+                    Personalized wellness insight
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-white/20 backdrop-blur-sm text-white px-3 py-1 text-xs font-medium">
+                  Today
+                </span>
+              </div>
             </div>
-            <button className="text-[#0118D8] text-xs font-medium hover:text-[#1B56FD] transition-colors flex items-center gap-1">
-              View more tips
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
           </div>
-        </div>
-      </div>
-    </div>
-  </motion.div>
-</motion.div>
 
+          {/* Content */}
+          <div className="p-6">
+            <div className="flex items-start gap-4">
+              {/* Icon indicator */}
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0118D8]/10 to-[#1B56FD]/10 flex items-center justify-center flex-shrink-0 mt-1">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#0118D8] to-[#1B56FD] flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">💧</span>
+                </div>
+              </div>
+
+              {/* Tip content */}
+              <div className="flex-1 space-y-4">
+                <div className="space-y-3">
+                  <h4 className="text-lg font-semibold text-gray-900 leading-tight">
+                    Stay Hydrated for Optimal Health
+                  </h4>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    Drinking 8-10 glasses of water daily helps maintain healthy
+                    blood pressure, supports kidney function, and keeps your
+                    skin glowing. Try adding lemon or cucumber for a refreshing
+                    twist!
+                  </p>
+                </div>
+
+                {/* Action items */}
+                <div className="bg-gradient-to-br from-[#0118D8]/5 to-[#1B56FD]/5 rounded-lg p-4 border border-[#E9DFC3]/50">
+                  <h5 className="text-xs font-semibold text-[#0118D8] mb-2">
+                    Quick Tips:
+                  </h5>
+                  <ul className="space-y-1 text-xs text-gray-600">
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#1B56FD]" />
+                      Start your day with a glass of water
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#1B56FD]" />
+                      Keep a water bottle at your desk
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#1B56FD]" />
+                      Set reminders every 2 hours
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Footer metadata */}
+                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                  <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <span className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#0118D8] to-[#1B56FD]" />
+                      Tip #247 of 365
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <FaCalendarAlt className="w-3 h-3 text-gray-400" />
+                      Updated daily at 6 AM
+                    </span>
+                  </div>
+                  <button className="text-[#0118D8] text-xs font-medium hover:text-[#1B56FD] transition-colors flex items-center gap-1">
+                    View more tips
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
 
       {/* Vitals */}
       <div className="space-y-3">
