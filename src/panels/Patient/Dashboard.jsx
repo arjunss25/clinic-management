@@ -5,7 +5,7 @@ import {
   FaFileAlt,
   FaUserMd,
   FaNotesMedical,
-  FaHeartbeat
+  FaHeartbeat,
 } from 'react-icons/fa';
 import { FaWeightScale } from 'react-icons/fa6';
 import { Thermometer } from 'lucide-react';
@@ -16,9 +16,9 @@ const Dashboard = () => {
     hidden: {},
     visible: {
       transition: {
-        staggerChildren: 0.08
-      }
-    }
+        staggerChildren: 0.08,
+      },
+    },
   };
 
   const itemVariants = {
@@ -26,8 +26,8 @@ const Dashboard = () => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.35, ease: 'easeOut' }
-    }
+      transition: { duration: 0.35, ease: 'easeOut' },
+    },
   };
 
   const cardHover = { y: -2, transition: { duration: 0.2 } };
@@ -50,14 +50,14 @@ const Dashboard = () => {
     emergencyContact: {
       name: 'Michael Johnson',
       relation: 'Spouse',
-      phone: '+1 (555) 987-6543'
+      phone: '+1 (555) 987-6543',
     },
     vitals: {
       bloodPressure: '120/80',
       heartRate: '72 bpm',
       temperature: '98.6°F',
-      weight: '145 lbs'
-    }
+      weight: '145 lbs',
+    },
   };
 
   const medications = [
@@ -65,14 +65,14 @@ const Dashboard = () => {
       name: 'Albuterol Inhaler',
       dosage: '2 puffs every 4-6 hours as needed',
       prescribedBy: 'Dr. Emily Chen',
-      startDate: 'Jan 15, 2024'
+      startDate: 'Jan 15, 2024',
     },
     {
       name: 'Cetirizine',
       dosage: '10mg once daily',
       prescribedBy: 'Dr. Sarah Martinez',
-      startDate: 'Feb 1, 2024'
-    }
+      startDate: 'Feb 1, 2024',
+    },
   ];
 
   return (
@@ -129,7 +129,9 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="mt-4 space-y-1">
-            <p className="text-xl font-semibold text-gray-900">Apr 22, 2:30 PM</p>
+            <p className="text-xl font-semibold text-gray-900">
+              Apr 22, 2:30 PM
+            </p>
             <p className="text-gray-600 text-sm">with Dr. Emily Chen</p>
           </div>
         </motion.div>
@@ -192,11 +194,113 @@ const Dashboard = () => {
             <p className="text-gray-500 text-sm">Last Visit</p>
           </div>
           <div className="mt-4 space-y-1">
-            <p className="text-xl font-semibold text-gray-900">{patient.lastVisit}</p>
-            <p className="text-gray-600 text-sm">{patient.conditions.join(', ')}</p>
+            <p className="text-xl font-semibold text-gray-900">
+              {patient.lastVisit}
+            </p>
+            <p className="text-gray-600 text-sm">
+              {patient.conditions.join(', ')}
+            </p>
           </div>
         </motion.div>
       </motion.div>
+
+      {/* Daily Health Tip - Redesigned */}
+<motion.div
+  variants={containerVariants}
+  initial="hidden"
+  animate="visible"
+  className="bg-white rounded-xl border border-[#E9DFC3]/70 shadow-sm overflow-hidden"
+>
+  <motion.div variants={itemVariants}>
+    {/* Header with gradient background */}
+    <div className="bg-gradient-to-r from-[#0118D8] to-[#1B56FD] px-6 py-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
+            <FaHeartbeat className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-white">
+              Daily Health Tip
+            </h3>
+            <p className="text-white/80 text-sm">Personalized wellness insight</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center rounded-full bg-white/20 backdrop-blur-sm text-white px-3 py-1 text-xs font-medium">
+            Today
+          </span>
+        </div>
+      </div>
+    </div>
+
+    {/* Content */}
+    <div className="p-6">
+      <div className="flex items-start gap-4">
+        {/* Icon indicator */}
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0118D8]/10 to-[#1B56FD]/10 flex items-center justify-center flex-shrink-0 mt-1">
+          <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#0118D8] to-[#1B56FD] flex items-center justify-center">
+            <span className="text-white text-xs font-bold">💧</span>
+          </div>
+        </div>
+
+        {/* Tip content */}
+        <div className="flex-1 space-y-4">
+          <div className="space-y-3">
+            <h4 className="text-xl font-semibold text-gray-900 leading-tight">
+              Stay Hydrated for Optimal Health
+            </h4>
+            <p className="text-gray-600 leading-relaxed">
+              Drinking 8-10 glasses of water daily helps maintain healthy blood pressure, 
+              supports kidney function, and keeps your skin glowing. Try adding lemon or 
+              cucumber for a refreshing twist!
+            </p>
+          </div>
+
+          {/* Action items */}
+          <div className="bg-gradient-to-br from-[#0118D8]/5 to-[#1B56FD]/5 rounded-lg p-4 border border-[#E9DFC3]/50">
+            <h5 className="text-sm font-semibold text-[#0118D8] mb-2">Quick Tips:</h5>
+            <ul className="space-y-1 text-sm text-gray-600">
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#1B56FD]" />
+                Start your day with a glass of water
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#1B56FD]" />
+                Keep a water bottle at your desk
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#1B56FD]" />
+                Set reminders every 2 hours
+              </li>
+            </ul>
+          </div>
+
+          {/* Footer metadata */}
+          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+            <div className="flex items-center gap-4 text-xs text-gray-500">
+              <span className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#0118D8] to-[#1B56FD]" />
+                Tip #247 of 365
+              </span>
+              <span className="flex items-center gap-1.5">
+                <FaCalendarAlt className="w-3 h-3 text-gray-400" />
+                Updated daily at 6 AM
+              </span>
+            </div>
+            <button className="text-[#0118D8] text-xs font-medium hover:text-[#1B56FD] transition-colors flex items-center gap-1">
+              View more tips
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </motion.div>
+</motion.div>
+
 
       {/* Vitals */}
       <div className="space-y-3">
@@ -219,10 +323,14 @@ const Dashboard = () => {
               <div className="w-9 h-9 rounded-lg bg-[#1B56FD]/5 flex items-center justify-center">
                 <FaHeartbeat className="w-4 h-4 text-[#1B56FD]" />
               </div>
-              <span className="text-gray-600 text-sm font-medium">Blood Pressure</span>
+              <span className="text-gray-600 text-sm font-medium">
+                Blood Pressure
+              </span>
             </div>
             <div className="flex items-baseline gap-1">
-              <span className="text-xl font-semibold text-gray-900">{patient.vitals.bloodPressure}</span>
+              <span className="text-xl font-semibold text-gray-900">
+                {patient.vitals.bloodPressure}
+              </span>
               <span className="text-xs text-gray-500">mmHg</span>
             </div>
             <div className="mt-3 flex items-center gap-2">
@@ -243,7 +351,9 @@ const Dashboard = () => {
               <div className="w-9 h-9 rounded-lg bg-[#0118D8]/5 flex items-center justify-center">
                 <FaHeartbeat className="w-4 h-4 text-[#0118D8]" />
               </div>
-              <span className="text-gray-600 text-sm font-medium">Heart Rate</span>
+              <span className="text-gray-600 text-sm font-medium">
+                Heart Rate
+              </span>
             </div>
             <div className="flex items-baseline gap-1">
               <span className="text-xl font-semibold text-gray-900">
@@ -269,10 +379,14 @@ const Dashboard = () => {
               <div className="w-9 h-9 rounded-lg bg-[#1B56FD]/5 flex items-center justify-center">
                 <Thermometer className="w-4 h-4 text-[#1B56FD]" />
               </div>
-              <span className="text-gray-600 text-sm font-medium">Temperature</span>
+              <span className="text-gray-600 text-sm font-medium">
+                Temperature
+              </span>
             </div>
             <div className="flex items-baseline gap-1">
-              <span className="text-xl font-semibold text-gray-900">{patient.vitals.temperature.split('°')[0]}</span>
+              <span className="text-xl font-semibold text-gray-900">
+                {patient.vitals.temperature.split('°')[0]}
+              </span>
               <span className="text-xs text-gray-500">°F</span>
             </div>
             <div className="mt-3 flex items-center gap-2">
@@ -296,7 +410,9 @@ const Dashboard = () => {
               <span className="text-gray-600 text-sm font-medium">Weight</span>
             </div>
             <div className="flex items-baseline gap-1">
-              <span className="text-xl font-semibold text-gray-900">{patient.vitals.weight.split(' ')[0]}</span>
+              <span className="text-xl font-semibold text-gray-900">
+                {patient.vitals.weight.split(' ')[0]}
+              </span>
               <span className="text-xs text-gray-500">lbs</span>
             </div>
             <div className="mt-3 flex items-center gap-2">
@@ -320,7 +436,9 @@ const Dashboard = () => {
           <div className="w-11 h-11 rounded-lg bg-[#0118D8]/5 flex items-center justify-center">
             <FaNotesMedical className="text-[#0118D8] w-5 h-5" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900">Current Medications</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Current Medications
+          </h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -336,7 +454,9 @@ const Dashboard = () => {
                   <h4 className="text-gray-900 font-semibold text-base group-hover:text-[#0118D8] transition-colors">
                     {med.name}
                   </h4>
-                  <p className="text-[#1B56FD] text-sm font-medium mt-0.5">{med.dosage}</p>
+                  <p className="text-[#1B56FD] text-sm font-medium mt-0.5">
+                    {med.dosage}
+                  </p>
                   <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mt-3">
                     <span className="flex items-center gap-1.5">
                       <FaUserMd className="w-3.5 h-3.5 text-gray-400" />
@@ -355,10 +475,10 @@ const Dashboard = () => {
       </motion.div>
 
       {/* Quick Actions */}
-      <motion.div
-        className="bg-white rounded-xl p-5 border border-[#E9DFC3]/70 shadow-sm"
-      >
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+      <motion.div className="bg-white rounded-xl p-5 border border-[#E9DFC3]/70 shadow-sm">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Quick Actions
+        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#0118D8] border border-[#E9DFC3]/80 rounded-lg hover:border-[#1B56FD] hover:bg-[#0118D8]/5 transition-colors">
             <FaCalendarAlt className="w-4 h-4" />

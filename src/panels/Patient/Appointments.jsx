@@ -207,7 +207,7 @@ const PatientScheduler = () => {
 
   // Modal for day details
   const [showDayModal, setShowDayModal] = useState(false);
-  
+
   // Waitlist booking state
   const [showWaitlistBooking, setShowWaitlistBooking] = useState(false);
   const [waitlistBookingInfo, setWaitlistBookingInfo] = useState({
@@ -314,9 +314,7 @@ const PatientScheduler = () => {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 sm:gap-5">
           <div className="space-y-1">
-            <h1
-              className="text-[2rem] md:text-[2.25rem] font-semibold tracking-tight text-gray-900"
-            >
+            <h1 className="text-[2rem] md:text-[2.25rem] font-semibold tracking-tight text-gray-900">
               Book Your Appointment
             </h1>
             <p
@@ -533,7 +531,13 @@ const PatientScheduler = () => {
                                 ? '0 2px 4px rgba(217, 119, 6, 0.1)'
                                 : '0 2px 4px rgba(220, 38, 38, 0.1)',
                           }}
-                          title={`${appt.doctor} • ${appt.specialty} • ${appt.time}${appt.status === 'waitlist' ? ` • Waitlist #${appt.waitlistPosition}` : ''}`}
+                          title={`${appt.doctor} • ${appt.specialty} • ${
+                            appt.time
+                          }${
+                            appt.status === 'waitlist'
+                              ? ` • Waitlist #${appt.waitlistPosition}`
+                              : ''
+                          }`}
                         >
                           <span
                             className="flex items-center justify-center w-2 h-2 sm:w-3 sm:h-3 rounded-full text-[6px] sm:text-[8px] font-bold"
@@ -547,7 +551,11 @@ const PatientScheduler = () => {
                               color: 'white',
                             }}
                           >
-                            {appt.status === 'confirmed' ? '✓' : appt.status === 'waitlist' ? '⏳' : '✗'}
+                            {appt.status === 'confirmed'
+                              ? '✓'
+                              : appt.status === 'waitlist'
+                              ? '⏳'
+                              : '✗'}
                           </span>
                           <span className="font-semibold hidden sm:inline">
                             {appt.time}
@@ -827,7 +835,7 @@ const PatientScheduler = () => {
                       >
                         No available slots for this date.
                       </p>
-                      
+
                       {/* Waitlist Options */}
                       <div className="space-y-2">
                         <h5
@@ -848,7 +856,8 @@ const PatientScheduler = () => {
                             }
                             className="flex items-center justify-between rounded-lg p-2 sm:p-3 transition shadow-sm text-left"
                             style={{
-                              background: 'linear-gradient(135deg, #fffbeb, #fef3c7)',
+                              background:
+                                'linear-gradient(135deg, #fffbeb, #fef3c7)',
                               border: '1px solid #fde68a',
                             }}
                             title="Join waitlist for Cardiology"
@@ -878,7 +887,7 @@ const PatientScheduler = () => {
                               Waitlist
                             </span>
                           </button>
-                          
+
                           <button
                             type="button"
                             onClick={() =>
@@ -890,7 +899,8 @@ const PatientScheduler = () => {
                             }
                             className="flex items-center justify-between rounded-lg p-2 sm:p-3 transition shadow-sm text-left"
                             style={{
-                              background: 'linear-gradient(135deg, #fffbeb, #fef3c7)',
+                              background:
+                                'linear-gradient(135deg, #fffbeb, #fef3c7)',
                               border: '1px solid #fde68a',
                             }}
                             title="Join waitlist for General Practice"
@@ -1237,8 +1247,6 @@ const PatientScheduler = () => {
                     </button>
                   </div>
                 </form>
-
-
               </div>
             </div>
           </div>

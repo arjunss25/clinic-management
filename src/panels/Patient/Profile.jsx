@@ -1,80 +1,79 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  FaUser, 
+import {
+  FaUser,
   FaPhone,
   FaFileAlt,
   FaExclamationTriangle,
   FaCheckCircle,
   FaNotesMedical,
   FaAllergies,
-  FaStethoscope
+  FaStethoscope,
 } from 'react-icons/fa';
-import { MdOutlinePhoneAndroid } from "react-icons/md";
-import { 
-  MdLocalHospital, 
+import { MdOutlinePhoneAndroid } from 'react-icons/md';
+import {
+  MdLocalHospital,
   MdEmail,
   MdLocationOn,
-  MdDateRange
+  MdDateRange,
 } from 'react-icons/md';
-import { 
-  BsClockFill
-} from 'react-icons/bs';
+import { BsClockFill } from 'react-icons/bs';
+import PatientProfileHistory from './PatientProfileHistory';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('medical');
-  
+
   // Animation variants
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 }
+    exit: { opacity: 0, y: -20 },
   };
 
   const tabContentVariants = {
     hidden: { opacity: 0, x: -20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       x: 0,
       transition: {
         duration: 0.5,
-        when: "beforeChildren",
-        staggerChildren: 0.1
-      }
+        when: 'beforeChildren',
+        staggerChildren: 0.1,
+      },
     },
-    exit: { 
-      opacity: 0, 
+    exit: {
+      opacity: 0,
       x: 20,
-      transition: { duration: 0.3 }
-    }
+      transition: { duration: 0.3 },
+    },
   };
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
-      transition: { duration: 0.5 }
-    }
+      transition: { duration: 0.5 },
+    },
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
-      transition: { duration: 0.3 }
-    }
+      transition: { duration: 0.3 },
+    },
   };
 
   const containerVariants = {
     visible: {
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
-  
+
   // Sample patient data
   const patient = {
     name: 'Sarah Johnson',
@@ -93,38 +92,34 @@ const Profile = () => {
     emergencyContact: {
       name: 'Michael Johnson',
       relation: 'Spouse',
-      phone: '+1 (555) 987-6543'
-    }
+      phone: '+1 (555) 987-6543',
+    },
   };
-
-
 
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Main Content */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className="relative z-10"
       >
         <div className="mx-auto">
           {/* Glass Card Container */}
-          <motion.div 
+          <motion.div
             variants={fadeIn}
             initial="initial"
             animate="animate"
             className="bg-white"
           >
-            
             {/* Header Section */}
-            <motion.div 
+            <motion.div
               variants={cardVariants}
               initial="hidden"
               animate="visible"
               className="p-4 sm:p-6 md:p-8 border-b border-[#E9DFC3]"
             >
               <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 sm:gap-6">
-                
                 {/* Profile Info */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 w-full lg:w-auto">
                   {/* Avatar */}
@@ -134,10 +129,12 @@ const Profile = () => {
                     </div>
                     <div className="absolute bottom-0 right-0 w-5 h-5 sm:w-6 sm:h-6 bg-green-500 rounded-full border-4 border-white"></div>
                   </div>
-                  
+
                   {/* Basic Info */}
                   <div className="w-full sm:w-auto">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{patient.name}</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                      {patient.name}
+                    </h1>
                     <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-gray-600 text-xs sm:text-sm">
                       <span className="flex items-center gap-2">
                         <FaUser className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -178,7 +175,7 @@ const Profile = () => {
             <div className="flex overflow-x-auto overflow-y-hidden border-b border-[#E9DFC3] px-4 sm:px-6 md:px-8">
               {[
                 { id: 'medical', label: 'Medical Info', icon: FaNotesMedical },
-                { id: 'history', label: 'History', icon: BsClockFill }
+                { id: 'history', label: 'History', icon: BsClockFill },
               ].map((tab) => (
                 <motion.button
                   key={tab.id}
@@ -194,11 +191,15 @@ const Profile = () => {
                   <tab.icon className="w-4 h-4" />
                   {tab.label}
                   {activeTab === tab.id && (
-                    <motion.div 
+                    <motion.div
                       layoutId="activeTab"
                       className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#0118D8] to-[#1B56FD]"
                       initial={false}
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 500,
+                        damping: 30,
+                      }}
                     />
                   )}
                 </motion.button>
@@ -208,8 +209,6 @@ const Profile = () => {
             {/* Tab Content */}
             <div className="p-4 sm:p-6 md:p-8">
               <AnimatePresence mode="wait">
-
-
                 {activeTab === 'medical' && (
                   <motion.div
                     key="medical"
@@ -220,7 +219,7 @@ const Profile = () => {
                     className="space-y-4 sm:space-y-6"
                   >
                     {/* Medical Conditions */}
-                    <motion.div 
+                    <motion.div
                       variants={itemVariants}
                       className="bg-white rounded-2xl p-5 sm:p-6 border border-[#E9DFC3]/50 hover:border-[#1B56FD]/20 transition-all duration-300"
                     >
@@ -243,7 +242,7 @@ const Profile = () => {
                     </motion.div>
 
                     {/* Allergies - Important Alert Section */}
-                    <motion.div 
+                    <motion.div
                       variants={itemVariants}
                       className="bg-gradient-to-br from-red-50/50 to-[#FFF8F8] rounded-2xl p-5 sm:p-6 border border-red-200/50"
                     >
@@ -267,11 +266,11 @@ const Profile = () => {
                     </motion.div>
 
                     {/* Additional Info Grid */}
-                    <motion.div 
+                    <motion.div
                       variants={containerVariants}
                       className="grid grid-cols-1 md:grid-cols-2 gap-4"
                     >
-                      <motion.div 
+                      <motion.div
                         variants={itemVariants}
                         className="group bg-white rounded-2xl p-5 sm:p-6 border border-[#E9DFC3]/50 hover:border-[#1B56FD]/20 transition-all duration-300"
                       >
@@ -281,10 +280,12 @@ const Profile = () => {
                           </div>
                           Address
                         </h4>
-                        <p className="text-gray-600 text-sm leading-relaxed">{patient.address}</p>
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          {patient.address}
+                        </p>
                       </motion.div>
-                      
-                      <motion.div 
+
+                      <motion.div
                         variants={itemVariants}
                         className="group bg-white rounded-2xl p-5 sm:p-6 border border-[#E9DFC3]/50 hover:border-[#1B56FD]/20 transition-all duration-300"
                       >
@@ -294,7 +295,9 @@ const Profile = () => {
                           </div>
                           Last Visit
                         </h4>
-                        <p className="text-gray-600 text-sm">{patient.lastVisit}</p>
+                        <p className="text-gray-600 text-sm">
+                          {patient.lastVisit}
+                        </p>
                       </motion.div>
                     </motion.div>
                   </motion.div>
@@ -309,11 +312,7 @@ const Profile = () => {
                     exit="exit"
                     className="space-y-6"
                   >
-                    <div className="text-center py-8 sm:py-12">
-                      <BsClockFill className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Medical History</h3>
-                      <p className="text-gray-600 text-sm sm:text-base">Complete medical history will be displayed here</p>
-                    </div>
+                    <PatientProfileHistory patientData={patient} />
                   </motion.div>
                 )}
               </AnimatePresence>

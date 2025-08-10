@@ -1,4 +1,12 @@
-import { FaHome, FaCalendarAlt, FaNotesMedical, FaUser, FaUsers, FaCog } from 'react-icons/fa';
+import {
+  FaHome,
+  FaCalendarAlt,
+  FaNotesMedical,
+  FaUser,
+  FaUsers,
+  FaCog,
+  FaLightbulb,
+} from 'react-icons/fa';
 
 export const navigationConfig = {
   patient: [
@@ -26,6 +34,11 @@ export const navigationConfig = {
       name: 'Medical Records',
       path: '/patient/medical-records',
       icon: FaNotesMedical,
+    },
+    {
+      name: 'Health Tips',
+      path: '/patient/health-tips',
+      icon: FaLightbulb,
     },
     {
       name: 'Profile',

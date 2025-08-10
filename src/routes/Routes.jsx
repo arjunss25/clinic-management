@@ -13,6 +13,7 @@ import PatientAppointments from '../panels/Patient/Appointments';
 import PatientBookedAppointments from '../panels/Patient/BookedPatientAppointments';
 import PatientProfile from '../panels/Patient/Profile';
 import PatientMedicalRecords from '../panels/Patient/MedicalRecords';
+import PatientHealthTips from '../panels/Patient/HealthTips';
 
 // Doctor Panel Imports
 import DoctorDashboard from '../panels/Doctor/Dashboard';
@@ -45,6 +46,7 @@ const AppRoutes = () => {
           path="booked-appointments"
           element={<PatientBookedAppointments />}
         />
+        <Route path="health-tips" element={<PatientHealthTips />} />
         <Route path="profile" element={<PatientProfile />} />
         <Route path="medical-records" element={<PatientMedicalRecords />} />
       </Route>

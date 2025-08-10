@@ -22,7 +22,7 @@ import {
 import { MdTimeline } from 'react-icons/md';
 import { BsClockHistory } from 'react-icons/bs';
 
-const PatientHistory = () => {
+const PatientProfileHistory = ({ patientData = null }) => {
   const { patientId } = useParams();
   const [patient, setPatient] = useState(null);
   const [medicalHistory, setMedicalHistory] = useState([]);
@@ -306,20 +306,42 @@ const PatientHistory = () => {
     const fetchData = () => {
       setLoading(true);
 
-      setTimeout(() => {
-        const patientData = patientsDatabase[patientId];
-        if (patientData) {
-          setPatient(patientData);
-          setMedicalHistory(sampleMedicalHistory);
-        }
+      // If patientData is passed as prop, use it immediately (for Profile component)
+      if (patientData) {
+        setPatient(patientData);
+        setMedicalHistory(sampleMedicalHistory);
         setLoading(false);
-      }, 500);
+      }
+      // Otherwise, simulate API call for standalone component
+      else {
+        setTimeout(() => {
+          if (patientId) {
+            const dbPatientData = patientsDatabase[patientId];
+            if (dbPatientData) {
+              setPatient(dbPatientData);
+              setMedicalHistory(sampleMedicalHistory);
+            }
+          } else {
+            // Default patient data for demo
+            const defaultPatient = {
+              id: 'PAT-2024-001',
+              name: 'Sarah Johnson',
+              age: 28,
+              gender: 'Female',
+              bloodType: 'O+',
+              allergies: ['Penicillin', 'Peanuts'],
+              conditions: ['Asthma', 'Seasonal Allergies'],
+            };
+            setPatient(defaultPatient);
+            setMedicalHistory(sampleMedicalHistory);
+          }
+          setLoading(false);
+        }, 500);
+      }
     };
 
-    if (patientId) {
-      fetchData();
-    }
-  }, [patientId]);
+    fetchData();
+  }, [patientId, patientData]);
 
   const getCategoryIcon = (category) => {
     const icons = {
@@ -404,23 +426,6 @@ const PatientHistory = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#E9DFC3]/50">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-              Medical History - {patient.name}
-            </h2>
-            <p className="text-gray-600">
-              Complete timeline of medical events, treatments, and reports
-            </p>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <BsClockHistory className="w-4 h-4" />
-            <span>Last updated: {new Date().toLocaleDateString()}</span>
-          </div>
-        </div>
-      </div>
 
       {/* Filters */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#E9DFC3]/50">
@@ -801,4 +806,4 @@ const PatientHistory = () => {
   );
 };
 
-export default PatientHistory;
+export default PatientProfileHistory;
