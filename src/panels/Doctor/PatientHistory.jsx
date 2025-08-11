@@ -404,23 +404,7 @@ const PatientHistory = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#E9DFC3]/50">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-              Medical History - {patient.name}
-            </h2>
-            <p className="text-gray-600">
-              Complete timeline of medical events, treatments, and reports
-            </p>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <BsClockHistory className="w-4 h-4" />
-            <span>Last updated: {new Date().toLocaleDateString()}</span>
-          </div>
-        </div>
-      </div>
+
 
       {/* Filters */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#E9DFC3]/50">
