@@ -612,10 +612,6 @@ const Dashboard = () => {
             Quick Actions
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0118D8] text-white rounded-lg hover:bg-[#0118D8]/90 transition-colors">
-              <FaPlus className="w-4 h-4" />
-              Add Patient
-            </button>
             <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#0118D8] border border-[#E9DFC3]/80 rounded-lg hover:border-[#1B56FD] hover:bg-[#0118D8]/5 transition-colors">
               <FaCalendarAlt className="w-4 h-4" />
               Schedule Appointment
