@@ -14,12 +14,14 @@ import PatientBookedAppointments from '../panels/Patient/BookedPatientAppointmen
 import PatientProfile from '../panels/Patient/Profile';
 import PatientMedicalRecords from '../panels/Patient/MedicalRecords';
 import PatientHealthTips from '../panels/Patient/HealthTips';
+import PaymentHistory from '../panels/Patient/PaymentHistory';
 
 // Doctor Panel Imports
 import DoctorDashboard from '../panels/Doctor/Dashboard';
 import DoctorAppointments from '../panels/Doctor/Appointments';
 import DoctorPatients from '../panels/Doctor/Patients';
 import DoctorPatientProfile from '../panels/Doctor/PatientProfile';
+
 
 // Staff Panel Imports
 import StaffDashboard from '../panels/Staff/Dashboard';
@@ -30,6 +32,7 @@ import StaffPatients from '../panels/Staff/Patients';
 import SuperAdminDashboard from '../panels/SuperAdmin/Dashboard';
 import SuperAdminUsers from '../panels/SuperAdmin/Users';
 import SuperAdminSettings from '../panels/SuperAdmin/Settings';
+
 
 const AppRoutes = () => {
   return (
@@ -47,6 +50,7 @@ const AppRoutes = () => {
           element={<PatientBookedAppointments />}
         />
         <Route path="health-tips" element={<PatientHealthTips />} />
+        <Route path="payments" element={<PaymentHistory />} />
         <Route path="profile" element={<PatientProfile />} />
         <Route path="medical-records" element={<PatientMedicalRecords />} />
       </Route>

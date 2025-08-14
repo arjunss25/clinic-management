@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FaUserMd,
@@ -60,6 +60,71 @@ function getMonthMatrix(year, month) {
   while (week.length < 7) week.push(null);
   matrix.push(week);
   return matrix;
+}
+
+// Load Cashfree SDK helper (sandbox by default)
+function loadCashfreeSdk(mode = 'sandbox') {
+  return new Promise((resolve, reject) => {
+    if (typeof window !== 'undefined' && (window.Cashfree || (window.Cashfree && window.Cashfree.Cashfree))) {
+      resolve();
+      return;
+    }
+    if (document.getElementById('cashfree-sdk')) {
+      // Script tag exists but window object not ready yet
+      const checkInterval = setInterval(() => {
+        if (window.Cashfree) {
+          clearInterval(checkInterval);
+          resolve();
+        }
+      }, 50);
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        if (window.Cashfree) resolve();
+        else reject(new Error('Cashfree SDK not ready'));
+      }, 3000);
+      return;
+    }
+    const script = document.createElement('script');
+    script.id = 'cashfree-sdk';
+    script.src =
+      mode === 'production'
+        ? 'https://sdk.cashfree.com/js/ui/2.0.0/cashfree.prod.js'
+        : 'https://sdk.cashfree.com/js/ui/2.0.0/cashfree.sandbox.js';
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Cashfree SDK'));
+    document.body.appendChild(script);
+  });
+}
+
+// Placeholder function to request order token from backend
+async function createCashfreeOrderToken(booking) {
+  try {
+    const res = await fetch('/api/payments/cashfree/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: 500, // INR 500 demo amount; replace with real consultation fee
+        currency: 'INR',
+        customer: {
+          phone: '9999999999',
+          email: 'patient@example.com',
+          name: 'Patient',
+        },
+        notes: {
+          doctor: booking?.doctor,
+          specialty: booking?.specialty,
+          date: booking?.date,
+          time: booking?.time,
+        },
+      }),
+    });
+    if (!res.ok) throw new Error('Failed to create order');
+    const data = await res.json();
+    return data?.orderToken || data?.order_token || data?.token || null;
+  } catch (err) {
+    return null;
+  }
 }
 
 // Mock data
@@ -216,6 +281,12 @@ const PatientScheduler = () => {
     specialty: '',
   });
 
+  // Payment modal state
+  const [showPayment, setShowPayment] = useState(false);
+  const [isPaymentInitializing, setIsPaymentInitializing] = useState(false);
+  const [paymentInitError, setPaymentInitError] = useState('');
+  const [orderToken, setOrderToken] = useState('');
+
   const monthMatrix = useMemo(
     () => getMonthMatrix(currentMonth.getFullYear(), currentMonth.getMonth()),
     [currentMonth]
@@ -275,10 +346,8 @@ const PatientScheduler = () => {
 
   const handleBookingSubmit = (e) => {
     if (e) e.preventDefault();
-    alert(
-      `Appointment requested with ${bookingInfo.doctor} (${bookingInfo.specialty}) at ${bookingInfo.time} on ${bookingInfo.date}`
-    );
     setShowBooking(false);
+    setShowPayment(true);
   };
 
   const handleWaitlistBook = (date, doctor, specialty) => {
@@ -307,6 +376,69 @@ const PatientScheduler = () => {
     setSelectedDate(date);
     setShowDayModal(true);
   };
+
+  // Initialize Cashfree Drop when payment modal opens
+  useEffect(() => {
+    let isMounted = true;
+    let cleanup = () => {};
+    async function initPayment() {
+      if (!showPayment) return;
+      setPaymentInitError('');
+      setIsPaymentInitializing(true);
+      try {
+        await loadCashfreeSdk('sandbox');
+        if (!isMounted) return;
+        const token = await createCashfreeOrderToken(bookingInfo);
+        if (!token) {
+          setPaymentInitError('Unable to initialize payment. Configure backend to create order token.');
+          setIsPaymentInitializing(false);
+          return;
+        }
+        setOrderToken(token);
+        const container = document.getElementById('cf-dropin');
+        if (!container) {
+          setPaymentInitError('Payment container not found');
+          setIsPaymentInitializing(false);
+          return;
+        }
+        // Try both Cashfree init styles for broader compatibility
+        const cfFactory = typeof window.Cashfree === 'function' ? window.Cashfree : null;
+        const cfClass = window.Cashfree && window.Cashfree.Cashfree ? window.Cashfree.Cashfree : null;
+        const cashfree = cfFactory ? cfFactory({ mode: 'sandbox' }) : cfClass ? new cfClass({ mode: 'sandbox' }) : null;
+        if (!cashfree || typeof cashfree.initialiseDropin !== 'function') {
+          setPaymentInitError('Cashfree SDK initialisation function not available');
+          setIsPaymentInitializing(false);
+          return;
+        }
+        cashfree.initialiseDropin(container, {
+          orderToken: token,
+          onSuccess: (data) => {
+            setShowPayment(false);
+            alert('Payment successful');
+          },
+          onFailure: (data) => {
+            setPaymentInitError('Payment failed. Please try again.');
+          },
+          components: ['order-details', 'card', 'upi', 'netbanking', 'app'],
+          theme: {
+            color: COLORS.primary,
+          },
+        });
+        cleanup = () => {
+          container.innerHTML = '';
+        };
+      } catch (err) {
+        setPaymentInitError(err?.message || 'Payment initialisation failed');
+      } finally {
+        setIsPaymentInitializing(false);
+      }
+    }
+    initPayment();
+    return () => {
+      isMounted = false;
+      cleanup();
+    };
+  }, [showPayment]);
 
   return (
     <div className="min-h-screen">
@@ -1247,6 +1379,128 @@ const PatientScheduler = () => {
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Cashfree Payment Modal */}
+        {showPayment ? (
+          <div
+            className="fixed inset-0 z-[130] flex items-center justify-center p-2 sm:p-4"
+            style={{
+              background: 'rgba(15, 23, 42, 0.45)',
+              backdropFilter: 'saturate(140%) blur(6px)',
+            }}
+            onClick={() => {
+              // Allow closing if not in the middle of init
+              if (!isPaymentInitializing) setShowPayment(false);
+            }}
+          >
+            <div
+              className="w-full max-w-md sm:max-w-lg rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] overflow-y-auto"
+              style={{
+                background: COLORS.surface,
+                border: `1px solid ${COLORS.border}`,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                className="px-4 sm:px-6 py-3 sm:py-4 border-b flex items-center justify-between"
+                style={{ background: COLORS.white, borderColor: COLORS.border }}
+              >
+                <h3
+                  className="text-base sm:text-lg font-semibold"
+                  style={{ color: COLORS.text }}
+                >
+                  Complete Payment
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => !isPaymentInitializing && setShowPayment(false)}
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl transition flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background: COLORS.white,
+                    color: COLORS.textMuted,
+                    border: `1px solid ${COLORS.border}`,
+                    opacity: isPaymentInitializing ? 0.6 : 1,
+                    cursor: isPaymentInitializing ? 'not-allowed' : 'pointer',
+                  }}
+                  aria-label="Close payment"
+                >
+                  <FaTimes className="w-3 h-3 sm:w-4 sm:h-4" />
+                </button>
+              </div>
+
+              <div className="p-4 sm:p-6 space-y-4">
+                <div
+                  className="rounded-lg sm:rounded-xl p-3"
+                  style={{
+                    border: `1px solid ${COLORS.border}`,
+                    background: COLORS.white,
+                  }}
+                >
+                  <p className="text-xs sm:text-sm" style={{ color: COLORS.text }}>
+                    Paying for: <span className="font-semibold">{bookingInfo.specialty}</span>
+                  </p>
+                  <p className="text-xs sm:text-sm" style={{ color: COLORS.text }}>
+                    Doctor: <span className="font-semibold">{bookingInfo.doctor}</span>
+                  </p>
+                  <p className="text-xs sm:text-sm" style={{ color: COLORS.text }}>
+                    Date & Time: <span className="font-semibold">{bookingInfo.date} at {bookingInfo.time}</span>
+                  </p>
+                </div>
+
+                {paymentInitError ? (
+                  <div
+                    className="rounded-lg sm:rounded-xl p-3 text-xs sm:text-sm"
+                    style={{
+                      border: '1px solid #fecaca',
+                      background: '#fef2f2',
+                      color: '#991b1b',
+                    }}
+                  >
+                    {paymentInitError}
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        type="button"
+                        className="px-3 py-2 rounded-lg text-white text-xs sm:text-sm"
+                        style={{ background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})` }}
+                        onClick={() => {
+                          setShowPayment(false);
+                          alert('Proceeding without payment (demo). Wire server to create Cashfree order.');
+                        }}
+                      >
+                        Continue (Demo)
+                      </button>
+                      <button
+                        type="button"
+                        className="px-3 py-2 rounded-lg text-xs sm:text-sm"
+                        style={{ background: COLORS.gray50, color: COLORS.text, border: `1px solid ${COLORS.border}` }}
+                        onClick={() => setShowPayment(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
+                <div
+                  id="cf-dropin"
+                  style={{
+                    minHeight: '520px',
+                    background: COLORS.white,
+                    border: `1px solid ${COLORS.border}`,
+                    borderRadius: '0.75rem',
+                  }}
+                  className="p-2"
+                >
+                  {isPaymentInitializing ? (
+                    <div className="w-full h-[500px] flex items-center justify-center text-sm" style={{ color: COLORS.textMuted }}>
+                      Initializing payment...
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </div>
           </div>
