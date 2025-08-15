@@ -17,11 +17,31 @@ import {
   FaHistory,
   FaChartLine,
   FaUserClock, // For waiting list icon
+  FaArrowLeft,
+  FaSave,
+  FaPrint,
+  FaCalendarPlus,
 } from 'react-icons/fa';
 import { Users, Clock, CheckCircle2, XCircle, UserPlus } from 'lucide-react';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
+  const [consultationView, setConsultationView] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [prescription, setPrescription] = useState({
+    medications: [],
+    dosage: '',
+    frequency: '',
+    duration: '',
+    instructions: '',
+    notes: ''
+  });
+  const [followUp, setFollowUp] = useState({
+    date: '',
+    time: '',
+    type: 'Follow-up',
+    notes: ''
+  });
 
   // Animation variants
   const containerVariants = {
@@ -71,6 +91,16 @@ const Dashboard = () => {
         patientId: 'PT-2024-0892',
         age: 28,
         condition: 'Asthma',
+        symptoms: 'Shortness of breath, wheezing',
+        vitalSigns: {
+          bloodPressure: '120/80',
+          heartRate: '72',
+          temperature: '98.6°F',
+          oxygenSaturation: '95%'
+        },
+        allergies: 'None known',
+        currentMedications: 'Albuterol inhaler',
+        medicalHistory: 'Asthma since childhood, seasonal allergies'
       },
       {
         id: 2,
@@ -82,6 +112,16 @@ const Dashboard = () => {
         patientId: 'PT-2024-0893',
         age: 45,
         condition: 'Hypertension',
+        symptoms: 'Headaches, dizziness',
+        vitalSigns: {
+          bloodPressure: '150/95',
+          heartRate: '85',
+          temperature: '98.4°F',
+          oxygenSaturation: '97%'
+        },
+        allergies: 'Penicillin',
+        currentMedications: 'None',
+        medicalHistory: 'Family history of hypertension'
       },
       {
         id: 3,
@@ -93,6 +133,16 @@ const Dashboard = () => {
         patientId: 'PT-2024-0894',
         age: 32,
         condition: 'Diabetes',
+        symptoms: 'Increased thirst, frequent urination',
+        vitalSigns: {
+          bloodPressure: '118/78',
+          heartRate: '76',
+          temperature: '98.8°F',
+          oxygenSaturation: '96%'
+        },
+        allergies: 'None known',
+        currentMedications: 'Metformin',
+        medicalHistory: 'Type 2 diabetes diagnosed 2 years ago'
       },
     ],
     completed: [
@@ -192,6 +242,356 @@ const Dashboard = () => {
   const getTabCount = (tab) => {
     return todayAppointments[tab]?.length || 0;
   };
+
+  const handleStartConsultation = (appointment) => {
+    setSelectedAppointment(appointment);
+    setConsultationView(true);
+    // Reset prescription and follow-up forms
+    setPrescription({
+      medications: [{ name: '', dosage: '', frequency: '', duration: '' }],
+      dosage: '',
+      frequency: '',
+      duration: '',
+      instructions: '',
+      notes: ''
+    });
+    setFollowUp({
+      date: '',
+      time: '',
+      type: 'Follow-up',
+      notes: ''
+    });
+  };
+
+  const handleBackToDashboard = () => {
+    setConsultationView(false);
+    setSelectedAppointment(null);
+  };
+
+  const addMedication = () => {
+    if (prescription.medications.length < 5) {
+      setPrescription(prev => ({
+        ...prev,
+        medications: [...prev.medications, { name: '', dosage: '', frequency: '', duration: '' }]
+      }));
+    }
+  };
+
+  const removeMedication = (index) => {
+    setPrescription(prev => ({
+      ...prev,
+      medications: prev.medications.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateMedication = (index, field, value) => {
+    setPrescription(prev => ({
+      ...prev,
+      medications: prev.medications.map((med, i) => 
+        i === index ? { ...med, [field]: value } : med
+      )
+    }));
+  };
+
+  const deletePrescription = () => {
+    const confirmed = window.confirm('Delete the entire prescription? This will clear all medications and notes.');
+    if (!confirmed) return;
+    setPrescription({
+      medications: [{ name: '', dosage: '', frequency: '', duration: '' }],
+      dosage: '',
+      frequency: '',
+      duration: '',
+      instructions: '',
+      notes: ''
+    });
+  };
+
+  const addPrescription = () => {
+    // Hook to backend can be added here
+    console.log('Add Prescription clicked', {
+      appointment: selectedAppointment,
+      prescription,
+    });
+    alert('Prescription added. You can still edit before saving the consultation.');
+  };
+
+  const saveConsultation = () => {
+    // Here you would typically save to your backend
+    console.log('Saving consultation:', {
+      appointment: selectedAppointment,
+      prescription,
+      followUp
+    });
+    // You could show a success message here
+    alert('Consultation saved successfully!');
+  };
+
+  // If consultation view is active, show consultation interface
+  if (consultationView && selectedAppointment) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="space-y-6"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleBackToDashboard}
+              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <FaArrowLeft className="w-4 h-4" />
+              Back to Dashboard
+            </button>
+            <div className="h-6 w-px bg-gray-300"></div>
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-3 flex-wrap">
+                Consultation - {selectedAppointment.patientName}
+                <span className="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                  Age: {selectedAppointment.age}
+                </span>
+              </h1>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={saveConsultation}
+              className="flex items-center gap-2 px-4 py-2 bg-[#0118D8] text-white rounded-lg hover:bg-[#0118D8]/90 transition-colors"
+            >
+              <FaSave className="w-4 h-4" />
+              Save Consultation
+            </button>
+            <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+              <FaPrint className="w-4 h-4" />
+              Print
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Patient Information */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl p-6 border border-[#E9DFC3]/70 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Patient Information</h3>
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200">
+                    ID: {selectedAppointment.patientId}
+                  </span>
+                  <span className="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200">
+                    Condition: {selectedAppointment.condition}
+                  </span>
+                  {selectedAppointment.allergies && (
+                    <span className="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium bg-orange-50 text-orange-700 border border-orange-100">
+                      Allergies: {selectedAppointment.allergies}
+                    </span>
+                  )}
+                  {selectedAppointment.currentMedications && (
+                    <span className="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
+                      Current Meds: {selectedAppointment.currentMedications}
+                    </span>
+                  )}
+                </div>
+                {selectedAppointment.symptoms && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Symptoms</label>
+                    <p className="text-gray-900">{selectedAppointment.symptoms}</p>
+                  </div>
+                )}
+                {selectedAppointment.medicalHistory && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Medical History</label>
+                    <p className="text-gray-900">{selectedAppointment.medicalHistory}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Vital Signs */}
+            {selectedAppointment.vitalSigns && (
+              <div className="bg-white rounded-xl p-6 border border-[#E9DFC3]/70 shadow-sm mt-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Vital Signs</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Blood Pressure</label>
+                    <p className="text-gray-900">{selectedAppointment.vitalSigns.bloodPressure}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Heart Rate</label>
+                    <p className="text-gray-900">{selectedAppointment.vitalSigns.heartRate} bpm</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Temperature</label>
+                    <p className="text-gray-900">{selectedAppointment.vitalSigns.temperature}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">O2 Saturation</label>
+                    <p className="text-gray-900">{selectedAppointment.vitalSigns.oxygenSaturation}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Consultation Forms */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Prescription Form */}
+            <div className="bg-white rounded-xl p-6 border border-[#E9DFC3]/70 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Prescription</h3>
+                
+              </div>
+              <div className="space-y-4">
+                {/* Medications */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Medications</label>
+                  {prescription.medications.map((med, index) => (
+                    <div key={index} className="grid grid-cols-12 gap-3 mb-3 p-3 border border-gray-200 rounded-lg">
+                      <input
+                        type="text"
+                        placeholder="Medication name"
+                        value={med.name}
+                        onChange={(e) => updateMedication(index, 'name', e.target.value)}
+                        className="col-span-3 md:col-span-3 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Dosage"
+                        value={med.dosage}
+                        onChange={(e) => updateMedication(index, 'dosage', e.target.value)}
+                        className="col-span-2 md:col-span-3 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Frequency"
+                        value={med.frequency}
+                        onChange={(e) => updateMedication(index, 'frequency', e.target.value)}
+                        className="col-span-2 md:col-span-3 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+                      />
+                      <div className="col-span-5 md:col-span-3 flex items-center gap-2">
+                        <input
+                          type="text"
+                          placeholder="Duration"
+                          value={med.duration}
+                          onChange={(e) => updateMedication(index, 'duration', e.target.value)}
+                          className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+                        />
+                        <button
+                          onClick={() => removeMedication(index)}
+                          className="p-2 text-red-500 hover:text-red-700 transition-colors"
+                        >
+                          <FaTimes className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {prescription.medications.length < 5 && (
+                    <button
+                      onClick={addMedication}
+                      className="flex items-center gap-2 px-4 py-2 bg-[#0118D8]/5 text-[#0118D8] rounded-lg hover:bg-[#0118D8]/10 transition-colors"
+                    >
+                      <FaPlus className="w-4 h-4" />
+                      Add Medication
+                    </button>
+                  )}
+                </div>
+
+                {/* Instructions and Notes */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">Instructions</label>
+                    <textarea
+                      value={prescription.instructions}
+                      onChange={(e) => setPrescription(prev => ({ ...prev, instructions: e.target.value }))}
+                      rows="3"
+                      placeholder="Special instructions for the patient"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">Notes</label>
+                    <textarea
+                      value={prescription.notes}
+                      onChange={(e) => setPrescription(prev => ({ ...prev, notes: e.target.value }))}
+                      rows="3"
+                      placeholder="Additional notes"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Add Prescription action */}
+                <div className="pt-2">
+                  <button
+                    onClick={addPrescription}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#0118D8] text-white rounded-lg hover:bg-[#0118D8]/90 transition-colors"
+                  >
+                    <FaPills className="w-4 h-4" />
+                    Add Prescription
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Follow-up Appointment */}
+            <div className="bg-white rounded-xl p-6 border border-[#E9DFC3]/70 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Schedule Follow-up</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Date</label>
+                  <input
+                    type="date"
+                    value={followUp.date}
+                    onChange={(e) => setFollowUp(prev => ({ ...prev, date: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Time</label>
+                  <input
+                    type="time"
+                    value={followUp.time}
+                    onChange={(e) => setFollowUp(prev => ({ ...prev, time: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Type</label>
+                  <select
+                    value={followUp.type}
+                    onChange={(e) => setFollowUp(prev => ({ ...prev, type: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+                  >
+                    <option value="Follow-up">Follow-up</option>
+                    <option value="Review">Review</option>
+                    <option value="Test Results">Test Results</option>
+                    <option value="Procedure">Procedure</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Notes</label>
+                  <textarea
+                    value={followUp.notes}
+                    onChange={(e) => setFollowUp(prev => ({ ...prev, notes: e.target.value }))}
+                    rows="2"
+                    placeholder="Reason for follow-up"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <div className="mt-4">
+                <button className="flex items-center gap-2 px-4 py-2 bg-[#0118D8] text-white rounded-lg hover:bg-blue-600 transition-colors">
+                  <FaCalendarPlus className="w-4 h-4" />
+                  Schedule Follow-up
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -512,7 +912,10 @@ const Dashboard = () => {
                     {/* Main Action Button - Smaller size */}
                     {activeTab === 'upcoming' && (
                       <div className="ml-4">
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0118D8] text-white rounded-lg hover:bg-[#0118D8]/90 transition-colors text-sm font-medium">
+                        <button 
+                          onClick={() => handleStartConsultation(appointment)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0118D8] text-white rounded-lg hover:bg-[#0118D8]/90 transition-colors text-sm font-medium"
+                        >
                           <FaCheckCircle className="w-3.5 h-3.5" />
                           Start Consultation
                         </button>
