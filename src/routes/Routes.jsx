@@ -22,6 +22,7 @@ import DoctorAppointments from '../panels/Doctor/Appointments';
 import AppointmentHistory from '../panels/Doctor/AppointmentHistory';
 import DoctorPatients from '../panels/Doctor/Patients';
 import DoctorPatientProfile from '../panels/Doctor/PatientProfile';
+import Consultation from '../panels/Doctor/Consultation';
 
 // Staff Panel Imports
 import StaffDashboard from '../panels/Staff/Dashboard';
@@ -61,6 +62,7 @@ const AppRoutes = () => {
         <Route path="appointments-history" element={<AppointmentHistory />} />
         <Route path="patients" element={<DoctorPatients />} />
         <Route path="patients/:patientId" element={<DoctorPatientProfile />} />
+        <Route path="consultation" element={<Consultation />} />
       </Route>
 
       {/* Staff Routes */}
