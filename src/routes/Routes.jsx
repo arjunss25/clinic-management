@@ -19,9 +19,9 @@ import PaymentHistory from '../panels/Patient/PaymentHistory';
 // Doctor Panel Imports
 import DoctorDashboard from '../panels/Doctor/Dashboard';
 import DoctorAppointments from '../panels/Doctor/Appointments';
+import AppointmentHistory from '../panels/Doctor/AppointmentHistory';
 import DoctorPatients from '../panels/Doctor/Patients';
 import DoctorPatientProfile from '../panels/Doctor/PatientProfile';
-
 
 // Staff Panel Imports
 import StaffDashboard from '../panels/Staff/Dashboard';
@@ -32,7 +32,6 @@ import StaffPatients from '../panels/Staff/Patients';
 import SuperAdminDashboard from '../panels/SuperAdmin/Dashboard';
 import SuperAdminUsers from '../panels/SuperAdmin/Users';
 import SuperAdminSettings from '../panels/SuperAdmin/Settings';
-
 
 const AppRoutes = () => {
   return (
@@ -59,6 +58,7 @@ const AppRoutes = () => {
       <Route path="/doctor" element={<DoctorLayout />}>
         <Route index element={<DoctorDashboard />} />
         <Route path="appointments" element={<DoctorAppointments />} />
+        <Route path="appointments-history" element={<AppointmentHistory />} />
         <Route path="patients" element={<DoctorPatients />} />
         <Route path="patients/:patientId" element={<DoctorPatientProfile />} />
       </Route>
