@@ -25,7 +25,7 @@ const StaffLayout = () => {
   }, [pathname]);
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen">
       {/* Sidebar */}
       <Sidebar role="staff" />
       
@@ -35,7 +35,7 @@ const StaffLayout = () => {
         <Navbar />
         
         {/* Main Content Area */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto  p-6">
           <Outlet />
         </main>
       </div>
