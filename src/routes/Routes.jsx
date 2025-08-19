@@ -32,8 +32,11 @@ import StaffPatientProfile from '../panels/Staff/PatientProfile';
 
 // SuperAdmin Panel Imports
 import SuperAdminDashboard from '../panels/SuperAdmin/Dashboard';
-import SuperAdminUsers from '../panels/SuperAdmin/Users';
-import SuperAdminSettings from '../panels/SuperAdmin/Settings';
+import SuperAdminClinics from '../panels/SuperAdmin/Clinics';
+import SuperAdminDoctors from '../panels/SuperAdmin/Doctors';
+import SuperAdminStaff from '../panels/SuperAdmin/Staff';
+import SuperAdminApprovals from '../panels/SuperAdmin/Approvals';
+import SuperAdminAnalytics from '../panels/SuperAdmin/Analytics';
 
 const AppRoutes = () => {
   return (
@@ -77,8 +80,11 @@ const AppRoutes = () => {
       {/* SuperAdmin Routes */}
       <Route path="/superadmin" element={<SuperAdminLayout />}>
         <Route index element={<SuperAdminDashboard />} />
-        <Route path="users" element={<SuperAdminUsers />} />
-        <Route path="settings" element={<SuperAdminSettings />} />
+        <Route path="clinics" element={<SuperAdminClinics />} />
+        <Route path="doctors" element={<SuperAdminDoctors />} />
+        <Route path="staff" element={<SuperAdminStaff />} />
+        <Route path="approvals" element={<SuperAdminApprovals />} />
+        <Route path="analytics" element={<SuperAdminAnalytics />} />
       </Route>
 
       {/* Redirect to login for unknown routes */}

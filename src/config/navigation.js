@@ -8,6 +8,11 @@ import {
   FaLightbulb,
   FaMoneyBill,
   FaCreditCard,
+  FaHospital,
+  FaUserMd,
+  FaUserNurse,
+  FaCheckCircle,
+  FaChartLine,
 } from 'react-icons/fa';
 
 export const navigationConfig = {
@@ -94,14 +99,29 @@ export const navigationConfig = {
       icon: FaHome,
     },
     {
-      name: 'Users',
-      path: '/superadmin/users',
-      icon: FaUsers,
+      name: 'Analytics',
+      path: '/superadmin/analytics',
+      icon: FaChartLine,
     },
     {
-      name: 'Settings',
-      path: '/superadmin/settings',
-      icon: FaCog,
+      name: 'Clinics',
+      path: '/superadmin/clinics',
+      icon: FaHospital,
+    },
+    {
+      name: 'Doctors',
+      path: '/superadmin/doctors',
+      icon: FaUserMd,
+    },
+    {
+      name: 'Staff',
+      path: '/superadmin/staff',
+      icon: FaUserNurse,
+    },
+    {
+      name: 'Approvals',
+      path: '/superadmin/approvals',
+      icon: FaCheckCircle,
     },
   ],
 };
