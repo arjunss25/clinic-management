@@ -13,12 +13,12 @@ export const navigationConfig = {
     {
       name: 'Dashboard',
       path: '/patient',
-      icon: FaHome, // Export the component itself
+      icon: FaHome,
     },
     {
       name: 'Appointments',
       path: '/patient/appointments',
-      icon: FaCalendarAlt, // Export the component itself
+      icon: FaCalendarAlt,
       subItems: [
         {
           name: 'Book Appointments',
