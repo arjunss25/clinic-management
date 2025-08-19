@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   FaCalendarAlt,
   FaUserInjured,
@@ -10,10 +11,7 @@ import {
   FaEnvelope,
   FaCheckCircle,
   FaUserMd,
-  FaPills,
   FaEye,
-  FaPlus,
-  FaTimes,
   FaHistory,
   FaChartLine,
   FaUserClock, // For waiting list icon
@@ -22,6 +20,7 @@ import { Users, Clock, CheckCircle2, XCircle, UserPlus } from 'lucide-react';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
+  const navigate = useNavigate();
 
   // Animation variants
   const containerVariants = {
@@ -71,6 +70,16 @@ const Dashboard = () => {
         patientId: 'PT-2024-0892',
         age: 28,
         condition: 'Asthma',
+        symptoms: 'Shortness of breath, wheezing',
+        vitalSigns: {
+          bloodPressure: '120/80',
+          heartRate: '72',
+          temperature: '98.6°F',
+          oxygenSaturation: '95%',
+        },
+        allergies: 'None known',
+        currentMedications: 'Albuterol inhaler',
+        medicalHistory: 'Asthma since childhood, seasonal allergies',
       },
       {
         id: 2,
@@ -82,6 +91,16 @@ const Dashboard = () => {
         patientId: 'PT-2024-0893',
         age: 45,
         condition: 'Hypertension',
+        symptoms: 'Headaches, dizziness',
+        vitalSigns: {
+          bloodPressure: '150/95',
+          heartRate: '85',
+          temperature: '98.4°F',
+          oxygenSaturation: '97%',
+        },
+        allergies: 'Penicillin',
+        currentMedications: 'None',
+        medicalHistory: 'Family history of hypertension',
       },
       {
         id: 3,
@@ -93,6 +112,16 @@ const Dashboard = () => {
         patientId: 'PT-2024-0894',
         age: 32,
         condition: 'Diabetes',
+        symptoms: 'Increased thirst, frequent urination',
+        vitalSigns: {
+          bloodPressure: '118/78',
+          heartRate: '76',
+          temperature: '98.8°F',
+          oxygenSaturation: '96%',
+        },
+        allergies: 'None known',
+        currentMedications: 'Metformin',
+        medicalHistory: 'Type 2 diabetes diagnosed 2 years ago',
       },
     ],
     completed: [
@@ -193,6 +222,13 @@ const Dashboard = () => {
     return todayAppointments[tab]?.length || 0;
   };
 
+  const handleStartConsultation = (appointment) => {
+    // Navigate to consultation page with appointment data
+    navigate('/doctor/consultation', {
+      state: { selectedAppointment: appointment },
+    });
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -263,7 +299,8 @@ const Dashboard = () => {
           </div>
           <div className="mt-4 space-y-1">
             <p className="text-2xl font-semibold text-gray-900">
-              {Object.values(todayAppointments).flat().length - getTabCount('waitingList')}
+              {Object.values(todayAppointments).flat().length -
+                getTabCount('waitingList')}
             </p>
             <p className="text-gray-600 text-sm">
               {getTabCount('upcoming')} upcoming
@@ -287,7 +324,9 @@ const Dashboard = () => {
             <p className="text-2xl font-semibold text-gray-900">
               {getTabCount('completed')}
             </p>
-            <p className="text-green-600 text-sm font-medium">Consultations done</p>
+            <p className="text-green-600 text-sm font-medium">
+              Consultations done
+            </p>
           </div>
         </motion.div>
 
@@ -349,14 +388,16 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold text-white">
-                    {activeTab === 'waitingList' ? 'Patient Waiting List' : "Today's Schedule"}
+                    {activeTab === 'waitingList'
+                      ? 'Patient Waiting List'
+                      : "Today's Schedule"}
                   </h3>
                   <p className="text-white/80 text-xs">
-                    {new Date().toLocaleDateString('en-US', { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
+                    {new Date().toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
                     })}
                   </p>
                 </div>
@@ -440,7 +481,9 @@ const Dashboard = () => {
                             <div className="text-sm font-semibold text-orange-600">
                               Waiting
                             </div>
-                            <div className="text-xs text-gray-500">{appointment.waitingSince}</div>
+                            <div className="text-xs text-gray-500">
+                              {appointment.waitingSince}
+                            </div>
                           </>
                         ) : (
                           <>
@@ -475,11 +518,13 @@ const Dashboard = () => {
                             {appointment.type}
                           </span>
                           {activeTab === 'waitingList' && (
-                            <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
-                              appointment.priority === 'High'
-                                ? 'bg-red-50 text-red-700 border border-red-100'
-                                : 'bg-blue-50 text-blue-700 border border-blue-100'
-                            }`}>
+                            <span
+                              className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
+                                appointment.priority === 'High'
+                                  ? 'bg-red-50 text-red-700 border border-red-100'
+                                  : 'bg-blue-50 text-blue-700 border border-blue-100'
+                              }`}
+                            >
                               {appointment.priority} Priority
                             </span>
                           )}
@@ -494,15 +539,17 @@ const Dashboard = () => {
                       {/* Status */}
                       {activeTab !== 'waitingList' && (
                         <div className="flex flex-col items-end gap-2 mr-4">
-                          <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
-                            appointment.status === 'Completed' 
-                              ? 'bg-green-50 text-green-700 border border-green-100'
-                              : appointment.status === 'Confirmed'
-                              ? 'bg-blue-50 text-blue-700 border border-blue-100'
-                              : appointment.status === 'No Show'
-                              ? 'bg-red-50 text-red-700 border border-red-100'
-                              : 'bg-yellow-50 text-yellow-700 border border-yellow-100'
-                          }`}>
+                          <span
+                            className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
+                              appointment.status === 'Completed'
+                                ? 'bg-green-50 text-green-700 border border-green-100'
+                                : appointment.status === 'Confirmed'
+                                ? 'bg-blue-50 text-blue-700 border border-blue-100'
+                                : appointment.status === 'No Show'
+                                ? 'bg-red-50 text-red-700 border border-red-100'
+                                : 'bg-yellow-50 text-yellow-700 border border-yellow-100'
+                            }`}
+                          >
                             {appointment.status}
                           </span>
                         </div>
@@ -512,7 +559,10 @@ const Dashboard = () => {
                     {/* Main Action Button - Smaller size */}
                     {activeTab === 'upcoming' && (
                       <div className="ml-4">
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0118D8] text-white rounded-lg hover:bg-[#0118D8]/90 transition-colors text-sm font-medium">
+                        <button
+                          onClick={() => handleStartConsultation(appointment)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0118D8] text-white rounded-lg hover:bg-[#0118D8]/90 transition-colors text-sm font-medium"
+                        >
                           <FaCheckCircle className="w-3.5 h-3.5" />
                           Start Consultation
                         </button>
@@ -569,8 +619,9 @@ const Dashboard = () => {
                         </button>
                       </>
                     )}
-                    
-                    {(activeTab === 'completed' || activeTab === 'notVisited') && (
+
+                    {(activeTab === 'completed' ||
+                      activeTab === 'notVisited') && (
                       <>
                         <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0118D8]/5 text-[#0118D8] rounded-lg hover:bg-[#0118D8]/10 transition-colors text-xs font-medium">
                           <FaHistory className="w-3 h-3" />
@@ -589,10 +640,15 @@ const Dashboard = () => {
                   </div>
                 </motion.div>
               ))}
-              
+
               {getTabData().length === 0 && (
                 <div className="text-center py-8 text-gray-500">
-                  <p>No {activeTab === 'waitingList' ? 'patients in waiting list' : 'appointments in this category'}</p>
+                  <p>
+                    No{' '}
+                    {activeTab === 'waitingList'
+                      ? 'patients in waiting list'
+                      : 'appointments in this category'}
+                  </p>
                 </div>
               )}
             </div>
@@ -601,7 +657,7 @@ const Dashboard = () => {
       </motion.div>
 
       {/* Quick Actions */}
-      <motion.div 
+      <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"

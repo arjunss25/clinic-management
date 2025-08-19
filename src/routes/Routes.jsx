@@ -14,17 +14,21 @@ import PatientBookedAppointments from '../panels/Patient/BookedPatientAppointmen
 import PatientProfile from '../panels/Patient/Profile';
 import PatientMedicalRecords from '../panels/Patient/MedicalRecords';
 import PatientHealthTips from '../panels/Patient/HealthTips';
+import PaymentHistory from '../panels/Patient/PaymentHistory';
 
 // Doctor Panel Imports
 import DoctorDashboard from '../panels/Doctor/Dashboard';
 import DoctorAppointments from '../panels/Doctor/Appointments';
+import AppointmentHistory from '../panels/Doctor/AppointmentHistory';
 import DoctorPatients from '../panels/Doctor/Patients';
 import DoctorPatientProfile from '../panels/Doctor/PatientProfile';
+import Consultation from '../panels/Doctor/Consultation';
 
 // Staff Panel Imports
 import StaffDashboard from '../panels/Staff/Dashboard';
 import StaffAppointments from '../panels/Staff/Appointments';
 import StaffPatients from '../panels/Staff/Patients';
+import StaffPatientProfile from '../panels/Staff/PatientProfile';
 
 // SuperAdmin Panel Imports
 import SuperAdminDashboard from '../panels/SuperAdmin/Dashboard';
@@ -47,6 +51,7 @@ const AppRoutes = () => {
           element={<PatientBookedAppointments />}
         />
         <Route path="health-tips" element={<PatientHealthTips />} />
+        <Route path="payments" element={<PaymentHistory />} />
         <Route path="profile" element={<PatientProfile />} />
         <Route path="medical-records" element={<PatientMedicalRecords />} />
       </Route>
@@ -55,8 +60,10 @@ const AppRoutes = () => {
       <Route path="/doctor" element={<DoctorLayout />}>
         <Route index element={<DoctorDashboard />} />
         <Route path="appointments" element={<DoctorAppointments />} />
+        <Route path="appointments-history" element={<AppointmentHistory />} />
         <Route path="patients" element={<DoctorPatients />} />
         <Route path="patients/:patientId" element={<DoctorPatientProfile />} />
+        <Route path="consultation" element={<Consultation />} />
       </Route>
 
       {/* Staff Routes */}
@@ -64,6 +71,7 @@ const AppRoutes = () => {
         <Route index element={<StaffDashboard />} />
         <Route path="appointments" element={<StaffAppointments />} />
         <Route path="patients" element={<StaffPatients />} />
+        <Route path="patients/:patientId" element={<StaffPatientProfile />} />
       </Route>
 
       {/* SuperAdmin Routes */}

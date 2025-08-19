@@ -6,6 +6,8 @@ import {
   FaUsers,
   FaCog,
   FaLightbulb,
+  FaMoneyBill,
+  FaCreditCard,
 } from 'react-icons/fa';
 
 export const navigationConfig = {
@@ -39,6 +41,11 @@ export const navigationConfig = {
       name: 'Health Tips',
       path: '/patient/health-tips',
       icon: FaLightbulb,
+    },
+    {
+      name: 'Payment History',
+      path: '/patient/payments',
+      icon: FaCreditCard,
     },
     {
       name: 'Profile',
