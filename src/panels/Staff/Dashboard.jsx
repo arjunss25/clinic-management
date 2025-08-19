@@ -18,7 +18,18 @@ import {
   FaTimes,
   FaUpload,
 } from 'react-icons/fa';
-import { Users, Clock, CheckCircle2, XCircle, UserPlus, File, FileText, AlertTriangle } from 'lucide-react';
+import {
+  Users,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  UserPlus,
+  File,
+  FileText,
+  AlertTriangle,
+  Activity,
+  X,
+} from 'lucide-react';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
@@ -28,7 +39,21 @@ const Dashboard = () => {
     type: 'Lab Report',
     description: '',
     priority: 'Normal',
-    file: null
+    file: null,
+  });
+  const [showVitalsModal, setShowVitalsModal] = useState(false);
+  const [selectedVitalsAppointment, setSelectedVitalsAppointment] =
+    useState(null);
+  const [vitalsForm, setVitalsForm] = useState({
+    bloodPressure: '',
+    heartRate: '',
+    temperature: '',
+    oxygenSaturation: '',
+    respiratoryRate: '',
+    weight: '',
+    height: '',
+    bmi: '',
+    notes: '',
   });
   const navigate = useNavigate();
 
@@ -235,9 +260,9 @@ const Dashboard = () => {
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-      setUploadForm(prev => ({
+      setUploadForm((prev) => ({
         ...prev,
-        file: file
+        file: file,
       }));
     }
   };
@@ -252,10 +277,36 @@ const Dashboard = () => {
         type: 'Lab Report',
         description: '',
         priority: 'Normal',
-        file: null
+        file: null,
       });
     } else {
       alert('Please fill in all required fields');
+    }
+  };
+
+  const handleVitalsSubmit = () => {
+    alert('Vitals recorded successfully!');
+    setShowVitalsModal(false);
+    setSelectedVitalsAppointment(null);
+    setVitalsForm({
+      bloodPressure: '',
+      heartRate: '',
+      temperature: '',
+      oxygenSaturation: '',
+      respiratoryRate: '',
+      weight: '',
+      height: '',
+      bmi: '',
+      notes: '',
+    });
+  };
+
+  const calculateBMI = () => {
+    const weight = parseFloat(vitalsForm.weight);
+    const height = parseFloat(vitalsForm.height) / 100;
+    if (weight && height) {
+      const bmi = (weight / (height * height)).toFixed(1);
+      setVitalsForm((prev) => ({ ...prev, bmi }));
     }
   };
 
@@ -504,7 +555,6 @@ const Dashboard = () => {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 flex-1">
-
                       {/* Time or Waiting Info */}
                       <div className="text-center">
                         {activeTab === 'waitingList' ? (
@@ -614,7 +664,17 @@ const Dashboard = () => {
                           <FaChartLine className="w-3 h-3" />
                           Patient Timeline
                         </button>
-                        <button 
+                        <button
+                          onClick={() => {
+                            setSelectedVitalsAppointment(appointment);
+                            setShowVitalsModal(true);
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0118D8]/5 text-[#0118D8] rounded-lg hover:bg-[#0118D8]/10 transition-colors text-xs font-medium"
+                        >
+                          <Activity className="w-3 h-3" />
+                          Add Vitals
+                        </button>
+                        <button
                           onClick={() => setShowUploadModal(true)}
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-[#4CAF50]/5 text-[#4CAF50] rounded-lg hover:bg-[#4CAF50]/10 transition-colors text-xs font-medium"
                         >
@@ -638,11 +698,21 @@ const Dashboard = () => {
                           <FaChartLine className="w-3 h-3" />
                           Patient Timeline
                         </button>
+                        <button
+                          onClick={() => {
+                            setSelectedVitalsAppointment(appointment);
+                            setShowVitalsModal(true);
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0118D8]/5 text-[#0118D8] rounded-lg hover:bg-[#0118D8]/10 transition-colors text-xs font-medium"
+                        >
+                          <Activity className="w-3 h-3" />
+                          Add Vitals
+                        </button>
                         <button className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/5 text-red-600 rounded-lg hover:bg-red-500/10 transition-colors text-xs font-medium">
                           <FaTimes className="w-3 h-3" />
                           Remove from List
                         </button>
-                        <button 
+                        <button
                           onClick={() => setShowUploadModal(true)}
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-[#4CAF50]/5 text-[#4CAF50] rounded-lg hover:bg-[#4CAF50]/10 transition-colors text-xs font-medium"
                         >
@@ -667,7 +737,17 @@ const Dashboard = () => {
                           <FaChartLine className="w-3 h-3" />
                           Patient Timeline
                         </button>
-                        <button 
+                        <button
+                          onClick={() => {
+                            setSelectedVitalsAppointment(appointment);
+                            setShowVitalsModal(true);
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0118D8]/5 text-[#0118D8] rounded-lg hover:bg-[#0118D8]/10 transition-colors text-xs font-medium"
+                        >
+                          <Activity className="w-3 h-3" />
+                          Add Vitals
+                        </button>
+                        <button
                           onClick={() => setShowUploadModal(true)}
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-[#4CAF50]/5 text-[#4CAF50] rounded-lg hover:bg-[#4CAF50]/10 transition-colors text-xs font-medium"
                         >
@@ -755,7 +835,10 @@ const Dashboard = () => {
               }}
             >
               <div>
-                <h3 className="text-xl font-semibold" style={{ color: '#111827' }}>
+                <h3
+                  className="text-xl font-semibold"
+                  style={{ color: '#111827' }}
+                >
                   Upload Medical Report
                 </h3>
                 <p className="text-sm mt-1" style={{ color: '#6B7280' }}>
@@ -787,17 +870,31 @@ const Dashboard = () => {
             </div>
 
             {/* Modal Form */}
-            <form onSubmit={(e) => { e.preventDefault(); handleUploadSubmit(); }} className="p-6 space-y-6">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleUploadSubmit();
+              }}
+              className="p-6 space-y-6"
+            >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="lg:col-span-2">
                   <div>
-                    <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>
+                    <label
+                      className="block text-sm font-semibold mb-2"
+                      style={{ color: '#111827' }}
+                    >
                       Report Title <span style={{ color: '#EF4444' }}>*</span>
                     </label>
                     <input
                       type="text"
                       value={uploadForm.title}
-                      onChange={(e) => setUploadForm(prev => ({ ...prev, title: e.target.value }))}
+                      onChange={(e) =>
+                        setUploadForm((prev) => ({
+                          ...prev,
+                          title: e.target.value,
+                        }))
+                      }
                       required
                       className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
                       style={{
@@ -820,13 +917,21 @@ const Dashboard = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>
+                  <label
+                    className="block text-sm font-semibold mb-2"
+                    style={{ color: '#111827' }}
+                  >
                     Report Type
                   </label>
                   <div className="relative">
                     <select
                       value={uploadForm.type}
-                      onChange={(e) => setUploadForm(prev => ({ ...prev, type: e.target.value }))}
+                      onChange={(e) =>
+                        setUploadForm((prev) => ({
+                          ...prev,
+                          type: e.target.value,
+                        }))
+                      }
                       className="w-full px-4 py-3 pr-12 rounded-lg transition-all text-sm border-2 appearance-none cursor-pointer"
                       style={{
                         background: '#ffffff',
@@ -845,30 +950,50 @@ const Dashboard = () => {
                     >
                       <option value="Lab Report">Lab Report</option>
                       <option value="Imaging Report">Imaging Report</option>
-                      <option value="Consultation Report">Consultation Report</option>
+                      <option value="Consultation Report">
+                        Consultation Report
+                      </option>
                       <option value="Procedure Report">Procedure Report</option>
                       <option value="Patient Report">Patient Report</option>
                       <option value="Other">Other</option>
                     </select>
-                    <div 
+                    <div
                       className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none"
                       style={{ color: '#6B7280' }}
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
                       </svg>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>
+                  <label
+                    className="block text-sm font-semibold mb-2"
+                    style={{ color: '#111827' }}
+                  >
                     Priority
                   </label>
                   <div className="relative">
                     <select
                       value={uploadForm.priority}
-                      onChange={(e) => setUploadForm(prev => ({ ...prev, priority: e.target.value }))}
+                      onChange={(e) =>
+                        setUploadForm((prev) => ({
+                          ...prev,
+                          priority: e.target.value,
+                        }))
+                      }
                       className="w-full px-4 py-3 pr-12 rounded-lg transition-all text-sm border-2 appearance-none cursor-pointer"
                       style={{
                         background: '#ffffff',
@@ -889,19 +1014,32 @@ const Dashboard = () => {
                       <option value="High">High</option>
                       <option value="Urgent">Urgent</option>
                     </select>
-                    <div 
+                    <div
                       className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none"
                       style={{ color: '#6B7280' }}
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
                       </svg>
                     </div>
                   </div>
                 </div>
 
                 <div className="lg:col-span-2">
-                  <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>
+                  <label
+                    className="block text-sm font-semibold mb-2"
+                    style={{ color: '#111827' }}
+                  >
                     Attach File
                   </label>
                   <input
@@ -927,12 +1065,21 @@ const Dashboard = () => {
                 </div>
 
                 <div className="lg:col-span-2">
-                  <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>
-                    Report Description <span style={{ color: '#EF4444' }}>*</span>
+                  <label
+                    className="block text-sm font-semibold mb-2"
+                    style={{ color: '#111827' }}
+                  >
+                    Report Description{' '}
+                    <span style={{ color: '#EF4444' }}>*</span>
                   </label>
                   <textarea
                     value={uploadForm.description}
-                    onChange={(e) => setUploadForm(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setUploadForm((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
                     required
                     rows="4"
                     className="w-full px-4 py-3 rounded-lg transition-all text-sm resize-none border-2"
@@ -956,7 +1103,10 @@ const Dashboard = () => {
               </div>
 
               {/* Form Actions */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t" style={{ borderColor: '#ECEEF2' }}>
+              <div
+                className="flex flex-col sm:flex-row gap-3 pt-6 border-t"
+                style={{ borderColor: '#ECEEF2' }}
+              >
                 <button
                   type="button"
                   onClick={() => setShowUploadModal(false)}
@@ -987,14 +1137,484 @@ const Dashboard = () => {
                   }}
                   onMouseEnter={(e) => {
                     e.target.style.transform = 'translateY(-1px)';
-                    e.target.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                    e.target.style.boxShadow =
+                      '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
                   }}
                   onMouseLeave={(e) => {
                     e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                    e.target.style.boxShadow =
+                      '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
                   }}
                 >
                   Upload Report
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Vitals Modal */}
+      {showVitalsModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4"
+          style={{
+            background: 'rgba(15, 23, 42, 0.4)',
+            backdropFilter: 'saturate(140%) blur(8px)',
+          }}
+          onClick={() => setShowVitalsModal(false)}
+        >
+          <div
+            className="w-full max-w-4xl rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+            style={{
+              background: '#ffffff',
+              border: '1px solid #ECEEF2',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              className="px-6 py-5 border-b flex items-center justify-between sticky top-0 z-10"
+              style={{
+                background: '#ffffff',
+                borderColor: '#ECEEF2',
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center"
+                  style={{ background: '#0F1ED115' }}
+                >
+                  <Activity className="w-5 h-5" style={{ color: '#0F1ED1' }} />
+                </div>
+                <div>
+                  <h3
+                    className="text-xl font-semibold"
+                    style={{ color: '#111827' }}
+                  >
+                    Add Patient Vitals
+                  </h3>
+                  <p className="text-sm mt-1" style={{ color: '#6B7280' }}>
+                    {selectedVitalsAppointment
+                      ? `Record current vital signs for ${selectedVitalsAppointment.patientName}`
+                      : 'Record current vital signs'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowVitalsModal(false)}
+                className="w-10 h-10 rounded-full transition-all flex items-center justify-center hover:scale-105 group"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '1px solid #ECEEF2',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#0F1ED115';
+                  e.target.style.borderColor = '#0F1ED1';
+                  e.target.style.color = '#0F1ED1';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = '#ECEEF2';
+                  e.target.style.color = '#6B7280';
+                }}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleVitalsSubmit();
+              }}
+              className="p-6 space-y-6"
+            >
+              {/* Cardiovascular Vitals */}
+              <div>
+                <h4
+                  className="text-lg font-semibold mb-4"
+                  style={{ color: '#111827' }}
+                >
+                  Cardiovascular
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      className="block text-sm font-semibold mb-2"
+                      style={{ color: '#111827' }}
+                    >
+                      Blood Pressure (mmHg)
+                    </label>
+                    <input
+                      type="text"
+                      value={vitalsForm.bloodPressure}
+                      onChange={(e) =>
+                        setVitalsForm((prev) => ({
+                          ...prev,
+                          bloodPressure: e.target.value,
+                        }))
+                      }
+                      placeholder="e.g., 120/80"
+                      className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                      style={{
+                        background: '#ffffff',
+                        border: '2px solid #ECEEF2',
+                        color: '#111827',
+                        outline: 'none',
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#0F1ED1';
+                        e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#ECEEF2';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className="block text-sm font-semibold mb-2"
+                      style={{ color: '#111827' }}
+                    >
+                      Heart Rate (bpm)
+                    </label>
+                    <input
+                      type="number"
+                      value={vitalsForm.heartRate}
+                      onChange={(e) =>
+                        setVitalsForm((prev) => ({
+                          ...prev,
+                          heartRate: e.target.value,
+                        }))
+                      }
+                      placeholder="e.g., 72"
+                      className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                      style={{
+                        background: '#ffffff',
+                        border: '2px solid #ECEEF2',
+                        color: '#111827',
+                        outline: 'none',
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#0F1ED1';
+                        e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#ECEEF2';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Respiratory Vitals */}
+              <div>
+                <h4
+                  className="text-lg font-semibold mb-4"
+                  style={{ color: '#111827' }}
+                >
+                  Respiratory
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label
+                      className="block text-sm font-semibold mb-2"
+                      style={{ color: '#111827' }}
+                    >
+                      Temperature (°F)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={vitalsForm.temperature}
+                      onChange={(e) =>
+                        setVitalsForm((prev) => ({
+                          ...prev,
+                          temperature: e.target.value,
+                        }))
+                      }
+                      placeholder="e.g., 98.6"
+                      className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                      style={{
+                        background: '#ffffff',
+                        border: '2px solid #ECEEF2',
+                        color: '#111827',
+                        outline: 'none',
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#0F1ED1';
+                        e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#ECEEF2';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className="block text-sm font-semibold mb-2"
+                      style={{ color: '#111827' }}
+                    >
+                      Oxygen Saturation (%)
+                    </label>
+                    <input
+                      type="number"
+                      value={vitalsForm.oxygenSaturation}
+                      onChange={(e) =>
+                        setVitalsForm((prev) => ({
+                          ...prev,
+                          oxygenSaturation: e.target.value,
+                        }))
+                      }
+                      placeholder="e.g., 98"
+                      className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                      style={{
+                        background: '#ffffff',
+                        border: '2px solid #ECEEF2',
+                        color: '#111827',
+                        outline: 'none',
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#0F1ED1';
+                        e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#ECEEF2';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className="block text-sm font-semibold mb-2"
+                      style={{ color: '#111827' }}
+                    >
+                      Respiratory Rate (breaths/min)
+                    </label>
+                    <input
+                      type="number"
+                      value={vitalsForm.respiratoryRate}
+                      onChange={(e) =>
+                        setVitalsForm((prev) => ({
+                          ...prev,
+                          respiratoryRate: e.target.value,
+                        }))
+                      }
+                      placeholder="e.g., 16"
+                      className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                      style={{
+                        background: '#ffffff',
+                        border: '2px solid #ECEEF2',
+                        color: '#111827',
+                        outline: 'none',
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#0F1ED1';
+                        e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#ECEEF2';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Anthropometric Measurements */}
+              <div>
+                <h4
+                  className="text-lg font-semibold mb-4"
+                  style={{ color: '#111827' }}
+                >
+                  Anthropometric Measurements
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label
+                      className="block text-sm font-semibold mb-2"
+                      style={{ color: '#111827' }}
+                    >
+                      Weight (kg)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={vitalsForm.weight}
+                      onChange={(e) =>
+                        setVitalsForm((prev) => ({
+                          ...prev,
+                          weight: e.target.value,
+                        }))
+                      }
+                      placeholder="e.g., 70.5"
+                      className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                      style={{
+                        background: '#ffffff',
+                        border: '2px solid #ECEEF2',
+                        color: '#111827',
+                        outline: 'none',
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#0F1ED1';
+                        e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#ECEEF2';
+                        e.target.style.boxShadow = 'none';
+                        calculateBMI();
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className="block text-sm font-semibold mb-2"
+                      style={{ color: '#111827' }}
+                    >
+                      Height (cm)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={vitalsForm.height}
+                      onChange={(e) =>
+                        setVitalsForm((prev) => ({
+                          ...prev,
+                          height: e.target.value,
+                        }))
+                      }
+                      placeholder="e.g., 170"
+                      className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                      style={{
+                        background: '#ffffff',
+                        border: '2px solid #ECEEF2',
+                        color: '#111827',
+                        outline: 'none',
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#0F1ED1';
+                        e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#ECEEF2';
+                        e.target.style.boxShadow = 'none';
+                        calculateBMI();
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className="block text-sm font-semibold mb-2"
+                      style={{ color: '#111827' }}
+                    >
+                      BMI (kg/m²)
+                    </label>
+                    <input
+                      type="text"
+                      value={vitalsForm.bmi}
+                      readOnly
+                      placeholder="Auto-calculated"
+                      className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                      style={{
+                        background: '#F9FAFB',
+                        border: '2px solid #ECEEF2',
+                        color: '#6B7280',
+                        outline: 'none',
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Notes */}
+              <div>
+                <label
+                  className="block text-sm font-semibold mb-2"
+                  style={{ color: '#111827' }}
+                >
+                  Additional Notes
+                </label>
+                <textarea
+                  value={vitalsForm.notes}
+                  onChange={(e) =>
+                    setVitalsForm((prev) => ({
+                      ...prev,
+                      notes: e.target.value,
+                    }))
+                  }
+                  rows="3"
+                  placeholder="Any additional observations or notes about the patient's vital signs..."
+                  className="w-full px-4 py-3 rounded-lg transition-all text-sm resize-none border-2"
+                  style={{
+                    background: '#ffffff',
+                    border: '2px solid #ECEEF2',
+                    color: '#111827',
+                    outline: 'none',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#0F1ED1';
+                    e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#ECEEF2';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                />
+              </div>
+
+              {/* Form Actions */}
+              <div
+                className="flex flex-col sm:flex-row gap-3 pt-6 border-t"
+                style={{ borderColor: '#ECEEF2' }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowVitalsModal(false)}
+                  className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all"
+                  style={{
+                    background: '#ffffff',
+                    color: '#6B7280',
+                    border: '2px solid #ECEEF2',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = '#6B728010';
+                    e.target.style.borderColor = '#6B7280';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = '#ffffff';
+                    e.target.style.borderColor = '#ECEEF2';
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl"
+                  style={{
+                    background: 'linear-gradient(135deg, #0F1ED1, #1B56FD)',
+                    color: '#ffffff',
+                    border: 'none',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'translateY(-1px)';
+                    e.target.style.boxShadow =
+                      '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow =
+                      '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                  }}
+                >
+                  Record Vitals
                 </button>
               </div>
             </form>
