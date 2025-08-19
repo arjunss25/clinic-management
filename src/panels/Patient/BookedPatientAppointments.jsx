@@ -14,6 +14,7 @@ import {
   FaCalendarAlt,
   FaCalendarDay,
   FaArrowLeft,
+  FaUpload,
 } from 'react-icons/fa';
 
 // Modernized theme colors (reduced beige/off-white usage)
@@ -167,6 +168,14 @@ const BookedPatientAppointments = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadForm, setUploadForm] = useState({
+    title: '',
+    type: 'Lab Report',
+    description: '',
+    priority: 'Normal',
+    file: null
+  });
   const navigate = useNavigate();
 
   const handleBackToAppointments = () => {
@@ -196,6 +205,42 @@ const BookedPatientAppointments = () => {
   const handleViewDetails = (appointment) => {
     setSelectedAppointment(appointment);
     setShowDetails(true);
+  };
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setUploadForm(prev => ({
+        ...prev,
+        file: file
+      }));
+    }
+  };
+
+  const handleUploadSubmit = () => {
+    if (uploadForm.title && uploadForm.description) {
+      // Here you would typically send the data to your backend
+      alert('Report uploaded successfully!');
+      setShowUploadModal(false);
+      setUploadForm({
+        title: '',
+        type: 'Lab Report',
+        description: '',
+        priority: 'Normal',
+        file: null
+      });
+    } else {
+      alert('Please fill in all required fields');
+    }
+  };
+
+  const handleCancelAppointment = (appointment) => {
+    if (window.confirm(`Are you sure you want to cancel your appointment with ${appointment.doctor} on ${formatDate(appointment.date)} at ${formatTime(appointment.time)}?`)) {
+      // Here you would typically send the cancellation request to your backend
+      alert('Appointment cancelled successfully!');
+      // You would typically update the appointment status in your backend
+      // For now, we'll just show a success message
+    }
   };
 
   const formatDate = (dateString) => {
@@ -244,19 +289,29 @@ const BookedPatientAppointments = () => {
         </div>
 
           <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={handleBackToAppointments}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition shadow-sm"
-                style={{
-                  background: COLORS.white,
-                  color: COLORS.primary,
-                  border: `1px solid ${COLORS.border}`,
-                }}
-              >
-                <FaArrowLeft className="w-4 h-4" />
-                Back to Appointments
-              </button>
+                             <button
+                 type="button"
+                 onClick={handleBackToAppointments}
+                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
+                 style={{
+                   background: 'linear-gradient(135deg, #F8FAFC, #F1F5F9)',
+                   color: COLORS.primary,
+                   border: `1px solid #E2E8F0`,
+                 }}
+                 onMouseEnter={(e) => {
+                   e.target.style.background = 'linear-gradient(135deg, #EEF2FF, #E0E7FF)';
+                   e.target.style.borderColor = COLORS.primary;
+                   e.target.style.transform = 'translateY(-1px)';
+                 }}
+                 onMouseLeave={(e) => {
+                   e.target.style.background = 'linear-gradient(135deg, #F8FAFC, #F1F5F9)';
+                   e.target.style.borderColor = '#E2E8F0';
+                   e.target.style.transform = 'translateY(0)';
+                 }}
+               >
+                 <FaArrowLeft className="w-4 h-4" />
+                 Back to Appointments
+               </button>
             </div>
 
         {/* Filters */}
@@ -383,28 +438,30 @@ const BookedPatientAppointments = () => {
 
                         {/* Details */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <div>
-                              <h3
-                                className="text-[1.05rem] font-semibold"
-                                style={{ color: COLORS.text }}
-                              >
-                                {appointment.doctor}
-                              </h3>
-                              <p
-                                className="text-sm"
-                                style={{ color: COLORS.textMuted }}
-                              >
-                                {appointment.specialty}
-                              </p>
-                            </div>
-                            <span
-                              className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${status.color}`}
-                            >
-                              <StatusIcon className="w-3.5 h-3.5" />
-                              {status.label}
-                            </span>
-                          </div>
+                                                     <div className="flex items-start justify-between gap-2 mb-2">
+                             <div>
+                               <h3
+                                 className="text-[1.05rem] font-semibold"
+                                 style={{ color: COLORS.text }}
+                               >
+                                 {appointment.doctor}
+                               </h3>
+                               <div className="flex items-center gap-2">
+                                 <p
+                                   className="text-sm"
+                                   style={{ color: COLORS.textMuted }}
+                                 >
+                                   {appointment.specialty}
+                                 </p>
+                                 <span
+                                   className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${status.color}`}
+                                 >
+                                   <StatusIcon className="w-3 h-3" />
+                                   {status.label}
+                                 </span>
+                               </div>
+                             </div>
+                           </div>
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                             <div
@@ -449,19 +506,81 @@ const BookedPatientAppointments = () => {
 
                       {/* Action */}
                       <div className="flex-shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => handleViewDetails(appointment)}
-                          className="px-4 py-2 rounded-xl transition flex items-center gap-2 text-sm font-medium shadow-sm"
-                          style={{
-                            background: COLORS.white,
-                            color: COLORS.primary,
-                            border: `1px solid ${COLORS.border}`,
-                          }}
-                        >
-                          <FaEye className="w-4 h-4" />
-                          View Details
-                        </button>
+                        <div className="flex gap-2">
+                                                     <button
+                             type="button"
+                             onClick={() => handleViewDetails(appointment)}
+                             className="px-4 py-2.5 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-semibold shadow-sm hover:shadow-md"
+                             style={{
+                               background: 'linear-gradient(135deg, #F8FAFC, #F1F5F9)',
+                               color: COLORS.primary,
+                               border: `1px solid #E2E8F0`,
+                             }}
+                             onMouseEnter={(e) => {
+                               e.target.style.background = 'linear-gradient(135deg, #EEF2FF, #E0E7FF)';
+                               e.target.style.borderColor = COLORS.primary;
+                               e.target.style.transform = 'translateY(-1px)';
+                             }}
+                             onMouseLeave={(e) => {
+                               e.target.style.background = 'linear-gradient(135deg, #F8FAFC, #F1F5F9)';
+                               e.target.style.borderColor = '#E2E8F0';
+                               e.target.style.transform = 'translateY(0)';
+                             }}
+                           >
+                             <FaEye className="w-4 h-4" />
+                             View Details
+                           </button>
+                                                      {(appointment.status === 'completed' || appointment.status === 'confirmed' || appointment.status === 'upcoming') && (
+                              <button
+                                type="button"
+                                onClick={() => setShowUploadModal(true)}
+                                className="px-4 py-2.5 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-semibold shadow-sm hover:shadow-md"
+                                style={{
+                                  background: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)',
+                                  color: '#059669',
+                                  border: `1px solid #BBF7D0`,
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.target.style.background = 'linear-gradient(135deg, #DCFCE7, #BBF7D0)';
+                                  e.target.style.borderColor = '#059669';
+                                  e.target.style.transform = 'translateY(-1px)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.background = 'linear-gradient(135deg, #F0FDF4, #DCFCE7)';
+                                  e.target.style.borderColor = '#BBF7D0';
+                                  e.target.style.transform = 'translateY(0)';
+                                }}
+                              >
+                                <FaUpload className="w-4 h-4" />
+                                Upload Report
+                              </button>
+                            )}
+                            {(appointment.status === 'upcoming' || appointment.status === 'confirmed') && (
+                              <button
+                                type="button"
+                                onClick={() => handleCancelAppointment(appointment)}
+                                className="px-4 py-2.5 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-semibold shadow-sm hover:shadow-md"
+                                style={{
+                                  background: 'linear-gradient(135deg, #FEF2F2, #FEE2E2)',
+                                  color: '#DC2626',
+                                  border: `1px solid #FECACA`,
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.target.style.background = 'linear-gradient(135deg, #FEE2E2, #FECACA)';
+                                  e.target.style.borderColor = '#DC2626';
+                                  e.target.style.transform = 'translateY(-1px)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.background = 'linear-gradient(135deg, #FEF2F2, #FEE2E2)';
+                                  e.target.style.borderColor = '#FECACA';
+                                  e.target.style.transform = 'translateY(0)';
+                                }}
+                              >
+                                <FaTimes className="w-4 h-4" />
+                                Cancel
+                              </button>
+                            )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -727,34 +846,419 @@ const BookedPatientAppointments = () => {
                   className="flex gap-3 pt-4"
                   style={{ borderTop: `1px solid ${COLORS.border}` }}
                 >
-                  <button
-                    type="button"
-                    onClick={() => setShowDetails(false)}
-                    className="flex-1 py-2.5 rounded-xl font-medium transition"
-                    style={{
-                      background: COLORS.gray50,
-                      color: COLORS.text,
-                      border: `1px solid ${COLORS.border}`,
-                    }}
-                  >
-                    Close
-                  </button>
-                  {selectedAppointment.status === 'upcoming' ? (
-                    <button
-                      type="button"
-                      className="flex-1 py-2.5 rounded-xl font-medium text-white shadow-sm transition"
-                      style={{
-                        background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
-                      }}
-                    >
-                      Reschedule
-                    </button>
-                  ) : null}
+                                     <button
+                     type="button"
+                     onClick={() => setShowDetails(false)}
+                     className="flex-1 py-3 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
+                     style={{
+                       background: 'linear-gradient(135deg, #F8FAFC, #F1F5F9)',
+                       color: COLORS.text,
+                       border: `1px solid #E2E8F0`,
+                     }}
+                     onMouseEnter={(e) => {
+                       e.target.style.background = 'linear-gradient(135deg, #F1F5F9, #E2E8F0)';
+                       e.target.style.borderColor = '#CBD5E1';
+                       e.target.style.transform = 'translateY(-1px)';
+                     }}
+                     onMouseLeave={(e) => {
+                       e.target.style.background = 'linear-gradient(135deg, #F8FAFC, #F1F5F9)';
+                       e.target.style.borderColor = '#E2E8F0';
+                       e.target.style.transform = 'translateY(0)';
+                     }}
+                   >
+                     Close
+                   </button>
+                                      {selectedAppointment.status === 'upcoming' ? (
+                      <>
+                        <button
+                          type="button"
+                          className="flex-1 py-3 rounded-lg font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200"
+                          style={{
+                            background: 'linear-gradient(135deg, #0F1ED1, #1B56FD)',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = 'translateY(-1px)';
+                            e.target.style.boxShadow = '0 10px 25px -5px rgba(15, 30, 209, 0.3)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                          }}
+                        >
+                          Reschedule
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowDetails(false);
+                            handleCancelAppointment(selectedAppointment);
+                          }}
+                          className="flex-1 py-3 rounded-lg font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200"
+                          style={{
+                            background: 'linear-gradient(135deg, #DC2626, #B91C1C)',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = 'translateY(-1px)';
+                            e.target.style.boxShadow = '0 10px 25px -5px rgba(220, 38, 38, 0.3)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                          }}
+                        >
+                          Cancel Appointment
+                        </button>
+                      </>
+                    ) : selectedAppointment.status === 'confirmed' ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowDetails(false);
+                            setShowUploadModal(true);
+                          }}
+                          className="flex-1 py-3 rounded-lg font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200"
+                          style={{
+                            background: 'linear-gradient(135deg, #059669, #047857)',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = 'translateY(-1px)';
+                            e.target.style.boxShadow = '0 10px 25px -5px rgba(5, 150, 105, 0.3)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                          }}
+                        >
+                          Upload Report
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowDetails(false);
+                            handleCancelAppointment(selectedAppointment);
+                          }}
+                          className="flex-1 py-3 rounded-lg font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200"
+                          style={{
+                            background: 'linear-gradient(135deg, #DC2626, #B91C1C)',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = 'translateY(-1px)';
+                            e.target.style.boxShadow = '0 10px 25px -5px rgba(220, 38, 38, 0.3)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                          }}
+                        >
+                          Cancel Appointment
+                        </button>
+                      </>
+                    ) : selectedAppointment.status === 'completed' ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowDetails(false);
+                          setShowUploadModal(true);
+                        }}
+                        className="flex-1 py-3 rounded-lg font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200"
+                        style={{
+                          background: 'linear-gradient(135deg, #059669, #047857)',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = 'translateY(-1px)';
+                          e.target.style.boxShadow = '0 10px 25px -5px rgba(5, 150, 105, 0.3)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'translateY(0)';
+                          e.target.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                        }}
+                      >
+                        Upload Report
+                      </button>
+                    ) : null}
                 </div>
               </div>
             </div>
           </div>
         ) : null}
+
+        {/* Upload Report Modal */}
+        {showUploadModal && (
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4"
+            style={{
+              background: 'rgba(15, 23, 42, 0.4)',
+              backdropFilter: 'saturate(140%) blur(8px)',
+            }}
+            onClick={() => setShowUploadModal(false)}
+          >
+            <div
+              className="w-full max-w-2xl rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+              style={{
+                background: '#ffffff',
+                border: '1px solid #ECEEF2',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div
+                className="px-6 py-5 border-b flex items-center justify-between sticky top-0 z-10"
+                style={{
+                  background: '#ffffff',
+                  borderColor: '#ECEEF2',
+                }}
+              >
+                <div>
+                  <h3 className="text-xl font-semibold" style={{ color: '#111827' }}>
+                    Upload Medical Report
+                  </h3>
+                  <p className="text-sm mt-1" style={{ color: '#6B7280' }}>
+                    Add a new report to your medical record
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowUploadModal(false)}
+                  className="w-10 h-10 rounded-full transition-all flex items-center justify-center hover:scale-105 group"
+                  style={{
+                    background: '#ffffff',
+                    color: '#6B7280',
+                    border: '1px solid #ECEEF2',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = '#0F1ED115';
+                    e.target.style.borderColor = '#0F1ED1';
+                    e.target.style.color = '#0F1ED1';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = '#ffffff';
+                    e.target.style.borderColor = '#ECEEF2';
+                    e.target.style.color = '#6B7280';
+                  }}
+                >
+                  <FaTimes className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Modal Form */}
+              <form onSubmit={(e) => { e.preventDefault(); handleUploadSubmit(); }} className="p-6 space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="lg:col-span-2">
+                    <div>
+                      <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>
+                        Report Title <span style={{ color: '#EF4444' }}>*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={uploadForm.title}
+                        onChange={(e) => setUploadForm(prev => ({ ...prev, title: e.target.value }))}
+                        required
+                        className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                        style={{
+                          background: '#ffffff',
+                          border: '2px solid #ECEEF2',
+                          color: '#111827',
+                          outline: 'none',
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#0F1ED1';
+                          e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#ECEEF2';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                        placeholder="Enter report title..."
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>
+                      Report Type
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={uploadForm.type}
+                        onChange={(e) => setUploadForm(prev => ({ ...prev, type: e.target.value }))}
+                        className="w-full px-4 py-3 pr-12 rounded-lg transition-all text-sm border-2 appearance-none cursor-pointer"
+                        style={{
+                          background: '#ffffff',
+                          border: '2px solid #ECEEF2',
+                          color: '#111827',
+                          outline: 'none',
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#0F1ED1';
+                          e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#ECEEF2';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      >
+                        <option value="Lab Report">Lab Report</option>
+                        <option value="Imaging Report">Imaging Report</option>
+                        <option value="Consultation Report">Consultation Report</option>
+                        <option value="Procedure Report">Procedure Report</option>
+                        <option value="Patient Report">Patient Report</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      <div 
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none"
+                        style={{ color: '#6B7280' }}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>
+                      Priority
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={uploadForm.priority}
+                        onChange={(e) => setUploadForm(prev => ({ ...prev, priority: e.target.value }))}
+                        className="w-full px-4 py-3 pr-12 rounded-lg transition-all text-sm border-2 appearance-none cursor-pointer"
+                        style={{
+                          background: '#ffffff',
+                          border: '2px solid #ECEEF2',
+                          color: '#111827',
+                          outline: 'none',
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#0F1ED1';
+                          e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#ECEEF2';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      >
+                        <option value="Normal">Normal</option>
+                        <option value="High">High</option>
+                        <option value="Urgent">Urgent</option>
+                      </select>
+                      <div 
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none"
+                        style={{ color: '#6B7280' }}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-2">
+                    <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>
+                      Attach File
+                    </label>
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      onChange={handleFileUpload}
+                      className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                      style={{
+                        background: '#ffffff',
+                        border: '2px solid #ECEEF2',
+                        color: '#111827',
+                        outline: 'none',
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#0F1ED1';
+                        e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#ECEEF2';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                    />
+                  </div>
+
+                  <div className="lg:col-span-2">
+                    <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>
+                      Report Description <span style={{ color: '#EF4444' }}>*</span>
+                    </label>
+                    <textarea
+                      value={uploadForm.description}
+                      onChange={(e) => setUploadForm(prev => ({ ...prev, description: e.target.value }))}
+                      required
+                      rows="4"
+                      className="w-full px-4 py-3 rounded-lg transition-all text-sm resize-none border-2"
+                      style={{
+                        background: '#ffffff',
+                        border: '2px solid #ECEEF2',
+                        color: '#111827',
+                        outline: 'none',
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#0F1ED1';
+                        e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#ECEEF2';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                      placeholder="Enter detailed description of the report..."
+                    />
+                  </div>
+                </div>
+
+                {/* Form Actions */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t" style={{ borderColor: '#ECEEF2' }}>
+                                     <button
+                     type="button"
+                     onClick={() => setShowUploadModal(false)}
+                     className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
+                     style={{
+                       background: 'linear-gradient(135deg, #F8FAFC, #F1F5F9)',
+                       color: '#6B7280',
+                       border: '2px solid #E2E8F0',
+                     }}
+                     onMouseEnter={(e) => {
+                       e.target.style.background = 'linear-gradient(135deg, #F1F5F9, #E2E8F0)';
+                       e.target.style.borderColor = '#CBD5E1';
+                       e.target.style.transform = 'translateY(-1px)';
+                     }}
+                     onMouseLeave={(e) => {
+                       e.target.style.background = 'linear-gradient(135deg, #F8FAFC, #F1F5F9)';
+                       e.target.style.borderColor = '#E2E8F0';
+                       e.target.style.transform = 'translateY(0)';
+                     }}
+                   >
+                     Cancel
+                   </button>
+                   <button
+                     type="submit"
+                     className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
+                     style={{
+                       background: 'linear-gradient(135deg, #0F1ED1, #1B56FD)',
+                       color: '#ffffff',
+                       border: 'none',
+                     }}
+                     onMouseEnter={(e) => {
+                       e.target.style.transform = 'translateY(-1px)';
+                       e.target.style.boxShadow = '0 20px 25px -5px rgba(15, 30, 209, 0.3), 0 10px 10px -5px rgba(15, 30, 209, 0.2)';
+                     }}
+                     onMouseLeave={(e) => {
+                       e.target.style.transform = 'translateY(0)';
+                       e.target.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                     }}
+                   >
+                     Upload Report
+                   </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
