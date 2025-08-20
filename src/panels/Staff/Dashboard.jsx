@@ -17,6 +17,7 @@ import {
   FaUserClock,
   FaTimes,
   FaUpload,
+  FaUser,
 } from 'react-icons/fa';
 import {
   Users,
@@ -686,6 +687,13 @@ const Dashboard = () => {
 
                     {activeTab === 'waitingList' && (
                       <>
+                        <button 
+                          onClick={() => navigate('/staff/patient-booking')}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/5 text-purple-600 rounded-lg hover:bg-purple-500/10 transition-colors text-xs font-medium"
+                        >
+                          <FaCalendarAlt className="w-3 h-3" />
+                          Book Appointment
+                        </button>
                         <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0118D8]/5 text-[#0118D8] rounded-lg hover:bg-[#0118D8]/10 transition-colors text-xs font-medium">
                           <FaPhone className="w-3 h-3" />
                           Call Patient

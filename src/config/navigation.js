@@ -85,6 +85,16 @@ export const navigationConfig = {
       name: 'Appointments',
       path: '/staff/appointments',
       icon: FaCalendarAlt,
+      subItems: [
+        {
+          name: 'Manage Slots',
+          path: '/staff/appointments',
+        },
+        {
+          name: 'Book for Patient',
+          path: '/staff/patient-booking',
+        },
+      ],
     },
     {
       name: 'Patients',

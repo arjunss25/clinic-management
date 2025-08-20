@@ -29,6 +29,7 @@ import StaffDashboard from '../panels/Staff/Dashboard';
 import StaffAppointments from '../panels/Staff/Appointments';
 import StaffPatients from '../panels/Staff/Patients';
 import StaffPatientProfile from '../panels/Staff/PatientProfile';
+import StaffPatientBooking from '../panels/Staff/PatientBooking';
 
 // SuperAdmin Panel Imports
 import SuperAdminDashboard from '../panels/SuperAdmin/Dashboard';
@@ -73,6 +74,7 @@ const AppRoutes = () => {
       <Route path="/staff" element={<StaffLayout />}>
         <Route index element={<StaffDashboard />} />
         <Route path="appointments" element={<StaffAppointments />} />
+        <Route path="patient-booking" element={<StaffPatientBooking />} />
         <Route path="patients" element={<StaffPatients />} />
         <Route path="patients/:patientId" element={<StaffPatientProfile />} />
       </Route>

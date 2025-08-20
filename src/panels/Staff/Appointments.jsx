@@ -19,6 +19,7 @@ import {
   FaArrowLeft,
   FaBan,
   FaCalendarAlt,
+  FaUser,
 } from 'react-icons/fa';
 import { SiTicktick } from 'react-icons/si';
 import DoctorsList from './DoctorsList';
@@ -771,6 +772,19 @@ const Appointments = () => {
 
               {/* Action buttons */}
               <div className="flex gap-2 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => navigate('/staff/patient-booking')}
+                  className="flex-1 sm:flex-none inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-white text-sm font-medium shadow-sm transition"
+                  style={{
+                    background: `linear-gradient(135deg, #8B5CF6, #7C3AED)`,
+                  }}
+                >
+                  <FaUser className="w-4 h-4" />
+                  <span className="hidden sm:inline">Book for Patient</span>
+                  <span className="sm:hidden">Book</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => setShowBulkAddModal(true)}
