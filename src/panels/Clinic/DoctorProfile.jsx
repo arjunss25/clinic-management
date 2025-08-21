@@ -1,12 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
-
 import {
   FaPhone,
-  FaExclamationTriangle,
   FaStethoscope,
   FaArrowLeft,
   FaEdit,
@@ -17,435 +14,328 @@ import {
   FaGraduationCap,
   FaHospital,
   FaClock,
+  FaEnvelope,
+  FaMapMarkerAlt,
+  FaIdCard,
+  FaUserMd,
+  FaStar,
+  FaUsers,
+  FaCertificate,
 } from 'react-icons/fa';
-import {
-  MdEmail,
-  MdLocationOn,
-  MdDateRange,
-  MdSecurity,
-  MdWork,
-} from 'react-icons/md';
+
+// Theme colors (matching the project theme)
+const COLORS = {
+  primary: '#0F1ED1',
+  secondary: '#1B56FD',
+  white: '#ffffff',
+  background: '#F7F8FA',
+  surface: '#ffffff',
+  border: '#ECEEF2',
+  text: '#111827',
+  textMuted: '#6B7280',
+  gray50: '#F9FAFB',
+};
 
 const DoctorProfile = () => {
   const { doctorId } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('professional');
+  const [activeTab, setActiveTab] = useState('overview');
   const [doctor, setDoctor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showSpecializationsEdit, setShowSpecializationsEdit] = useState(false);
-  const [showQualificationsEdit, setShowQualificationsEdit] = useState(false);
-  const [newSpecialization, setNewSpecialization] = useState('');
-  const [newQualification, setNewQualification] = useState('');
-
-  // Animation variants
-  const fadeIn = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 },
-  };
-
-  const tabContentVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      transition: {
-        duration: 0.5,
-        when: 'beforeChildren',
-        staggerChildren: 0.1,
-      },
-    },
-    exit: {
-      opacity: 0,
-      x: 20,
-      transition: { duration: 0.3 },
-    },
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.3 },
-    },
-  };
-
-  const containerVariants = {
-    visible: {
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  // Edit form state
   const [editForm, setEditForm] = useState({});
 
-  // Handle form changes
-  const handleFormChange = (field, value) => {
-    if (field.includes('.')) {
-      const [parent, child] = field.split('.');
-      setEditForm((prev) => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent],
-          [child]: value,
-        },
-      }));
-    } else {
-      setEditForm((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
-    }
-  };
-
-  // Save profile changes
-  const saveProfile = () => {
-    setDoctor((prev) => ({
-      ...prev,
-      ...editForm,
-    }));
-    setShowEditModal(false);
-    alert('Profile updated successfully!');
-  };
-
-  const addSpecialization = () => {
-    if (
-      newSpecialization.trim() &&
-      !doctor.specializations.includes(newSpecialization.trim())
-    ) {
-      setDoctor((prev) => ({
-        ...prev,
-        specializations: [...prev.specializations, newSpecialization.trim()],
-      }));
-      setNewSpecialization('');
-    }
-  };
-
-  const removeSpecialization = (index) => {
-    setDoctor((prev) => ({
-      ...prev,
-      specializations: prev.specializations.filter((_, i) => i !== index),
-    }));
-  };
-
-  const addQualification = () => {
-    if (
-      newQualification.trim() &&
-      !doctor.qualifications.includes(newQualification.trim())
-    ) {
-      setDoctor((prev) => ({
-        ...prev,
-        qualifications: [...prev.qualifications, newQualification.trim()],
-      }));
-      setNewQualification('');
-    }
-  };
-
-  const removeQualification = (index) => {
-    setDoctor((prev) => ({
-      ...prev,
-      qualifications: prev.qualifications.filter((_, i) => i !== index),
-    }));
-  };
-
+  // Sample doctor data (matching the structure from Doctors.jsx)
   const doctorsDatabase = {
     'DOC-2024-001': {
       id: 'DOC-2024-001',
       name: 'Dr. Sarah Johnson',
-      age: 42,
-      gender: 'Female',
-      email: 'sarah.johnson@hospital.com',
+      specialization: 'Cardiology',
+      qualification: 'MD, FACC',
+      experience: 15,
       phone: '+1 (555) 123-4567',
+      email: 'sarah.johnson@clinic.com',
+      joinedDate: '15 Jan 2020',
+      status: 'Active',
+      licenseNumber: 'MD123456',
       address: '123 Medical Center Drive, New York, NY 10001',
-      licenseNumber: 'NY-MD-123456',
       specializations: ['Cardiology', 'Internal Medicine'],
       qualifications: [
         'MD - Harvard Medical School',
         'Board Certified Cardiologist',
         'Fellowship in Interventional Cardiology',
       ],
-      experience: '15 years',
       hospital: 'New York Presbyterian Hospital',
       department: 'Cardiology Department',
-      availableHours: 'Mon-Fri: 9:00 AM - 5:00 PM',
-      consultationFee: '$200',
       languages: ['English', 'Spanish'],
       rating: 4.8,
       totalPatients: 1250,
-      status: 'Active',
+      education: 'Harvard Medical School',
+      certifications: ['Board Certified Cardiologist', 'FACC'],
     },
     'DOC-2024-002': {
       id: 'DOC-2024-002',
       name: 'Dr. Michael Chen',
-      age: 38,
-      gender: 'Male',
-      email: 'michael.chen@hospital.com',
+      specialization: 'Neurology',
+      qualification: 'MD, PhD',
+      experience: 12,
       phone: '+1 (555) 234-5678',
+      email: 'michael.chen@clinic.com',
+      joinedDate: '22 Mar 2021',
+      status: 'Active',
+      licenseNumber: 'MD234567',
       address: '456 Healthcare Plaza, Los Angeles, CA 90210',
-      licenseNumber: 'CA-MD-789012',
       specializations: ['Neurology', 'Neurosurgery'],
       qualifications: [
-        'MD - Stanford Medical School',
-        'PhD in Neuroscience',
+        'MD - Stanford University',
+        'PhD - Neuroscience',
         'Board Certified Neurologist',
       ],
-      experience: '12 years',
       hospital: 'UCLA Medical Center',
       department: 'Neurology Department',
-      availableHours: 'Mon-Thu: 8:00 AM - 6:00 PM',
-      consultationFee: '$250',
       languages: ['English', 'Mandarin'],
       rating: 4.9,
       totalPatients: 980,
+      education: 'Stanford University',
+      certifications: ['Board Certified Neurologist', 'PhD Neuroscience'],
+    },
+    'DOC-2024-003': {
+      id: 'DOC-2024-003',
+      name: 'Dr. Emily Rodriguez',
+      specialization: 'Pediatrics',
+      qualification: 'MD, FAAP',
+      experience: 8,
+      phone: '+1 (555) 345-6789',
+      email: 'emily.rodriguez@clinic.com',
+      joinedDate: '10 May 2022',
       status: 'Active',
+      licenseNumber: 'MD345678',
+      address: '789 Children\'s Hospital Way, Miami, FL 33101',
+      specializations: ['Pediatrics', 'Child Development'],
+      qualifications: [
+        'MD - Johns Hopkins University',
+        'Board Certified Pediatrician',
+        'Fellowship in Pediatric Cardiology',
+      ],
+      hospital: 'Miami Children\'s Hospital',
+      department: 'Pediatrics Department',
+      languages: ['English', 'Spanish'],
+      rating: 4.7,
+      totalPatients: 2100,
+      education: 'Johns Hopkins University',
+      certifications: ['Board Certified Pediatrician', 'FAAP'],
     },
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const doctorData =
-        doctorsDatabase[doctorId] || doctorsDatabase['DOC-2024-001'];
-      setDoctor(doctorData);
-      setEditForm(doctorData);
+    // Simulate API call
+    setTimeout(() => {
+      const doctorData = doctorsDatabase[doctorId];
+      if (doctorData) {
+        setDoctor(doctorData);
+        setEditForm(doctorData);
+      }
       setLoading(false);
     }, 1000);
-
-    return () => clearTimeout(timer);
   }, [doctorId]);
+
+  const handleFormChange = (field, value) => {
+    setEditForm(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const saveProfile = () => {
+    setDoctor(editForm);
+    setShowEditModal(false);
+    // In a real app, you would make an API call here
+    console.log('Profile updated:', editForm);
+  };
+
+  const handleBack = () => {
+    navigate('/clinic/doctors');
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Loading doctor profile...</p>
-        </motion.div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: COLORS.background }}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: COLORS.primary }}></div>
+          <p style={{ color: COLORS.textMuted }}>Loading doctor profile...</p>
+        </div>
       </div>
     );
   }
 
   if (!doctor) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <FaExclamationTriangle className="text-red-500 text-6xl mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            Doctor Not Found
-          </h2>
-          <p className="text-gray-600 mb-6">
-            The requested doctor profile could not be found.
-          </p>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: COLORS.background }}>
+        <div className="text-center">
+          <FaUserMd className="w-16 h-16 mx-auto mb-4" style={{ color: COLORS.textMuted }} />
+          <h2 className="text-xl font-semibold mb-2" style={{ color: COLORS.text }}>Doctor Not Found</h2>
+          <p style={{ color: COLORS.textMuted }}>The requested doctor profile could not be found.</p>
           <button
-            onClick={() => navigate('/clinic/doctors')}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            onClick={handleBack}
+            className="mt-4 px-6 py-2 rounded-lg font-medium transition-colors duration-200"
+            style={{ background: COLORS.primary, color: COLORS.white }}
           >
-            Back to Doctors List
+            Back to Doctors
           </button>
-        </motion.div>
+        </div>
       </div>
     );
   }
 
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: FaUserMd },
+    { id: 'professional', label: 'Professional Info', icon: FaStethoscope },
+    { id: 'qualifications', label: 'Qualifications', icon: FaGraduationCap },
+    { id: 'schedule', label: 'Schedule', icon: FaCalendarAlt },
+  ];
+
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <motion.div
-        className="bg-white border-b border-gray-200"
-        initial={{ opacity: 0, y: -50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate('/clinic/doctors')}
-                className="p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-all duration-200 border border-gray-200"
-              >
-                <FaArrowLeft className="text-gray-600" />
-              </button>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Doctor Profile
-                </h1>
-                <p className="text-gray-500 mt-1">
-                  Comprehensive medical professional information
-                </p>
-              </div>
+    <div className="min-h-screen" style={{ background: COLORS.background }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <button
+            onClick={handleBack}
+            className="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-lg font-medium transition-colors duration-200 hover:shadow-sm"
+            style={{ 
+              background: COLORS.white, 
+              color: COLORS.text,
+              border: `1px solid ${COLORS.border}` 
+            }}
+          >
+            <FaArrowLeft className="w-4 h-4" />
+            Back to Doctors
+          </button>
+          
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold mb-2" style={{ color: COLORS.text }}>
+                {doctor.name}
+              </h1>
+              <p className="text-lg" style={{ color: COLORS.textMuted }}>
+                {doctor.specialization} • {doctor.qualification}
+              </p>
             </div>
+            
             <button
               onClick={() => setShowEditModal(true)}
-              className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors duration-200 shadow-sm"
+              style={{ background: COLORS.primary, color: COLORS.white }}
             >
-              <FaEdit />
-              <span>Edit Profile</span>
+              <FaEdit className="w-4 h-4" />
+              Edit Profile
             </button>
           </div>
         </div>
-      </motion.div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Sidebar - Doctor Info */}
-          <motion.div
-            className="lg:col-span-1"
-            variants={fadeIn}
-            initial="initial"
-            animate="animate"
-            transition={{ duration: 0.6 }}
-          >
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 mb-6">
-              <div className="text-center mb-8">
-                <div className="w-28 h-28 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
-                  <FaStethoscope className="text-white text-4xl" />
+          {/* Left Sidebar - Doctor Info Card */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 sticky top-8">
+              {/* Profile Image */}
+              <div className="text-center mb-6">
+                <div 
+                  className="w-24 h-24 mx-auto rounded-full flex items-center justify-center text-2xl font-bold mb-3"
+                  style={{ 
+                    background: `${COLORS.primary}1A`, 
+                    color: COLORS.primary,
+                    border: `2px solid ${COLORS.primary}33` 
+                  }}
+                >
+                  {doctor.name.split(' ').map(n => n[0]).join('')}
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold mb-1" style={{ color: COLORS.text }}>
                   {doctor.name}
-                </h2>
-                <p className="text-blue-600 font-semibold text-lg">
-                  {doctor.specializations?.[0] || 'Medical Professional'}
+                </h3>
+                <p className="text-sm" style={{ color: COLORS.textMuted }}>
+                  {doctor.specialization}
                 </p>
-                <div className="flex items-center justify-center mt-3">
-                  <span className="bg-emerald-50 text-emerald-700 px-4 py-2 rounded-full text-sm font-semibold border border-emerald-200">
-                    {doctor.status}
-                  </span>
+              </div>
+
+              {/* Status Badge */}
+              <div className="text-center mb-6">
+                <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
+                  {doctor.status}
+                </span>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: COLORS.gray50 }}>
+                  <div className="flex items-center gap-3">
+                    <FaStar className="w-4 h-4" style={{ color: COLORS.primary }} />
+                    <span className="text-sm font-medium" style={{ color: COLORS.text }}>Rating</span>
+                  </div>
+                  <span className="font-semibold" style={{ color: COLORS.text }}>{doctor.rating}/5.0</span>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: COLORS.gray50 }}>
+                  <div className="flex items-center gap-3">
+                    <FaUsers className="w-4 h-4" style={{ color: COLORS.primary }} />
+                    <span className="text-sm font-medium" style={{ color: COLORS.text }}>Patients</span>
+                  </div>
+                  <span className="font-semibold" style={{ color: COLORS.text }}>{doctor.totalPatients?.toLocaleString()}</span>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: COLORS.gray50 }}>
+                  <div className="flex items-center gap-3">
+                    <FaGraduationCap className="w-4 h-4" style={{ color: COLORS.primary }} />
+                    <span className="text-sm font-medium" style={{ color: COLORS.text }}>Experience</span>
+                  </div>
+                  <span className="font-semibold" style={{ color: COLORS.text }}>{doctor.experience} years</span>
                 </div>
               </div>
 
-              <div className="space-y-5">
-                <div className="flex items-center space-x-4 p-3 rounded-xl bg-gray-50">
-                  <MdEmail className="text-blue-500 text-xl" />
-                  <span className="text-gray-700 font-medium">
-                    {doctor.email}
-                  </span>
+              {/* Contact Information */}
+              <div className="space-y-3">
+                <h4 className="font-semibold mb-3" style={{ color: COLORS.text }}>Contact Information</h4>
+                
+                <div className="flex items-center gap-3 text-sm">
+                  <FaPhone className="w-4 h-4" style={{ color: COLORS.textMuted }} />
+                  <span style={{ color: COLORS.text }}>{doctor.phone}</span>
                 </div>
-                <div className="flex items-center space-x-4 p-3 rounded-xl bg-gray-50">
-                  <FaPhone className="text-green-500 text-xl" />
-                  <span className="text-gray-700 font-medium">
-                    {doctor.phone}
-                  </span>
+                
+                <div className="flex items-center gap-3 text-sm">
+                  <FaEnvelope className="w-4 h-4" style={{ color: COLORS.textMuted }} />
+                  <span style={{ color: COLORS.text }}>{doctor.email}</span>
                 </div>
-                <div className="flex items-center space-x-4 p-3 rounded-xl bg-gray-50">
-                  <MdLocationOn className="text-red-500 text-xl" />
-                  <span className="text-gray-700 font-medium">
-                    {doctor.address}
-                  </span>
+                
+                <div className="flex items-center gap-3 text-sm">
+                  <FaMapMarkerAlt className="w-4 h-4" style={{ color: COLORS.textMuted }} />
+                  <span style={{ color: COLORS.text }}>{doctor.address}</span>
                 </div>
-                <div className="flex items-center space-x-4 p-3 rounded-xl bg-gray-50">
-                  <FaHospital className="text-purple-500 text-xl" />
-                  <span className="text-gray-700 font-medium">
-                    {doctor.hospital}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-4 p-3 rounded-xl bg-gray-50">
-                  <MdSecurity className="text-orange-500 text-xl" />
-                  <span className="text-gray-700 font-medium">
-                    License: {doctor.licenseNumber}
-                  </span>
+                
+                <div className="flex items-center gap-3 text-sm">
+                  <FaIdCard className="w-4 h-4" style={{ color: COLORS.textMuted }} />
+                  <span style={{ color: COLORS.text }}>License: {doctor.licenseNumber}</span>
                 </div>
               </div>
             </div>
-
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">
-                Quick Stats
-              </h3>
-              <div className="space-y-5">
-                <div className="flex justify-between items-center p-3 rounded-xl bg-gray-50">
-                  <span className="text-gray-600 font-medium">Experience</span>
-                  <span className="font-bold text-gray-900">
-                    {doctor.experience}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center p-3 rounded-xl bg-gray-50">
-                  <span className="text-gray-600 font-medium">Rating</span>
-                  <span className="font-bold text-gray-900">
-                    ⭐ {doctor.rating}/5.0
-                  </span>
-                </div>
-                <div className="flex justify-between items-center p-3 rounded-xl bg-gray-50">
-                  <span className="text-gray-600 font-medium">
-                    Total Patients
-                  </span>
-                  <span className="font-bold text-gray-900">
-                    {doctor.totalPatients}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center p-3 rounded-xl bg-gray-50">
-                  <span className="text-gray-600 font-medium">
-                    Consultation Fee
-                  </span>
-                  <span className="font-bold text-green-600">
-                    {doctor.consultationFee}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+          </div>
 
           {/* Right Content - Tabs */}
-          <motion.div
-            className="lg:col-span-2"
-            variants={fadeIn}
-            initial="initial"
-            animate="animate"
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
+          <div className="lg:col-span-2">
             {/* Tab Navigation */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
               <div className="border-b border-gray-100">
-                <nav className="flex space-x-8 px-8 py-2">
-                  {[
-                    {
-                      id: 'professional',
-                      label: 'Professional Info',
-                      icon: FaStethoscope,
-                    },
-                    {
-                      id: 'schedule',
-                      label: 'Schedule & Availability',
-                      icon: FaCalendarAlt,
-                    },
-                    {
-                      id: 'qualifications',
-                      label: 'Qualifications',
-                      icon: FaGraduationCap,
-                    },
-                  ].map((tab) => (
+                <nav className="flex space-x-8 px-6">
+                  {tabs.map((tab) => (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`flex items-center space-x-3 py-4 px-2 border-b-2 font-semibold text-sm transition-all duration-200 ${
+                      className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-all duration-200 ${
                         activeTab === tab.id
                           ? 'border-blue-500 text-blue-600'
                           : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                       }`}
                     >
-                      <tab.icon className="text-lg" />
+                      <tab.icon className="w-4 h-4" />
                       <span>{tab.label}</span>
                     </button>
                   ))}
@@ -453,400 +343,266 @@ const DoctorProfile = () => {
               </div>
 
               {/* Tab Content */}
-              <div className="p-8">
-                <AnimatePresence mode="wait">
-                  {activeTab === 'professional' && (
-                    <motion.div
-                      key="professional"
-                      variants={tabContentVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                    >
-                      <motion.div
-                        variants={containerVariants}
-                        className="space-y-8"
-                      >
-                        {/* Specializations */}
-                        <motion.div
-                          variants={cardVariants}
-                          className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100"
-                        >
-                          <div className="flex items-center justify-between mb-4">
-                            <h4 className="font-bold text-gray-900 flex items-center text-lg">
-                              <FaStethoscope className="mr-3 text-blue-500 text-xl" />
-                              Specializations
-                            </h4>
-                            <button
-                              onClick={() =>
-                                setShowSpecializationsEdit(
-                                  !showSpecializationsEdit
-                                )
-                              }
-                              className="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-100 transition-all duration-200"
-                            >
-                              <FaEdit />
-                            </button>
-                          </div>
-                          <div className="flex flex-wrap gap-3">
-                            {doctor.specializations?.map((spec, index) => (
-                              <motion.span
-                                key={index}
-                                variants={itemVariants}
-                                className="bg-white text-blue-800 px-4 py-2 rounded-xl text-sm font-semibold flex items-center shadow-sm border border-blue-200"
-                              >
-                                {spec}
-                                {showSpecializationsEdit && (
-                                  <button
-                                    onClick={() => removeSpecialization(index)}
-                                    className="ml-2 text-red-500 hover:text-red-700"
-                                  >
-                                    <FaTimes className="text-xs" />
-                                  </button>
-                                )}
-                              </motion.span>
-                            ))}
-                          </div>
-                          {showSpecializationsEdit && (
-                            <div className="mt-4 flex space-x-3">
-                              <input
-                                type="text"
-                                value={newSpecialization}
-                                onChange={(e) =>
-                                  setNewSpecialization(e.target.value)
-                                }
-                                placeholder="Add new specialization"
-                                className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              />
-                              <button
-                                onClick={addSpecialization}
-                                className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all duration-200"
-                              >
-                                <FaPlus />
-                              </button>
-                            </div>
-                          )}
-                        </motion.div>
+              <div className="p-6">
+                {activeTab === 'overview' && (
+                  <div className="space-y-6">
+                    {/* Professional Summary */}
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: COLORS.text }}>
+                        <FaStethoscope className="w-5 h-5" style={{ color: COLORS.primary }} />
+                        Professional Summary
+                      </h3>
+                      <p className="text-sm leading-relaxed" style={{ color: COLORS.textMuted }}>
+                        {doctor.name} is a highly qualified {doctor.specialization.toLowerCase()} specialist with {doctor.experience} years of experience. 
+                        Currently practicing at {doctor.hospital || 'our clinic'}, {doctor.name} has treated over {doctor.totalPatients?.toLocaleString()} patients 
+                        and maintains an excellent rating of {doctor.rating}/5.0. Specializing in {doctor.specializations?.join(', ') || doctor.specialization}, 
+                        {doctor.name} is committed to providing exceptional patient care and staying current with the latest medical advancements.
+                      </p>
+                    </div>
 
-                        {/* Department & Hospital */}
-                        <motion.div
-                          variants={cardVariants}
-                          className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100"
-                        >
-                          <h4 className="font-bold text-gray-900 mb-4 flex items-center text-lg">
-                            <FaHospital className="mr-3 text-green-500 text-xl" />
-                            Hospital & Department
-                          </h4>
-                          <div className="space-y-4">
-                            <div className="flex justify-between items-center p-4 bg-white rounded-xl border border-green-100">
-                              <span className="text-gray-600 font-medium">
-                                Hospital:
-                              </span>
-                              <span className="font-bold text-gray-900">
-                                {doctor.hospital}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center p-4 bg-white rounded-xl border border-green-100">
-                              <span className="text-gray-600 font-medium">
-                                Department:
-                              </span>
-                              <span className="font-bold text-gray-900">
-                                {doctor.department}
-                              </span>
-                            </div>
-                          </div>
-                        </motion.div>
+                    {/* Key Information Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-white rounded-xl border border-gray-200 p-4">
+                        <h4 className="font-semibold mb-3 flex items-center gap-2" style={{ color: COLORS.text }}>
+                          <FaHospital className="w-4 h-4" style={{ color: COLORS.primary }} />
+                          Hospital & Department
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <p><span className="font-medium" style={{ color: COLORS.text }}>Hospital:</span> {doctor.hospital || 'Not specified'}</p>
+                          <p><span className="font-medium" style={{ color: COLORS.text }}>Department:</span> {doctor.department || 'Not specified'}</p>
+                          <p><span className="font-medium" style={{ color: COLORS.text }}>Joined:</span> {doctor.joinedDate}</p>
+                        </div>
+                      </div>
 
-                        {/* Languages */}
-                        <motion.div
-                          variants={cardVariants}
-                          className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100"
-                        >
-                          <h4 className="font-bold text-gray-900 mb-4 flex items-center text-lg">
-                            <MdWork className="mr-3 text-purple-500 text-xl" />
-                            Languages Spoken
-                          </h4>
-                          <div className="flex flex-wrap gap-3">
-                            {doctor.languages?.map((language, index) => (
-                              <span
-                                key={index}
-                                className="bg-white text-purple-800 px-4 py-2 rounded-xl text-sm font-semibold shadow-sm border border-purple-200"
-                              >
-                                {language}
-                              </span>
-                            ))}
-                          </div>
-                        </motion.div>
-                      </motion.div>
-                    </motion.div>
-                  )}
+                      <div className="bg-white rounded-xl border border-gray-200 p-4">
+                        <h4 className="font-semibold mb-3 flex items-center gap-2" style={{ color: COLORS.text }}>
+                          <FaGraduationCap className="w-4 h-4" style={{ color: COLORS.primary }} />
+                          Education & Languages
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <p><span className="font-medium" style={{ color: COLORS.text }}>Education:</span> {doctor.education || 'Not specified'}</p>
+                          <p><span className="font-medium" style={{ color: COLORS.text }}>Languages:</span> {doctor.languages?.join(', ') || 'English'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-                  {activeTab === 'schedule' && (
-                    <motion.div
-                      key="schedule"
-                      variants={tabContentVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                    >
-                      <motion.div
-                        variants={containerVariants}
-                        className="space-y-8"
-                      >
-                        <motion.div
-                          variants={cardVariants}
-                          className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-100"
-                        >
-                          <h4 className="font-bold text-gray-900 mb-4 flex items-center text-lg">
-                            <FaClock className="mr-3 text-blue-500 text-xl" />
-                            Available Hours
-                          </h4>
-                          <p className="text-gray-700 text-xl font-semibold bg-white p-4 rounded-xl border border-blue-100">
-                            {doctor.availableHours}
-                          </p>
-                        </motion.div>
+                {activeTab === 'professional' && (
+                  <div className="space-y-6">
+                    {/* Specializations */}
+                    <div className="bg-white rounded-xl border border-gray-200 p-6">
+                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: COLORS.text }}>
+                        <FaStethoscope className="w-5 h-5" style={{ color: COLORS.primary }} />
+                        Specializations
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {(doctor.specializations || [doctor.specialization]).map((spec, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+                            style={{ 
+                              background: `${COLORS.primary}10`, 
+                              color: COLORS.primary,
+                              border: `1px solid ${COLORS.primary}30` 
+                            }}
+                          >
+                            {spec}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
 
-                        <motion.div
-                          variants={cardVariants}
-                          className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100"
-                        >
-                          <h4 className="font-bold text-gray-900 mb-4 flex items-center text-lg">
-                            <MdDateRange className="mr-3 text-green-500 text-xl" />
-                            Consultation Information
-                          </h4>
-                          <div className="space-y-4">
-                            <div className="flex justify-between items-center p-4 bg-white rounded-xl border border-green-100">
-                              <span className="text-gray-600 font-medium">
-                                Consultation Fee:
-                              </span>
-                              <span className="font-bold text-green-600 text-lg">
-                                {doctor.consultationFee}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center p-4 bg-white rounded-xl border border-green-100">
-                              <span className="text-gray-600 font-medium">
-                                Average Rating:
-                              </span>
-                              <span className="font-bold text-gray-900">
-                                ⭐ {doctor.rating}/5.0
-                              </span>
-                            </div>
+                    {/* Experience & Certifications */}
+                    <div className="bg-white rounded-xl border border-gray-200 p-6">
+                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: COLORS.text }}>
+                        <FaCertificate className="w-5 h-5" style={{ color: COLORS.primary }} />
+                        Experience & Certifications
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3 p-3 rounded-lg" style={{ background: COLORS.gray50 }}>
+                          <FaClock className="w-5 h-5" style={{ color: COLORS.primary }} />
+                          <div>
+                            <p className="font-medium" style={{ color: COLORS.text }}>{doctor.experience} Years of Experience</p>
+                            <p className="text-sm" style={{ color: COLORS.textMuted }}>Professional medical practice</p>
                           </div>
-                        </motion.div>
-                      </motion.div>
-                    </motion.div>
-                  )}
-
-                  {activeTab === 'qualifications' && (
-                    <motion.div
-                      key="qualifications"
-                      variants={tabContentVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                    >
-                      <motion.div
-                        variants={containerVariants}
-                        className="space-y-8"
-                      >
-                        <motion.div
-                          variants={cardVariants}
-                          className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100"
-                        >
-                          <div className="flex items-center justify-between mb-4">
-                            <h4 className="font-bold text-gray-900 flex items-center text-lg">
-                              <FaGraduationCap className="mr-3 text-indigo-500 text-xl" />
-                              Education & Certifications
-                            </h4>
-                            <button
-                              onClick={() =>
-                                setShowQualificationsEdit(
-                                  !showQualificationsEdit
-                                )
-                              }
-                              className="text-indigo-600 hover:text-indigo-800 p-2 rounded-lg hover:bg-indigo-100 transition-all duration-200"
-                            >
-                              <FaEdit />
-                            </button>
-                          </div>
-                          <div className="space-y-3">
-                            {doctor.qualifications?.map(
-                              (qualification, index) => (
-                                <motion.div
+                        </div>
+                        
+                        {doctor.certifications && (
+                          <div className="space-y-2">
+                            <p className="font-medium" style={{ color: COLORS.text }}>Certifications:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {doctor.certifications.map((cert, index) => (
+                                <span
                                   key={index}
-                                  variants={itemVariants}
-                                  className="bg-white p-4 rounded-xl border border-indigo-100 flex items-center justify-between shadow-sm"
+                                  className="inline-flex items-center px-2 py-1 rounded text-xs font-medium"
+                                  style={{ 
+                                    background: `${COLORS.secondary}10`, 
+                                    color: COLORS.secondary,
+                                    border: `1px solid ${COLORS.secondary}30` 
+                                  }}
                                 >
-                                  <span className="text-gray-700 font-medium">
-                                    {qualification}
-                                  </span>
-                                  {showQualificationsEdit && (
-                                    <button
-                                      onClick={() => removeQualification(index)}
-                                      className="text-red-500 hover:text-red-700 p-1 rounded-lg hover:bg-red-50 transition-all duration-200"
-                                    >
-                                      <FaTimes />
-                                    </button>
-                                  )}
-                                </motion.div>
-                              )
-                            )}
-                          </div>
-                          {showQualificationsEdit && (
-                            <div className="mt-4 flex space-x-3">
-                              <input
-                                type="text"
-                                value={newQualification}
-                                onChange={(e) =>
-                                  setNewQualification(e.target.value)
-                                }
-                                placeholder="Add new qualification"
-                                className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                              />
-                              <button
-                                onClick={addQualification}
-                                className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition-all duration-200"
-                              >
-                                <FaPlus />
-                              </button>
+                                  {cert}
+                                </span>
+                              ))}
                             </div>
-                          )}
-                        </motion.div>
-                      </motion.div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'qualifications' && (
+                  <div className="space-y-6">
+                    {/* Educational Background */}
+                    <div className="bg-white rounded-xl border border-gray-200 p-6">
+                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: COLORS.text }}>
+                        <FaGraduationCap className="w-5 h-5" style={{ color: COLORS.primary }} />
+                        Educational Background
+                      </h3>
+                      <div className="space-y-3">
+                        {doctor.qualifications?.map((qual, index) => (
+                          <div key={index} className="flex items-start gap-3 p-3 rounded-lg" style={{ background: COLORS.gray50 }}>
+                            <div className="w-2 h-2 rounded-full mt-2" style={{ background: COLORS.primary }}></div>
+                            <span className="text-sm" style={{ color: COLORS.text }}>{qual}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Additional Details */}
+                    <div className="bg-white rounded-xl border border-gray-200 p-6">
+                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: COLORS.text }}>
+                        <FaCertificate className="w-5 h-5" style={{ color: COLORS.primary }} />
+                        Additional Details
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="font-medium mb-1" style={{ color: COLORS.text }}>License Number</p>
+                          <p style={{ color: COLORS.textMuted }}>{doctor.licenseNumber}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium mb-1" style={{ color: COLORS.text }}>Status</p>
+                          <p style={{ color: COLORS.textMuted }}>{doctor.status}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium mb-1" style={{ color: COLORS.text }}>Joined Date</p>
+                          <p style={{ color: COLORS.textMuted }}>{doctor.joinedDate}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium mb-1" style={{ color: COLORS.text }}>Languages</p>
+                          <p style={{ color: COLORS.textMuted }}>{doctor.languages?.join(', ') || 'English'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'schedule' && (
+                  <div className="space-y-6">
+                    {/* Availability */}
+                    <div className="bg-white rounded-xl border border-gray-200 p-6">
+                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: COLORS.text }}>
+                        <FaCalendarAlt className="w-5 h-5" style={{ color: COLORS.primary }} />
+                        Availability
+                      </h3>
+                      <div className="text-center py-8">
+                        <FaClock className="w-16 h-16 mx-auto mb-4" style={{ color: COLORS.textMuted }} />
+                        <p className="text-lg font-medium mb-2" style={{ color: COLORS.text }}>Schedule Information</p>
+                        <p style={{ color: COLORS.textMuted }}>
+                          Detailed schedule and availability information will be displayed here.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
 
+      {/* Edit Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <motion.div
-            className="bg-white rounded-2xl p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(15, 23, 42, 0.4)' }}
+          onClick={() => setShowEditModal(false)}
+        >
+          <div
+            className="w-full max-w-2xl bg-white rounded-xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-bold text-gray-900">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-xl font-semibold" style={{ color: COLORS.text }}>
                 Edit Doctor Profile
               </h3>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-all duration-200"
+                className="text-gray-400 hover:text-gray-600"
               >
-                <FaTimes className="text-xl" />
+                <FaTimes className="w-5 h-5" />
               </button>
             </div>
-
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Full Name
-                  </label>
+                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Name</label>
                   <input
                     type="text"
                     value={editForm.name || ''}
                     onChange={(e) => handleFormChange('name', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Email
-                  </label>
+                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Specialization</label>
                   <input
-                    type="email"
-                    value={editForm.email || ''}
-                    onChange={(e) => handleFormChange('email', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    type="text"
+                    value={editForm.specialization || ''}
+                    onChange={(e) => handleFormChange('specialization', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Phone
-                  </label>
+                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Phone</label>
                   <input
-                    type="tel"
+                    type="text"
                     value={editForm.phone || ''}
                     onChange={(e) => handleFormChange('phone', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    License Number
-                  </label>
+                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Email</label>
                   <input
                     type="text"
-                    value={editForm.licenseNumber || ''}
-                    onChange={(e) =>
-                      handleFormChange('licenseNumber', e.target.value)
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    value={editForm.email || ''}
+                    onChange={(e) => handleFormChange('email', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Hospital
-                  </label>
-                  <input
-                    type="text"
-                    value={editForm.hospital || ''}
-                    onChange={(e) =>
-                      handleFormChange('hospital', e.target.value)
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Department
-                  </label>
-                  <input
-                    type="text"
-                    value={editForm.department || ''}
-                    onChange={(e) =>
-                      handleFormChange('department', e.target.value)
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Address
-                </label>
-                <textarea
-                  value={editForm.address || ''}
-                  onChange={(e) => handleFormChange('address', e.target.value)}
-                  rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
               </div>
             </div>
-
-            <div className="flex justify-end space-x-4 mt-8">
+            
+            <div className="flex justify-end gap-3 p-6 border-t border-gray-200">
               <button
                 onClick={() => setShowEditModal(false)}
-                className="px-6 py-3 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all duration-200 font-semibold"
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
                 Cancel
               </button>
               <button
                 onClick={saveProfile}
-                className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 flex items-center space-x-2 font-semibold shadow-sm"
+                className="px-4 py-2 text-white rounded-lg font-medium"
+                style={{ background: COLORS.primary }}
               >
-                <FaSave />
-                <span>Save Changes</span>
+                Save Changes
               </button>
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
     </div>
