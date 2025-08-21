@@ -435,7 +435,7 @@ const Patients = () => {
 
   // Event handlers
   const handleViewPatient = useCallback((patient) => {
-    navigate(`/staff/patients/${patient.id}`);
+            navigate(`/clinic/patients/${patient.id}`);
   }, [navigate]);
 
   const handleAddPatient = useCallback((e) => {

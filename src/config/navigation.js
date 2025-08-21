@@ -75,30 +75,30 @@ export const navigationConfig = {
       icon: FaUsers,
     },
   ],
-  staff: [
+  clinic: [
     {
       name: 'Dashboard',
-      path: '/staff',
+      path: '/clinic',
       icon: FaHome,
     },
     {
       name: 'Appointments',
-      path: '/staff/appointments',
+      path: '/clinic/appointments',
       icon: FaCalendarAlt,
       subItems: [
         {
           name: 'Manage Slots',
-          path: '/staff/appointments',
+          path: '/clinic/appointments',
         },
         {
           name: 'Book for Patient',
-          path: '/staff/patient-booking',
+          path: '/clinic/patient-booking',
         },
       ],
     },
     {
       name: 'Patients',
-      path: '/staff/patients',
+      path: '/clinic/patients',
       icon: FaUsers,
     },
   ],

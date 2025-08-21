@@ -246,7 +246,7 @@ const statusChip = (status) => {
   return 'bg-rose-50 text-rose-700 ring-1 ring-rose-200';
 };
 
-const StaffPatientBooking = () => {
+const DoctorPatientBooking = () => {
   const navigate = useNavigate();
   const { patientId } = useParams();
   const location = useLocation();
@@ -458,7 +458,7 @@ const StaffPatientBooking = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
             <button
               type="button"
-              onClick={() => navigate('/staff/patients')}
+              onClick={() => navigate('/doctor/patients')}
               className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-white text-sm font-medium shadow-sm transition w-full sm:w-auto justify-center"
               style={{
                 background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
@@ -1660,4 +1660,4 @@ const StaffPatientBooking = () => {
   );
 };
 
-export default StaffPatientBooking;
+export default DoctorPatientBooking;

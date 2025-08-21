@@ -105,7 +105,7 @@ const AppointmentHistory = () => {
   };
 
   const handleViewPatient = (patientId) => {
-    navigate(`/staff/patients/${patientId}`);
+          navigate(`/clinic/patients/${patientId}`);
   };
 
   const handleViewAppointment = (appointmentId) => {

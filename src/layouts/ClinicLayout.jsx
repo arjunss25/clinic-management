@@ -3,7 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../components/common/Sidebar';
 import Navbar from '../components/common/Navbar';
 
-const StaffLayout = () => {
+const ClinicLayout = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
@@ -27,7 +27,7 @@ const StaffLayout = () => {
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <Sidebar role="staff" />
+      <Sidebar role="clinic" />
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -43,5 +43,4 @@ const StaffLayout = () => {
   );
 };
 
-export default StaffLayout;
-
+export default ClinicLayout;

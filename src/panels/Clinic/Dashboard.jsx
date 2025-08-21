@@ -79,10 +79,10 @@ const Dashboard = () => {
 
   const cardHover = { y: -2, transition: { duration: 0.2 } };
 
-  // Sample staff data
-  const staff = {
+  // Sample clinic data
+  const clinic = {
     name: 'Sarah Wilson',
-    role: 'Senior Staff Nurse',
+    role: 'Senior Clinic Nurse',
     experience: '8 years',
     department: 'General Medicine Department',
     email: 'sarah.wilson@clinic.com',
@@ -321,7 +321,7 @@ const Dashboard = () => {
       <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
         <div className="space-y-2">
           <h1 className="text-[2rem] md:text-[2.25rem] font-semibold tracking-tight text-gray-900">
-            Staff Dashboard
+            Clinic Dashboard
           </h1>
           <p className="text-gray-600">
             Manage patients, appointments, and clinic operations
@@ -333,9 +333,9 @@ const Dashboard = () => {
             View Profile
           </button>
           <div className="hidden md:block text-sm text-gray-600">
-            <span className="font-medium text-gray-900">{staff.name}</span>
+            <span className="font-medium text-gray-900">{clinic.name}</span>
             <span className="mx-2 text-gray-300">•</span>
-            <span>{staff.role}</span>
+                          <span>{clinic.role}</span>
           </div>
         </div>
       </div>
@@ -361,7 +361,7 @@ const Dashboard = () => {
           </div>
           <div className="mt-4 space-y-1">
             <p className="text-2xl font-semibold text-gray-900">
-              {staff.totalPatients}
+              {clinic.totalPatients}
             </p>
             <p className="text-gray-600 text-sm">+25 this month</p>
           </div>
@@ -688,7 +688,7 @@ const Dashboard = () => {
                     {activeTab === 'waitingList' && (
                       <>
                         <button 
-                          onClick={() => navigate('/staff/patient-booking')}
+                          onClick={() => navigate('/clinic/patient-booking')}
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/5 text-purple-600 rounded-lg hover:bg-purple-500/10 transition-colors text-xs font-medium"
                         >
                           <FaCalendarAlt className="w-3 h-3" />

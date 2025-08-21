@@ -320,7 +320,7 @@ const PatientProfile = () => {
   }, [patientId]);
 
   const handleBack = () => {
-    navigate('/staff/patients');
+          navigate('/clinic/patients');
   };
 
   // Loading state
@@ -440,20 +440,20 @@ const PatientProfile = () => {
                 <div className="flex gap-2 sm:gap-3 w-full sm:w-auto justify-end">
                   <button
                     onClick={() =>
-                      navigate(`/staff/patient-booking/${patient.id}`, {
+                      navigate(`/clinic/patient-booking/${patient.id}`, {
                         state: { patient },
                       })
                     }
-                    className="flex-1 sm:flex-none group px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-[#0118D8] to-[#1B56FD] text-white rounded-xl font-medium hover:from-[#1B56FD] hover:to-[#0118D8] transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
+                    className="flex-1 sm:flex-none group px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-[#0118D8] to-[#1B56FD] text-white rounded-lg font-medium hover:from-[#1B56FD] hover:to-[#0118D8] transition-all duration-300 flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg transform hover:scale-105 text-sm"
                   >
-                    <FaCalendarAlt className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <FaCalendarAlt className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     <span className="sm:inline">Book Appointment</span>
                   </button>
                   <button
                     onClick={() => setShowEditModal(true)}
-                    className="flex-1 sm:flex-none group px-4 sm:px-6 py-2 sm:py-3 bg-[#FFF8F8] text-[#0118D8] rounded-xl font-medium hover:bg-[#E9DFC3] transition-all duration-300 flex items-center justify-center gap-2 border border-[#E9DFC3]"
+                    className="flex-1 sm:flex-none group px-3 sm:px-4 py-1.5 sm:py-2 bg-[#FFF8F8] text-[#0118D8] rounded-lg font-medium hover:bg-[#E9DFC3] transition-all duration-300 flex items-center justify-center gap-1.5 border border-[#E9DFC3] text-sm"
                   >
-                    <FaEdit className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <FaEdit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     <span className="sm:inline">Edit Profile</span>
                   </button>
                 </div>

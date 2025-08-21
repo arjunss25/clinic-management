@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FaUserMd,
@@ -724,6 +724,27 @@ const Appointments = () => {
     setSelectedDoctor(null);
   };
 
+  // Scroll to top when selectedDoctor changes
+  useEffect(() => {
+    const scrollToTop = () => {
+      // Find the main element and scroll it to top
+      const mainElement = document.querySelector('main');
+      if (mainElement) {
+        mainElement.scrollTo(0, 0);
+      }
+      
+      // Also scroll the window as a fallback
+      window.scrollTo(0, 0);
+    };
+
+    // Scroll to top when selectedDoctor changes (both when selecting and going back)
+    scrollToTop();
+    
+    // Also try after a short delay to ensure DOM is updated
+    const timeoutId = setTimeout(scrollToTop, 100);
+    return () => clearTimeout(timeoutId);
+  }, [selectedDoctor]);
+
   return (
     <div className="min-h-screen">
       {!selectedDoctor ? (
@@ -772,18 +793,7 @@ const Appointments = () => {
 
               {/* Action buttons */}
               <div className="flex gap-2 w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={() => navigate('/staff/patient-booking')}
-                  className="flex-1 sm:flex-none inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-white text-sm font-medium shadow-sm transition"
-                  style={{
-                    background: `linear-gradient(135deg, #8B5CF6, #7C3AED)`,
-                  }}
-                >
-                  <FaUser className="w-4 h-4" />
-                  <span className="hidden sm:inline">Book for Patient</span>
-                  <span className="sm:hidden">Book</span>
-                </button>
+              
 
                 <button
                   type="button"
@@ -800,7 +810,7 @@ const Appointments = () => {
 
                 <button
                   type="button"
-                  onClick={() => navigate('/staff/appointment-history')}
+                  onClick={() => navigate('/clinic/appointment-history')}
                   className="flex-1 sm:flex-none inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-white text-sm font-medium shadow-sm transition"
                   style={{
                     background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
