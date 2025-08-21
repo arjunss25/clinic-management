@@ -10,9 +10,8 @@ import {
   FaCreditCard,
   FaHospital,
   FaUserMd,
-  FaUserNurse,
-  FaCheckCircle,
   FaChartLine,
+  FaDollarSign,
 } from 'react-icons/fa';
 
 export const navigationConfig = {
@@ -120,6 +119,20 @@ export const navigationConfig = {
       icon: FaChartLine,
     },
     {
+      name: 'Revenue',
+      icon: FaDollarSign,
+      subItems: [
+        {
+          name: 'Subscriptions',
+          path: '/superadmin/subscriptions',
+        },
+        {
+          name: 'Platform Usage',
+          path: '/superadmin/platform-usage',
+        },
+      ],
+    },
+    {
       name: 'Clinics',
       path: '/superadmin/clinics',
       icon: FaHospital,
@@ -128,16 +141,6 @@ export const navigationConfig = {
       name: 'Doctors',
       path: '/superadmin/doctors',
       icon: FaUserMd,
-    },
-    {
-      name: 'Staff',
-      path: '/superadmin/staff',
-      icon: FaUserNurse,
-    },
-    {
-      name: 'Approvals',
-      path: '/superadmin/approvals',
-      icon: FaCheckCircle,
     },
   ],
 };

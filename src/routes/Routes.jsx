@@ -38,9 +38,11 @@ import DoctorProfile from '../panels/Clinic/DoctorProfile';
 import SuperAdminDashboard from '../panels/SuperAdmin/Dashboard';
 import SuperAdminClinics from '../panels/SuperAdmin/Clinics';
 import SuperAdminDoctors from '../panels/SuperAdmin/Doctors';
-import SuperAdminStaff from '../panels/SuperAdmin/Staff';
-import SuperAdminApprovals from '../panels/SuperAdmin/Approvals';
+import DoctorView from '../panels/SuperAdmin/DoctorView';
 import SuperAdminAnalytics from '../panels/SuperAdmin/Analytics';
+import Subscriptions from '../panels/SuperAdmin/Subscriptions';
+import PlatformUsage from '../panels/SuperAdmin/PlatformUsage';
+import ClinicView from '../panels/SuperAdmin/ClinicView';
 
 
 const AppRoutes = () => {
@@ -94,10 +96,12 @@ const AppRoutes = () => {
       <Route path="/superadmin" element={<SuperAdminLayout />}>
         <Route index element={<SuperAdminDashboard />} />
         <Route path="clinics" element={<SuperAdminClinics />} />
+        <Route path="clinics/:clinicId" element={<ClinicView />} />
         <Route path="doctors" element={<SuperAdminDoctors />} />
-        <Route path="staff" element={<SuperAdminStaff />} />
-        <Route path="approvals" element={<SuperAdminApprovals />} />
+        <Route path="doctors/:doctorId" element={<DoctorView />} />
         <Route path="analytics" element={<SuperAdminAnalytics />} />
+        <Route path="subscriptions" element={<Subscriptions />} />
+        <Route path="platform-usage" element={<PlatformUsage />} />
       </Route>
 
       {/* Redirect to login for unknown routes */}

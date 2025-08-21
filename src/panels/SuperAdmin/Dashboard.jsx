@@ -9,14 +9,25 @@ import {
   FaChartLine,
   FaBuilding,
   FaUserTie,
-  FaUserNurse,
   FaEye,
   FaPlus,
-  FaCheckCircle,
   FaClock,
   FaExclamationTriangle,
+  FaCheckCircle,
+  FaHistory,
+  FaCog,
 } from 'react-icons/fa';
-import { Users, Building2, UserCheck, TrendingUp, Activity } from 'lucide-react';
+import { 
+  Users, 
+  Building2, 
+  UserCheck, 
+  TrendingUp, 
+  Activity,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+} from 'lucide-react';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -47,98 +58,90 @@ const Dashboard = () => {
   const stats = {
     totalClinics: 12,
     totalDoctors: 45,
-    totalStaff: 89,
     totalPatients: 1247,
     activeClinics: 11,
-    pendingApprovals: 3,
     monthlyRevenue: 125000,
     growthRate: 8.5,
   };
 
-  const recentActivities = [
+  const expiringSubscriptions = [
     {
       id: 1,
-      type: 'clinic_registered',
-      title: 'New Clinic Registered',
-      description: 'City Medical Center has been registered',
-      time: '2 hours ago',
-      status: 'completed',
+      clinicName: 'City Medical Center',
+      subscriptionType: 'Premium',
+      expiryDate: '2024-01-15',
+      daysLeft: 3,
+      status: 'critical',
+      contactEmail: 'admin@citymedical.com',
+      contactPhone: '+1 (555) 123-4567',
     },
     {
       id: 2,
-      type: 'doctor_approved',
-      title: 'Doctor Approved',
-      description: 'Dr. Sarah Wilson has been approved',
-      time: '4 hours ago',
-      status: 'completed',
+      clinicName: 'Downtown Medical Group',
+      subscriptionType: 'Standard',
+      expiryDate: '2024-01-20',
+      daysLeft: 8,
+      status: 'warning',
+      contactEmail: 'info@downtownmedical.com',
+      contactPhone: '+1 (555) 234-5678',
     },
     {
       id: 3,
-      type: 'staff_added',
-      title: 'Staff Member Added',
-      description: 'Nurse Emily Davis added to Cardiology Clinic',
-      time: '6 hours ago',
-      status: 'completed',
+      clinicName: 'Riverside Healthcare',
+      subscriptionType: 'Premium',
+      expiryDate: '2024-01-25',
+      daysLeft: 13,
+      status: 'warning',
+      contactEmail: 'admin@riversidehealth.com',
+      contactPhone: '+1 (555) 345-6789',
     },
     {
       id: 4,
-      type: 'clinic_pending',
-      title: 'Clinic Approval Pending',
-      description: 'Downtown Medical Group awaiting approval',
-      time: '1 day ago',
-      status: 'pending',
+      clinicName: 'Community Medical Clinic',
+      subscriptionType: 'Basic',
+      expiryDate: '2024-01-12',
+      daysLeft: 0,
+      status: 'expired',
+      contactEmail: 'contact@communityclinic.com',
+      contactPhone: '+1 (555) 456-7890',
     },
   ];
 
-  const pendingApprovals = [
-    {
-      id: 1,
-      type: 'clinic',
-      name: 'Downtown Medical Group',
-      location: 'New York, NY',
-      submittedBy: 'Dr. Michael Brown',
-      submittedDate: '2024-03-15',
-    },
-    {
-      id: 2,
-      type: 'doctor',
-      name: 'Dr. Jennifer Lee',
-      specialization: 'Neurology',
-      clinic: 'City Medical Center',
-      submittedDate: '2024-03-14',
-    },
-    {
-      id: 3,
-      type: 'staff',
-      name: 'Nurse Robert Johnson',
-      role: 'Registered Nurse',
-      clinic: 'Heart Care Clinic',
-      submittedDate: '2024-03-13',
-    },
-  ];
-
-  const getActivityIcon = (type) => {
-    switch (type) {
-      case 'clinic_registered':
-      case 'clinic_pending':
-        return <FaHospital className="w-4 h-4" />;
-      case 'doctor_approved':
-        return <FaUserMd className="w-4 h-4" />;
-      case 'staff_added':
-        return <FaUserNurse className="w-4 h-4" />;
+  const getSubscriptionIcon = (status) => {
+    switch (status) {
+      case 'critical':
+      case 'expired':
+        return <FaExclamationTriangle className="w-4 h-4" />;
+      case 'warning':
+        return <FaClock className="w-4 h-4" />;
       default:
-        return <FaUsers className="w-4 h-4" />;
+        return <FaCheckCircle className="w-4 h-4" />;
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed':
-        return 'text-green-600 bg-green-100';
-      case 'pending':
+      case 'critical':
+        return 'text-red-600 bg-red-100';
+      case 'expired':
+        return 'text-red-800 bg-red-200';
+      case 'warning':
         return 'text-yellow-600 bg-yellow-100';
       default:
-        return 'text-gray-600 bg-gray-100';
+        return 'text-green-600 bg-green-100';
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'critical':
+        return 'Critical';
+      case 'expired':
+        return 'Expired';
+      case 'warning':
+        return 'Warning';
+      default:
+        return 'Active';
     }
   };
 
@@ -155,7 +158,7 @@ const Dashboard = () => {
             Super Admin Dashboard
           </h1>
           <p className="text-gray-600">
-            Manage clinics, doctors, staff, and system-wide operations
+            Manage clinics, doctors, and system-wide operations
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -165,13 +168,6 @@ const Dashboard = () => {
           >
             <FaPlus className="w-4 h-4" />
             Register Clinic
-          </button>
-          <button 
-            onClick={() => navigate('/superadmin/doctors/register')}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-          >
-            <FaUserMd className="w-4 h-4" />
-            Add Doctor
           </button>
         </div>
       </div>
@@ -227,7 +223,7 @@ const Dashboard = () => {
           </div>
         </motion.div>
 
-        {/* Total Staff */}
+        {/* Total Patients */}
         <motion.div
           variants={itemVariants}
           whileHover={cardHover}
@@ -235,16 +231,16 @@ const Dashboard = () => {
         >
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-lg bg-green-500/5 flex items-center justify-center">
-              <FaUserNurse className="w-5 h-5 text-green-500" />
+              <Users className="w-5 h-5 text-green-500" />
             </div>
-            <p className="text-gray-500 text-sm">Total Staff</p>
+            <p className="text-gray-500 text-sm">Total Patients</p>
           </div>
           <div className="mt-4 space-y-1">
             <p className="text-2xl font-semibold text-gray-900">
-              {stats.totalStaff}
+              {stats.totalPatients}
             </p>
-            <p className="text-gray-600 text-sm">
-              Nurses & Support
+            <p className="text-green-600 text-sm font-medium">
+              +12% this month
             </p>
           </div>
         </motion.div>
@@ -273,138 +269,144 @@ const Dashboard = () => {
       </motion.div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Pending Approvals */}
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+        {/* Expiring Subscriptions */}
         <motion.div
-          variants={itemVariants}
-          className="lg:col-span-1 bg-white rounded-xl border border-[#E9DFC3]/70 shadow-sm"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="bg-white rounded-xl border border-[#E9DFC3]/70 shadow-sm overflow-hidden"
         >
-          <div className="p-6 border-b border-gray-100">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Pending Approvals
-              </h3>
-              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
-                {pendingApprovals.length}
-              </span>
-            </div>
-          </div>
-          <div className="p-6 space-y-4">
-            {pendingApprovals.map((approval) => (
-              <div key={approval.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
-                  {approval.type === 'clinic' && <FaHospital className="w-4 h-4 text-yellow-600" />}
-                  {approval.type === 'doctor' && <FaUserMd className="w-4 h-4 text-yellow-600" />}
-                  {approval.type === 'staff' && <FaUserNurse className="w-4 h-4 text-yellow-600" />}
+          <motion.div variants={itemVariants}>
+            {/* Header */}
+            <div className="bg-gradient-to-r from-[#0118D8] to-[#1B56FD] px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <AlertTriangle className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-white">
+                      Clinics with Expiring Subscriptions
+                    </h3>
+                    <p className="text-white/80 text-xs">
+                      Clinics requiring immediate attention for subscription renewal
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {approval.name}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {approval.type === 'clinic' && approval.location}
-                    {approval.type === 'doctor' && approval.specialization}
-                    {approval.type === 'staff' && approval.role}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Submitted {approval.submittedDate}
-                  </p>
-                </div>
-                <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                  Review
+                <button 
+                  onClick={() => navigate('/superadmin/subscriptions')}
+                  className="px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white text-xs font-medium rounded-lg hover:bg-white/30 transition-colors"
+                >
+                  View All
                 </button>
               </div>
-            ))}
-            <button 
-              onClick={() => navigate('/superadmin/approvals')}
-              className="w-full mt-4 text-center text-blue-600 hover:text-blue-800 text-sm font-medium"
-            >
-              View All Approvals
-            </button>
-          </div>
-        </motion.div>
+            </div>
 
-        {/* Recent Activities */}
-        <motion.div
-          variants={itemVariants}
-          className="lg:col-span-2 bg-white rounded-xl border border-[#E9DFC3]/70 shadow-sm"
-        >
-          <div className="p-6 border-b border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Recent Activities
-            </h3>
-          </div>
-          <div className="p-6 space-y-4">
-            {recentActivities.map((activity) => (
-              <div key={activity.id} className="flex items-start gap-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  activity.status === 'completed' ? 'bg-green-100' : 'bg-yellow-100'
-                }`}>
-                  {getActivityIcon(activity.type)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-gray-900">
-                      {activity.title}
-                    </p>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(activity.status)}`}>
-                      {activity.status}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {activity.description}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {activity.time}
-                  </p>
-                </div>
+            {/* Subscriptions List */}
+            <div className="p-6">
+              <div className="space-y-4">
+                {expiringSubscriptions.map((clinic) => (
+                  <motion.div
+                    key={clinic.id}
+                    variants={itemVariants}
+                    className="group bg-white rounded-xl p-4 border border-[#E9DFC3]/70 hover:border-[#1B56FD] shadow-sm hover:shadow-md transition-all"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        clinic.status === 'critical' || clinic.status === 'expired' ? 'bg-red-100' : 'bg-yellow-100'
+                      }`}>
+                        {getSubscriptionIcon(clinic.status)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-gray-900">
+                            {clinic.clinicName}
+                          </p>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(clinic.status)}`}>
+                            {getStatusText(clinic.status)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                          <span className="flex items-center gap-1">
+                            <FaBuilding className="w-3 h-3" />
+                            {clinic.subscriptionType}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <FaClock className="w-3 h-3" />
+                            {clinic.daysLeft === 0 ? 'Expired' : `${clinic.daysLeft} days left`}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <FaCalendarAlt className="w-3 h-3" />
+                            {new Date(clinic.expiryDate).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                          <span>{clinic.contactEmail}</span>
+                          <span>{clinic.contactPhone}</span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-3">
+                          <button 
+                            onClick={() => navigate(`/superadmin/clinics/${clinic.id}`)}
+                            className="px-3 py-1.5 bg-[#0118D8] text-white text-xs font-medium rounded-lg hover:bg-[#0118D8]/90 transition-colors"
+                          >
+                            View Clinic
+                          </button>
+                          <button 
+                            onClick={() => navigate(`/superadmin/subscriptions/renew/${clinic.id}`)}
+                            className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors"
+                          >
+                            Renew Subscription
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          </motion.div>
         </motion.div>
       </div>
 
       {/* Quick Actions */}
       <motion.div
-        variants={itemVariants}
-        className="bg-white rounded-xl border border-[#E9DFC3]/70 shadow-sm p-6"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="bg-white rounded-xl p-5 border border-[#E9DFC3]/70 shadow-sm"
       >
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Quick Actions
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <button 
-            onClick={() => navigate('/superadmin/clinics/register')}
-            className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
-          >
-            <FaHospital className="w-5 h-5 text-blue-600" />
-            <span className="text-sm font-medium text-gray-900">Register Clinic</span>
-          </button>
-          <button 
-            onClick={() => navigate('/superadmin/doctors/register')}
-            className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-colors"
-          >
-            <FaUserMd className="w-5 h-5 text-green-600" />
-            <span className="text-sm font-medium text-gray-900">Add Doctor</span>
-          </button>
-          <button 
-            onClick={() => navigate('/superadmin/staff/register')}
-            className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors"
-          >
-            <FaUserNurse className="w-5 h-5 text-purple-600" />
-            <span className="text-sm font-medium text-gray-900">Add Staff</span>
-          </button>
-          <button 
-            onClick={() => navigate('/superadmin/approvals')}
-            className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-colors"
-          >
-            <FaCheckCircle className="w-5 h-5 text-orange-600" />
-            <span className="text-sm font-medium text-gray-900">Review Approvals</span>
-          </button>
-        </div>
+        <motion.div variants={itemVariants}>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Quick Actions
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            <button 
+              onClick={() => navigate('/superadmin/clinics/register')}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#0118D8] border border-[#E9DFC3]/80 rounded-lg hover:border-[#1B56FD] hover:bg-[#0118D8]/5 transition-colors"
+            >
+              <FaHospital className="w-4 h-4" />
+              Register Clinic
+            </button>
+            <button 
+              onClick={() => navigate('/superadmin/analytics')}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#0118D8] border border-[#E9DFC3]/80 rounded-lg hover:border-[#1B56FD] hover:bg-[#0118D8]/5 transition-colors"
+            >
+              <FaChartLine className="w-4 h-4" />
+              View Analytics
+            </button>
+            <button 
+              onClick={() => navigate('/superadmin/settings')}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#0118D8] border border-[#E9DFC3]/80 rounded-lg hover:border-[#1B56FD] hover:bg-[#0118D8]/5 transition-colors"
+            >
+              <FaCog className="w-4 h-4" />
+              System Settings
+            </button>
+          </div>
+        </motion.div>
       </motion.div>
     </motion.div>
   );
-};
-
-export default Dashboard; 
+  };
+  
+  export default Dashboard; 
