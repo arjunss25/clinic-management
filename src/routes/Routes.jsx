@@ -29,8 +29,10 @@ import Consultation from '../panels/Doctor/Consultation';
 import ClinicDashboard from '../panels/Clinic/Dashboard';
 import ClinicAppointments from '../panels/Clinic/Appointments';
 import ClinicPatients from '../panels/Clinic/Patients';
+import Doctors from '../panels/Clinic/Doctors';
 import ClinicPatientProfile from '../panels/Clinic/PatientProfile';
 import ClinicPatientBooking from '../panels/Clinic/PatientBooking';
+import DoctorProfile from '../panels/Clinic/DoctorProfile';
 
 // SuperAdmin Panel Imports
 import SuperAdminDashboard from '../panels/SuperAdmin/Dashboard';
@@ -39,6 +41,7 @@ import SuperAdminDoctors from '../panels/SuperAdmin/Doctors';
 import SuperAdminStaff from '../panels/SuperAdmin/Staff';
 import SuperAdminApprovals from '../panels/SuperAdmin/Approvals';
 import SuperAdminAnalytics from '../panels/SuperAdmin/Analytics';
+
 
 const AppRoutes = () => {
   return (
@@ -81,6 +84,9 @@ const AppRoutes = () => {
           element={<ClinicPatientBooking />}
         />
         <Route path="patients" element={<ClinicPatients />} />
+        <Route path="doctors" element={<Doctors />} />
+        // Example route setup
+        <Route path="doctors/:doctorId" element={<DoctorProfile />} />
         <Route path="patients/:patientId" element={<ClinicPatientProfile />} />
       </Route>
 

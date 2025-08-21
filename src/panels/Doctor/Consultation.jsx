@@ -595,7 +595,7 @@ const Consultation = () => {
               />
             </div>
             
-            <div className="flex gap-4 flex items-center justify-end">
+            <div className="flex gap-4  items-center justify-end">
               <button className="flex items-center  gap-2 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium transition-colors">
                 <CalendarPlus className="w-4 h-4" />
                 Schedule Appointment

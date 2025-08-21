@@ -96,11 +96,17 @@ export const navigationConfig = {
         },
       ],
     },
+     {
+      name: 'Doctors',
+      path: '/clinic/doctors',
+      icon: FaUserMd,
+    },
     {
       name: 'Patients',
       path: '/clinic/patients',
       icon: FaUsers,
     },
+   
   ],
   superadmin: [
     {
