@@ -13,7 +13,6 @@ import {
   FaPlus,
   FaTimes,
   FaGraduationCap,
-  FaClock,
 } from 'react-icons/fa';
 
 // Theme colors (matching Appointments.jsx)
@@ -41,8 +40,7 @@ const SAMPLE_DOCTORS = [
     email: 'sarah.johnson@clinic.com',
     joinedDate: '15 Jan 2020',
     status: 'Active',
-    consultationFee: '$150',
-    availability: 'Mon-Fri',
+
     licenseNumber: 'MD123456',
   },
   {
@@ -55,8 +53,7 @@ const SAMPLE_DOCTORS = [
     email: 'michael.chen@clinic.com',
     joinedDate: '22 Mar 2021',
     status: 'Active',
-    consultationFee: '$180',
-    availability: 'Tue-Sat',
+
     licenseNumber: 'MD234567',
   },
   {
@@ -69,8 +66,7 @@ const SAMPLE_DOCTORS = [
     email: 'emily.rodriguez@clinic.com',
     joinedDate: '10 May 2022',
     status: 'Active',
-    consultationFee: '$120',
-    availability: 'Mon-Wed-Fri',
+
     licenseNumber: 'MD345678',
   },
   {
@@ -83,8 +79,7 @@ const SAMPLE_DOCTORS = [
     email: 'james.wilson@clinic.com',
     joinedDate: '05 Aug 2019',
     status: 'Active',
-    consultationFee: '$200',
-    availability: 'Mon-Fri',
+
     licenseNumber: 'MD456789',
   },
   {
@@ -97,24 +92,41 @@ const SAMPLE_DOCTORS = [
     email: 'lisa.thompson@clinic.com',
     joinedDate: '18 Nov 2021',
     status: 'Active',
-    consultationFee: '$160',
-    availability: 'Tue-Thu-Sat',
+
     licenseNumber: 'MD567890',
   },
 ];
 
 const SPECIALIZATIONS = [
-  'Cardiology', 'Neurology', 'Pediatrics', 'Orthopedics', 'Dermatology',
-  'Gynecology', 'Psychiatry', 'Radiology', 'Anesthesiology', 'Emergency Medicine',
-  'Internal Medicine', 'Surgery', 'Oncology', 'Ophthalmology', 'ENT'
+  'Cardiology',
+  'Neurology',
+  'Pediatrics',
+  'Orthopedics',
+  'Dermatology',
+  'Gynecology',
+  'Psychiatry',
+  'Radiology',
+  'Anesthesiology',
+  'Emergency Medicine',
+  'Internal Medicine',
+  'Surgery',
+  'Oncology',
+  'Ophthalmology',
+  'ENT',
 ];
 
 const QUALIFICATIONS = [
-  'MBBS', 'MD', 'MS', 'DM', 'MCh', 'DNB', 'FRCS', 'MRCP', 'FACC', 'FAAP', 'FAAD'
-];
-
-const AVAILABILITY_OPTIONS = [
-  'Mon-Fri', 'Tue-Sat', 'Mon-Wed-Fri', 'Tue-Thu-Sat', 'Mon-Sat', 'All Days'
+  'MBBS',
+  'MD',
+  'MS',
+  'DM',
+  'MCh',
+  'DNB',
+  'FRCS',
+  'MRCP',
+  'FACC',
+  'FAAP',
+  'FAAD',
 ];
 
 const FILTER_OPTIONS = [
@@ -135,8 +147,7 @@ const INITIAL_DOCTOR_STATE = {
   experience: '',
   phone: '',
   email: '',
-  consultationFee: '',
-  availability: '',
+
   licenseNumber: '',
   address: '',
   education: '',
@@ -150,18 +161,18 @@ const useDoctorForm = () => {
 
   const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
-    setNewDoctor(prev => ({ ...prev, [name]: value }));
+    setNewDoctor((prev) => ({ ...prev, [name]: value }));
   }, []);
 
   const handleAddQualification = useCallback(() => {
     if (newQualification.trim()) {
-      setQualifications(prev => [...prev, newQualification.trim()]);
+      setQualifications((prev) => [...prev, newQualification.trim()]);
       setNewQualification('');
     }
   }, [newQualification]);
 
   const handleRemoveQualification = useCallback((index) => {
-    setQualifications(prev => prev.filter((_, i) => i !== index));
+    setQualifications((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   const resetForm = useCallback(() => {
@@ -204,7 +215,10 @@ const DoctorIcon = React.memo(() => (
 
 const EmptyState = React.memo(() => (
   <div className="text-center py-12 px-4 sm:px-6">
-    <div className="text-lg font-medium mb-2" style={{ color: COLORS.textMuted }}>
+    <div
+      className="text-lg font-medium mb-2"
+      style={{ color: COLORS.textMuted }}
+    >
       No doctors found
     </div>
     <div className="text-sm" style={{ color: COLORS.textMuted }}>
@@ -214,67 +228,31 @@ const EmptyState = React.memo(() => (
 ));
 
 // Input components for reusability
-const FormInput = React.memo(({ 
-  label, 
-  name, 
-  value, 
-  onChange, 
-  type = 'text', 
-  required = false, 
-  placeholder,
-  ...props 
-}) => (
-  <div>
-    <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.text }}>
-      {label} {required && <span style={{ color: '#EF4444' }}>*</span>}
-    </label>
-    <input
-      type={type}
-      name={name}
-      value={value}
-      onChange={onChange}
-      required={required}
-      className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
-      style={{
-        background: COLORS.white,
-        border: `2px solid ${COLORS.border}`,
-        color: COLORS.text,
-        outline: 'none',
-      }}
-      onFocus={(e) => {
-        e.target.style.borderColor = COLORS.primary;
-        e.target.style.boxShadow = `0 0 0 4px ${COLORS.primary}15`;
-      }}
-      onBlur={(e) => {
-        e.target.style.borderColor = COLORS.border;
-        e.target.style.boxShadow = 'none';
-      }}
-      placeholder={placeholder}
-      {...props}
-    />
-  </div>
-));
-
-const FormSelect = React.memo(({ 
-  label, 
-  name, 
-  value, 
-  onChange, 
-  options, 
-  required = false, 
-  placeholder = "Select option" 
-}) => (
-  <div className="relative">
-    <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.text }}>
-      {label} {required && <span style={{ color: '#EF4444' }}>*</span>}
-    </label>
-    <div className="relative">
-      <select
+const FormInput = React.memo(
+  ({
+    label,
+    name,
+    value,
+    onChange,
+    type = 'text',
+    required = false,
+    placeholder,
+    ...props
+  }) => (
+    <div>
+      <label
+        className="block text-sm font-semibold mb-2"
+        style={{ color: COLORS.text }}
+      >
+        {label} {required && <span style={{ color: '#EF4444' }}>*</span>}
+      </label>
+      <input
+        type={type}
         name={name}
         value={value}
         onChange={onChange}
         required={required}
-        className="w-full px-4 py-3 pr-12 rounded-lg transition-all text-sm border-2 appearance-none cursor-pointer"
+        className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
         style={{
           background: COLORS.white,
           border: `2px solid ${COLORS.border}`,
@@ -289,25 +267,81 @@ const FormSelect = React.memo(({
           e.target.style.borderColor = COLORS.border;
           e.target.style.boxShadow = 'none';
         }}
+        placeholder={placeholder}
+        {...props}
+      />
+    </div>
+  )
+);
+
+const FormSelect = React.memo(
+  ({
+    label,
+    name,
+    value,
+    onChange,
+    options,
+    required = false,
+    placeholder = 'Select option',
+  }) => (
+    <div className="relative">
+      <label
+        className="block text-sm font-semibold mb-2"
+        style={{ color: COLORS.text }}
       >
-        <option value="">{placeholder}</option>
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-      <div 
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none"
-        style={{ color: COLORS.textMuted }}
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        {label} {required && <span style={{ color: '#EF4444' }}>*</span>}
+      </label>
+      <div className="relative">
+        <select
+          name={name}
+          value={value}
+          onChange={onChange}
+          required={required}
+          className="w-full px-4 py-3 pr-12 rounded-lg transition-all text-sm border-2 appearance-none cursor-pointer"
+          style={{
+            background: COLORS.white,
+            border: `2px solid ${COLORS.border}`,
+            color: COLORS.text,
+            outline: 'none',
+          }}
+          onFocus={(e) => {
+            e.target.style.borderColor = COLORS.primary;
+            e.target.style.boxShadow = `0 0 0 4px ${COLORS.primary}15`;
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = COLORS.border;
+            e.target.style.boxShadow = 'none';
+          }}
+        >
+          <option value="">{placeholder}</option>
+          {options.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+        <div
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none"
+          style={{ color: COLORS.textMuted }}
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </div>
       </div>
     </div>
-  </div>
-));
+  )
+);
 
 const QualificationTag = React.memo(({ qualification, onRemove, index }) => (
   <div
@@ -342,9 +376,9 @@ const QualificationTag = React.memo(({ qualification, onRemove, index }) => (
 ));
 
 const DoctorRow = React.memo(({ doctor, onViewDoctor }) => (
-  <tr 
+  <tr
     className="transition-all duration-200 hover:shadow-sm"
-    style={{ 
+    style={{
       background: COLORS.white,
       borderColor: COLORS.border,
     }}
@@ -353,13 +387,22 @@ const DoctorRow = React.memo(({ doctor, onViewDoctor }) => (
       <div className="flex items-center gap-3">
         <DoctorIcon />
         <div>
-          <div className="text-sm sm:text-base font-semibold" style={{ color: COLORS.text }}>
+          <div
+            className="text-sm sm:text-base font-semibold"
+            style={{ color: COLORS.text }}
+          >
             {doctor.name}
           </div>
-          <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
+          <div
+            className="text-xs sm:text-sm"
+            style={{ color: COLORS.textMuted }}
+          >
             ID: {doctor.id}
           </div>
-          <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
+          <div
+            className="text-xs sm:text-sm"
+            style={{ color: COLORS.textMuted }}
+          >
             {doctor.experience} years exp.
           </div>
         </div>
@@ -368,14 +411,26 @@ const DoctorRow = React.memo(({ doctor, onViewDoctor }) => (
     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <FaStethoscope className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
-          <span className="text-sm sm:text-base font-medium" style={{ color: COLORS.text }}>
+          <FaStethoscope
+            className="w-3 h-3 sm:w-4 sm:h-4"
+            style={{ color: COLORS.textMuted }}
+          />
+          <span
+            className="text-sm sm:text-base font-medium"
+            style={{ color: COLORS.text }}
+          >
             {doctor.specialization}
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <FaCertificate className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
-          <span className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
+          <FaCertificate
+            className="w-3 h-3 sm:w-4 sm:h-4"
+            style={{ color: COLORS.textMuted }}
+          />
+          <span
+            className="text-xs sm:text-sm"
+            style={{ color: COLORS.textMuted }}
+          >
             {doctor.qualification}
           </span>
         </div>
@@ -384,35 +439,35 @@ const DoctorRow = React.memo(({ doctor, onViewDoctor }) => (
     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <FaPhone className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
+          <FaPhone
+            className="w-3 h-3 sm:w-4 sm:h-4"
+            style={{ color: COLORS.textMuted }}
+          />
           <span className="text-sm sm:text-base" style={{ color: COLORS.text }}>
             {doctor.phone}
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <FaEnvelope className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
-          <span className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
+          <FaEnvelope
+            className="w-3 h-3 sm:w-4 sm:h-4"
+            style={{ color: COLORS.textMuted }}
+          />
+          <span
+            className="text-xs sm:text-sm"
+            style={{ color: COLORS.textMuted }}
+          >
             {doctor.email}
           </span>
         </div>
       </div>
     </td>
-    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-      <div className="space-y-1">
-        <div className="text-sm sm:text-base font-semibold" style={{ color: COLORS.text }}>
-          {doctor.consultationFee}
-        </div>
-        <div className="flex items-center gap-2">
-          <FaClock className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
-          <span className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
-            {doctor.availability}
-          </span>
-        </div>
-      </div>
-    </td>
+
     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
       <div className="flex items-center gap-2">
-        <FaCalendarAlt className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
+        <FaCalendarAlt
+          className="w-3 h-3 sm:w-4 sm:h-4"
+          style={{ color: COLORS.textMuted }}
+        />
         <span className="text-sm sm:text-base" style={{ color: COLORS.text }}>
           {doctor.joinedDate}
         </span>
@@ -422,7 +477,7 @@ const DoctorRow = React.memo(({ doctor, onViewDoctor }) => (
       <StatusBadge status={doctor.status} />
     </td>
     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-      <button 
+      <button
         onClick={() => onViewDoctor(doctor)}
         className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition shadow-sm"
         style={{
@@ -457,12 +512,15 @@ const Doctors = () => {
 
   // Memoized filtered doctors
   const filteredDoctors = useMemo(() => {
-    return SAMPLE_DOCTORS.filter(doctor => {
-      const matchesSearch = doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           doctor.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           doctor.specialization.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           doctor.email.toLowerCase().includes(searchTerm.toLowerCase());
-      
+    return SAMPLE_DOCTORS.filter((doctor) => {
+      const matchesSearch =
+        doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        doctor.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        doctor.specialization
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        doctor.email.toLowerCase().includes(searchTerm.toLowerCase());
+
       if (selectedFilter === 'all') return matchesSearch;
       if (selectedFilter === 'recent') {
         const joinedDate = new Date(doctor.joinedDate);
@@ -470,33 +528,44 @@ const Doctors = () => {
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
         return matchesSearch && joinedDate >= sixMonthsAgo;
       }
-      return matchesSearch && doctor.specialization.toLowerCase() === selectedFilter;
+      return (
+        matchesSearch && doctor.specialization.toLowerCase() === selectedFilter
+      );
     });
   }, [searchTerm, selectedFilter]);
 
   // Event handlers
-  const handleViewDoctor = useCallback((doctor) => {
-    navigate(`/clinic/doctors/${doctor.id}`);
-  }, [navigate]);
+  const handleViewDoctor = useCallback(
+    (doctor) => {
+      navigate(`/clinic/doctors/${doctor.id}`);
+    },
+    [navigate]
+  );
 
-  const handleAddDoctor = useCallback((e) => {
-    e.preventDefault();
-    console.log('Adding new doctor:', { ...newDoctor, qualifications });
-    resetForm();
-    setShowAddModal(false);
-  }, [newDoctor, qualifications, resetForm]);
+  const handleAddDoctor = useCallback(
+    (e) => {
+      e.preventDefault();
+      console.log('Adding new doctor:', { ...newDoctor, qualifications });
+      resetForm();
+      setShowAddModal(false);
+    },
+    [newDoctor, qualifications, resetForm]
+  );
 
   const handleCloseModal = useCallback(() => {
     setShowAddModal(false);
     resetForm();
   }, [resetForm]);
 
-  const handleQualificationKeyPress = useCallback((e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddQualification();
-    }
-  }, [handleAddQualification]);
+  const handleQualificationKeyPress = useCallback(
+    (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleAddQualification();
+      }
+    },
+    [handleAddQualification]
+  );
 
   return (
     <div className="min-h-screen">
@@ -596,15 +665,25 @@ const Doctors = () => {
                     outline: 'none',
                   }}
                 >
-                  {FILTER_OPTIONS.map(option => (
+                  {FILTER_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
                   ))}
                 </select>
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </div>
               </div>
@@ -627,8 +706,15 @@ const Doctors = () => {
                 style={{ background: COLORS.white, borderColor: COLORS.border }}
               >
                 <tr>
-                  {['Doctor Info', 'Specialization', 'Contact', 'Fee & Schedule', 'Joined', 'Status', 'Actions'].map((header) => (
-                    <th 
+                  {[
+                    'Doctor Info',
+                    'Specialization',
+                    'Contact',
+                    'Joined',
+                    'Status',
+                    'Actions',
+                  ].map((header) => (
+                    <th
                       key={header}
                       className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-medium uppercase tracking-wider"
                       style={{ color: COLORS.primary }}
@@ -638,12 +724,15 @@ const Doctors = () => {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y" style={{ background: COLORS.white, borderColor: COLORS.border }}>
+              <tbody
+                className="divide-y"
+                style={{ background: COLORS.white, borderColor: COLORS.border }}
+              >
                 {filteredDoctors.map((doctor) => (
-                  <DoctorRow 
-                    key={doctor.id} 
-                    doctor={doctor} 
-                    onViewDoctor={handleViewDoctor} 
+                  <DoctorRow
+                    key={doctor.id}
+                    doctor={doctor}
+                    onViewDoctor={handleViewDoctor}
                   />
                 ))}
               </tbody>
@@ -682,7 +771,10 @@ const Doctors = () => {
               }}
             >
               <div>
-                <h3 className="text-xl font-semibold" style={{ color: COLORS.text }}>
+                <h3
+                  className="text-xl font-semibold"
+                  style={{ color: COLORS.text }}
+                >
                   Add New Doctor
                 </h3>
                 <p className="text-sm mt-1" style={{ color: COLORS.textMuted }}>
@@ -770,23 +862,6 @@ const Doctors = () => {
                 />
 
                 <FormInput
-                  label="Consultation Fee"
-                  name="consultationFee"
-                  value={newDoctor.consultationFee}
-                  onChange={handleInputChange}
-                  placeholder="$150"
-                />
-
-                <FormSelect
-                  label="Availability"
-                  name="availability"
-                  value={newDoctor.availability}
-                  onChange={handleInputChange}
-                  options={AVAILABILITY_OPTIONS}
-                  placeholder="Select Availability"
-                />
-
-                <FormInput
                   label="License Number"
                   name="licenseNumber"
                   value={newDoctor.licenseNumber}
@@ -804,7 +879,10 @@ const Doctors = () => {
                 />
 
                 <div className="lg:col-span-2">
-                  <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.text }}>
+                  <label
+                    className="block text-sm font-semibold mb-2"
+                    style={{ color: COLORS.text }}
+                  >
                     Address
                   </label>
                   <textarea
@@ -833,7 +911,10 @@ const Doctors = () => {
 
                 {/* Qualifications Section */}
                 <div className="lg:col-span-2">
-                  <label className="block text-sm font-semibold mb-3" style={{ color: COLORS.text }}>
+                  <label
+                    className="block text-sm font-semibold mb-3"
+                    style={{ color: COLORS.text }}
+                  >
                     Additional Qualifications
                   </label>
                   <div className="space-y-4">
@@ -866,21 +947,30 @@ const Doctors = () => {
                         disabled={!newQualification.trim()}
                         className="px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{ background: '#10B981', color: COLORS.white }}
-                        onMouseEnter={(e) => !e.target.disabled && (e.target.style.background = '#059669')}
-                        onMouseLeave={(e) => !e.target.disabled && (e.target.style.background = '#10B981')}
+                        onMouseEnter={(e) =>
+                          !e.target.disabled &&
+                          (e.target.style.background = '#059669')
+                        }
+                        onMouseLeave={(e) =>
+                          !e.target.disabled &&
+                          (e.target.style.background = '#10B981')
+                        }
                       >
                         Add
                       </button>
                     </div>
-                    
+
                     {qualifications.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-xs font-medium" style={{ color: COLORS.textMuted }}>
+                        <p
+                          className="text-xs font-medium"
+                          style={{ color: COLORS.textMuted }}
+                        >
                           Added Qualifications:
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {qualifications.map((qualification, index) => (
-                            <QualificationTag 
+                            <QualificationTag
                               key={`${qualification}-${index}`}
                               qualification={qualification}
                               index={index}
@@ -895,7 +985,10 @@ const Doctors = () => {
               </div>
 
               {/* Form Actions */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t" style={{ borderColor: COLORS.border }}>
+              <div
+                className="flex flex-col sm:flex-row gap-3 pt-6 border-t"
+                style={{ borderColor: COLORS.border }}
+              >
                 <button
                   type="button"
                   onClick={handleCloseModal}
@@ -926,11 +1019,13 @@ const Doctors = () => {
                   }}
                   onMouseEnter={(e) => {
                     e.target.style.transform = 'translateY(-1px)';
-                    e.target.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                    e.target.style.boxShadow =
+                      '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
                   }}
                   onMouseLeave={(e) => {
                     e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                    e.target.style.boxShadow =
+                      '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
                   }}
                 >
                   Add Doctor

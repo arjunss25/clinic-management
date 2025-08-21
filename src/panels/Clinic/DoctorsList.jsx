@@ -201,7 +201,11 @@ const DoctorsList = ({ onDoctorSelect }) => {
         {/* Results Count */}
         <div className="mb-6">
           <p className="text-gray-600">
-            Showing <span className="font-medium text-gray-900">{filteredDoctors.length}</span> doctors
+            Showing{' '}
+            <span className="font-medium text-gray-900">
+              {filteredDoctors.length}
+            </span>{' '}
+            doctors
           </p>
         </div>
 
@@ -236,12 +240,16 @@ const DoctorsList = ({ onDoctorSelect }) => {
                   <div className="text-center p-3 border border-gray-200 rounded-lg">
                     <FaGraduationCap className="w-4 h-4 text-blue-600 mx-auto mb-1" />
                     <p className="text-xs text-gray-600 mb-1">Experience</p>
-                    <p className="text-sm font-semibold text-gray-900">{doctor.experience}</p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {doctor.experience}
+                    </p>
                   </div>
                   <div className="text-center p-3 border border-gray-200 rounded-lg">
                     <FaUsers className="w-4 h-4 text-blue-600 mx-auto mb-1" />
                     <p className="text-xs text-gray-600 mb-1">Patients</p>
-                    <p className="text-sm font-semibold text-gray-900">{doctor.patientsCount.toLocaleString()}</p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {doctor.patientsCount.toLocaleString()}
+                    </p>
                   </div>
                 </div>
 
@@ -286,7 +294,7 @@ const DoctorsList = ({ onDoctorSelect }) => {
             <p className="text-gray-600">
               Try adjusting your search criteria or filters.
             </p>
-            <button 
+            <button
               onClick={() => {
                 setSearchTerm('');
                 setSelectedSpecialization('');

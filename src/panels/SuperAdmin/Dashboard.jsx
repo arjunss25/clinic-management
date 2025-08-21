@@ -16,12 +16,17 @@ import {
   FaCheckCircle,
   FaHistory,
   FaCog,
+  FaTimes,
+  FaMapMarkerAlt,
+  FaPhone,
+  FaEnvelope,
+  FaUserNurse,
 } from 'react-icons/fa';
-import { 
-  Users, 
-  Building2, 
-  UserCheck, 
-  TrendingUp, 
+import {
+  Users,
+  Building2,
+  UserCheck,
+  TrendingUp,
   Activity,
   Clock,
   CheckCircle2,
@@ -31,7 +36,21 @@ import {
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [showClinicModal, setShowClinicModal] = useState(false);
   const navigate = useNavigate();
+
+  // Clinic registration form state
+  const [clinicForm, setClinicForm] = useState({
+    name: '',
+    license: '',
+    location: '',
+    address: '',
+    phone: '',
+    email: '',
+    contactPerson: '',
+    specialties: [],
+  });
+  const [newSpecialty, setNewSpecialty] = useState('');
 
   // Animation variants
   const containerVariants = {
@@ -145,6 +164,57 @@ const Dashboard = () => {
     }
   };
 
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setClinicForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const addSpecialty = () => {
+    if (!newSpecialty.trim()) return;
+    setClinicForm((prev) => ({
+      ...prev,
+      specialties: [...prev.specialties, newSpecialty.trim()],
+    }));
+    setNewSpecialty('');
+  };
+
+  const removeSpecialty = (index) => {
+    setClinicForm((prev) => ({
+      ...prev,
+      specialties: prev.specialties.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleSpecialtyKey = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addSpecialty();
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Here you would typically send the data to your API
+    console.log('Clinic registration data:', clinicForm);
+    // Reset form and close modal
+    setClinicForm({
+      name: '',
+      license: '',
+      location: '',
+      address: '',
+      phone: '',
+      email: '',
+      contactPerson: '',
+      specialties: [],
+    });
+    setShowClinicModal(false);
+    // You could add a success notification here
+  };
+
+  const openClinicModal = () => {
+    setShowClinicModal(true);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -162,8 +232,8 @@ const Dashboard = () => {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <button 
-            onClick={() => navigate('/superadmin/clinics/register')}
+          <button
+            onClick={openClinicModal}
             className="flex items-center gap-2 px-4 py-2 bg-[#0118D8] text-white rounded-lg hover:bg-[#0118D8]/90 transition-colors"
           >
             <FaPlus className="w-4 h-4" />
@@ -217,9 +287,7 @@ const Dashboard = () => {
             <p className="text-2xl font-semibold text-gray-900">
               {stats.totalDoctors}
             </p>
-            <p className="text-gray-600 text-sm">
-              +5 this month
-            </p>
+            <p className="text-gray-600 text-sm">+5 this month</p>
           </div>
         </motion.div>
 
@@ -290,11 +358,12 @@ const Dashboard = () => {
                       Clinics with Expiring Subscriptions
                     </h3>
                     <p className="text-white/80 text-xs">
-                      Clinics requiring immediate attention for subscription renewal
+                      Clinics requiring immediate attention for subscription
+                      renewal
                     </p>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => navigate('/superadmin/subscriptions')}
                   className="px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white text-xs font-medium rounded-lg hover:bg-white/30 transition-colors"
                 >
@@ -313,9 +382,14 @@ const Dashboard = () => {
                     className="group bg-white rounded-xl p-4 border border-[#E9DFC3]/70 hover:border-[#1B56FD] shadow-sm hover:shadow-md transition-all"
                   >
                     <div className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        clinic.status === 'critical' || clinic.status === 'expired' ? 'bg-red-100' : 'bg-yellow-100'
-                      }`}>
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          clinic.status === 'critical' ||
+                          clinic.status === 'expired'
+                            ? 'bg-red-100'
+                            : 'bg-yellow-100'
+                        }`}
+                      >
                         {getSubscriptionIcon(clinic.status)}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -323,7 +397,11 @@ const Dashboard = () => {
                           <p className="text-sm font-medium text-gray-900">
                             {clinic.clinicName}
                           </p>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(clinic.status)}`}>
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                              clinic.status
+                            )}`}
+                          >
                             {getStatusText(clinic.status)}
                           </span>
                         </div>
@@ -334,7 +412,9 @@ const Dashboard = () => {
                           </span>
                           <span className="flex items-center gap-1">
                             <FaClock className="w-3 h-3" />
-                            {clinic.daysLeft === 0 ? 'Expired' : `${clinic.daysLeft} days left`}
+                            {clinic.daysLeft === 0
+                              ? 'Expired'
+                              : `${clinic.daysLeft} days left`}
                           </span>
                           <span className="flex items-center gap-1">
                             <FaCalendarAlt className="w-3 h-3" />
@@ -346,14 +426,20 @@ const Dashboard = () => {
                           <span>{clinic.contactPhone}</span>
                         </div>
                         <div className="flex items-center gap-2 mt-3">
-                          <button 
-                            onClick={() => navigate(`/superadmin/clinics/${clinic.id}`)}
+                          <button
+                            onClick={() =>
+                              navigate(`/superadmin/clinics/${clinic.id}`)
+                            }
                             className="px-3 py-1.5 bg-[#0118D8] text-white text-xs font-medium rounded-lg hover:bg-[#0118D8]/90 transition-colors"
                           >
                             View Clinic
                           </button>
-                          <button 
-                            onClick={() => navigate(`/superadmin/subscriptions/renew/${clinic.id}`)}
+                          <button
+                            onClick={() =>
+                              navigate(
+                                `/superadmin/subscriptions/renew/${clinic.id}`
+                              )
+                            }
                             className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors"
                           >
                             Renew Subscription
@@ -381,21 +467,21 @@ const Dashboard = () => {
             Quick Actions
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <button 
-              onClick={() => navigate('/superadmin/clinics/register')}
+            <button
+              onClick={openClinicModal}
               className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#0118D8] border border-[#E9DFC3]/80 rounded-lg hover:border-[#1B56FD] hover:bg-[#0118D8]/5 transition-colors"
             >
               <FaHospital className="w-4 h-4" />
               Register Clinic
             </button>
-            <button 
+            <button
               onClick={() => navigate('/superadmin/analytics')}
               className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#0118D8] border border-[#E9DFC3]/80 rounded-lg hover:border-[#1B56FD] hover:bg-[#0118D8]/5 transition-colors"
             >
               <FaChartLine className="w-4 h-4" />
               View Analytics
             </button>
-            <button 
+            <button
               onClick={() => navigate('/superadmin/settings')}
               className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#0118D8] border border-[#E9DFC3]/80 rounded-lg hover:border-[#1B56FD] hover:bg-[#0118D8]/5 transition-colors"
             >
@@ -405,8 +491,249 @@ const Dashboard = () => {
           </div>
         </motion.div>
       </motion.div>
+
+      {/* Clinic Registration Modal */}
+      {showClinicModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4"
+          style={{
+            background: 'rgba(15, 23, 42, 0.4)',
+            backdropFilter: 'saturate(140%) blur(8px)',
+          }}
+          onClick={() => setShowClinicModal(false)}
+        >
+          <div
+            className="w-full max-w-2xl rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+            style={{
+              background: '#ffffff',
+              border: '1px solid #ECEEF2',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              className="px-6 py-5 border-b flex items-center justify-between sticky top-0 z-10"
+              style={{
+                background: '#ffffff',
+                borderColor: '#ECEEF2',
+              }}
+            >
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Register New Clinic
+                </h3>
+                <p className="text-sm mt-1 text-gray-500">
+                  Add a clinic with complete information
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowClinicModal(false)}
+                className="w-10 h-10 rounded-full transition-all flex items-center justify-center hover:scale-105"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '1px solid #ECEEF2',
+                }}
+              >
+                <FaTimes className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <FaHospital className="inline w-4 h-4 mr-2 text-[#0118D8]" />
+                    Clinic Name
+                  </label>
+                  <input
+                    name="name"
+                    value={clinicForm.name}
+                    onChange={handleFormChange}
+                    type="text"
+                    className="w-full px-3 py-2 rounded-lg text-sm border-2 focus:outline-none focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+                    style={{ borderColor: '#ECEEF2' }}
+                    placeholder="Enter clinic name"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <FaBuilding className="inline w-4 h-4 mr-2 text-[#0118D8]" />
+                    License Number
+                  </label>
+                  <input
+                    name="license"
+                    value={clinicForm.license}
+                    onChange={handleFormChange}
+                    type="text"
+                    className="w-full px-3 py-2 rounded-lg text-sm border-2 focus:outline-none focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+                    style={{ borderColor: '#ECEEF2' }}
+                    placeholder="Enter license number"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <FaMapMarkerAlt className="inline w-4 h-4 mr-2 text-[#0118D8]" />
+                    City/Location
+                  </label>
+                  <input
+                    name="location"
+                    value={clinicForm.location}
+                    onChange={handleFormChange}
+                    type="text"
+                    className="w-full px-3 py-2 rounded-lg text-sm border-2 focus:outline-none focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+                    style={{ borderColor: '#ECEEF2' }}
+                    placeholder="e.g., New York, NY"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <FaUserNurse className="inline w-4 h-4 mr-2 text-[#0118D8]" />
+                    Contact Person
+                  </label>
+                  <input
+                    name="contactPerson"
+                    value={clinicForm.contactPerson}
+                    onChange={handleFormChange}
+                    type="text"
+                    className="w-full px-3 py-2 rounded-lg text-sm border-2 focus:outline-none focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+                    style={{ borderColor: '#ECEEF2' }}
+                    placeholder="e.g., Dr. John Smith"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <FaMapMarkerAlt className="inline w-4 h-4 mr-2 text-[#0118D8]" />
+                  Full Address
+                </label>
+                <textarea
+                  name="address"
+                  value={clinicForm.address}
+                  onChange={handleFormChange}
+                  rows="3"
+                  className="w-full px-3 py-2 rounded-lg text-sm border-2 focus:outline-none focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+                  style={{ borderColor: '#ECEEF2' }}
+                  placeholder="Enter complete address"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <FaPhone className="inline w-4 h-4 mr-2 text-[#0118D8]" />
+                    Phone Number
+                  </label>
+                  <input
+                    name="phone"
+                    value={clinicForm.phone}
+                    onChange={handleFormChange}
+                    type="tel"
+                    className="w-full px-3 py-2 rounded-lg text-sm border-2 focus:outline-none focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+                    style={{ borderColor: '#ECEEF2' }}
+                    placeholder="+1 (555) 123-4567"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <FaEnvelope className="inline w-4 h-4 mr-2 text-[#0118D8]" />
+                    Email Address
+                  </label>
+                  <input
+                    name="email"
+                    value={clinicForm.email}
+                    onChange={handleFormChange}
+                    type="email"
+                    className="w-full px-3 py-2 rounded-lg text-sm border-2 focus:outline-none focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+                    style={{ borderColor: '#ECEEF2' }}
+                    placeholder="clinic@email.com"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <FaUserMd className="inline w-4 h-4 mr-2 text-[#0118D8]" />
+                  Medical Specialties
+                </label>
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newSpecialty}
+                      onChange={(e) => setNewSpecialty(e.target.value)}
+                      onKeyDown={handleSpecialtyKey}
+                      placeholder="Add a specialty (e.g., Cardiology)"
+                      className="flex-1 px-3 py-2 rounded-lg text-sm border-2 focus:outline-none focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+                      style={{ borderColor: '#ECEEF2' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={addSpecialty}
+                      className="px-4 py-2 bg-[#0118D8] text-white rounded-lg hover:bg-[#0118D8]/90 transition-colors text-sm font-medium"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {clinicForm.specialties.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {clinicForm.specialties.map((specialty, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center gap-2 px-3 py-1 bg-[#0118D8]/10 text-[#0118D8] rounded-full text-sm"
+                        >
+                          {specialty}
+                          <button
+                            type="button"
+                            onClick={() => removeSpecialty(index)}
+                            className="w-4 h-4 rounded-full bg-[#0118D8]/20 hover:bg-[#0118D8]/30 transition-colors flex items-center justify-center"
+                          >
+                            <FaTimes className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Form Actions */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#ECEEF2]">
+                <button
+                  type="button"
+                  onClick={() => setShowClinicModal(false)}
+                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-[#0118D8] text-white rounded-lg hover:bg-[#0118D8]/90 transition-colors text-sm font-medium flex items-center gap-2"
+                >
+                  <FaPlus className="w-4 h-4" />
+                  Register Clinic
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
-  };
-  
-  export default Dashboard; 
+};
+
+export default Dashboard;
