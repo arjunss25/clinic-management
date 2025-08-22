@@ -12,6 +12,8 @@ import {
   FaTimes,
   FaUser,
   FaPhone,
+  FaEnvelope,
+  FaCalendarAlt,
 } from 'react-icons/fa';
 
 // Theme colors (matching Patient Appointments UI)
@@ -125,6 +127,70 @@ async function createCashfreeOrderToken(booking) {
     return null;
   }
 }
+
+// Sample patient data for patient selection
+const SAMPLE_PATIENTS = [
+  {
+    id: 'PAT-2024-001',
+    name: 'John Doe',
+    age: 35,
+    gender: 'Male',
+    phone: '+1 (555) 123-4567',
+    email: 'john.doe@email.com',
+    lastVisit: '15 Mar 2024',
+    status: 'Active',
+    bloodGroup: 'O+',
+    emergencyContact: 'Sarah Doe (Wife)',
+  },
+  {
+    id: 'PAT-2024-002',
+    name: 'Jane Smith',
+    age: 28,
+    gender: 'Female',
+    phone: '+1 (555) 234-5678',
+    email: 'jane.smith@email.com',
+    lastVisit: '12 Mar 2024',
+    status: 'Active',
+    bloodGroup: 'A+',
+    emergencyContact: 'Mike Smith (Husband)',
+  },
+  {
+    id: 'PAT-2024-003',
+    name: 'Robert Johnson',
+    age: 45,
+    gender: 'Male',
+    phone: '+1 (555) 345-6789',
+    email: 'robert.johnson@email.com',
+    lastVisit: '10 Mar 2024',
+    status: 'Active',
+    bloodGroup: 'B+',
+    emergencyContact: 'Lisa Johnson (Sister)',
+  },
+  {
+    id: 'PAT-2024-004',
+    name: 'Emily Davis',
+    age: 32,
+    gender: 'Female',
+    phone: '+1 (555) 456-7890',
+    email: 'emily.davis@email.com',
+    lastVisit: '08 Mar 2024',
+    status: 'Active',
+    bloodGroup: 'AB+',
+    emergencyContact: 'David Davis (Brother)',
+  },
+  {
+    id: 'PAT-2024-005',
+    name: 'Michael Wilson',
+    age: 52,
+    gender: 'Male',
+    phone: '+1 (555) 567-8901',
+    email: 'michael.wilson@email.com',
+    lastVisit: '05 Mar 2024',
+    status: 'Active',
+    bloodGroup: 'O-',
+    emergencyContact: 'Jennifer Wilson (Daughter)',
+  },
+];
 
 const todayDate = new Date();
 const yyyy = todayDate.getFullYear();
@@ -251,6 +317,19 @@ const ClinicPatientBooking = () => {
   const { patientId } = useParams();
   const location = useLocation();
   const patient = location.state?.patient;
+  
+  // If no patient is provided, show patient selection interface
+  const [showPatientSelection, setShowPatientSelection] = useState(!patient && !patientId);
+  
+  // Update showPatientSelection when patient is selected
+  useEffect(() => {
+    if (patient || patientId) {
+      setShowPatientSelection(false);
+    }
+  }, [patient, patientId]);
+  
+  // Determine where the user came from based on the state
+  const cameFromPatientProfile = location.state?.fromPatientProfile;
 
   const [currentMonth, setCurrentMonth] = useState(todayDate);
   const [selectedDate, setSelectedDate] = useState(todayDate);
@@ -433,14 +512,16 @@ const ClinicPatientBooking = () => {
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 sm:gap-5">
           <div className="space-y-1">
             <h1 className="text-[2rem] md:text-[2.25rem] font-semibold tracking-tight text-gray-900">
-              Book Appointment for {patient ? patient.name : 'Patient'}
+              {showPatientSelection ? 'Book for Patient' : `Book Appointment for ${patient ? patient.name : 'Patient'}`}
             </h1>
             <p
               className="text-sm sm:text-base"
               style={{ color: COLORS.textMuted }}
             >
-              Schedule appointments on behalf of{' '}
-              {patient ? patient.name : 'the patient'}
+              {showPatientSelection 
+                ? 'Select a patient to book an appointment for'
+                : `Schedule appointments on behalf of ${patient ? patient.name : 'the patient'}`
+              }
             </p>
             {patient && (
               <div className="flex items-center gap-3 pt-2">
@@ -458,26 +539,158 @@ const ClinicPatientBooking = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
             <button
               type="button"
-              onClick={() => navigate('/clinic/patients')}
+              onClick={() => {
+                if (showPatientSelection) {
+                  navigate('/clinic');
+                } else if (cameFromPatientProfile) {
+                  // Go back to the patient profile
+                  navigate(`/clinic/patients/${patientId}`);
+                } else {
+                  // Go back to patient selection interface within Book for Patient
+                  setShowPatientSelection(true);
+                  navigate('/clinic/patient-booking');
+                }
+              }}
               className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-white text-sm font-medium shadow-sm transition w-full sm:w-auto justify-center"
               style={{
                 background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
               }}
             >
               <FaArrowLeft className="w-4 h-4" />
-              <span>Back to Patients</span>
+              <span>
+                {showPatientSelection 
+                  ? 'Back to Dashboard' 
+                  : cameFromPatientProfile 
+                    ? 'Back to Patient Profile' 
+                    : 'Back to Patient Selection'
+                }
+              </span>
             </button>
           </div>
         </div>
 
+        {/* Patient Selection Interface */}
+        {showPatientSelection && (
+          <div
+            className="rounded-xl sm:rounded-2xl shadow-sm overflow-hidden"
+            style={{
+              background: COLORS.surface,
+              border: `1px solid ${COLORS.border}`,
+            }}
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead
+                  className="border-b"
+                  style={{ background: COLORS.white, borderColor: COLORS.border }}
+                >
+                  <tr>
+                    {['Patient Info', 'Contact', 'Last Visit', 'Status', 'Actions'].map((header) => (
+                      <th 
+                        key={header}
+                        className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-medium uppercase tracking-wider"
+                        style={{ color: COLORS.primary }}
+                      >
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y" style={{ background: COLORS.white, borderColor: COLORS.border }}>
+                  {SAMPLE_PATIENTS.map((patient) => (
+                    <tr 
+                      key={patient.id}
+                      className="transition-all duration-200 hover:shadow-sm"
+                      style={{ 
+                        background: COLORS.white,
+                        borderColor: COLORS.border,
+                      }}
+                    >
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                            {patient.name.split(' ').map(n => n[0]).join('')}
+                          </div>
+                          <div>
+                            <div className="text-sm sm:text-base font-semibold" style={{ color: COLORS.text }}>
+                              {patient.name}
+                            </div>
+                            <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
+                              ID: {patient.id}
+                            </div>
+                            <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
+                              {patient.age} years • {patient.gender}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <FaPhone className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
+                            <span className="text-sm sm:text-base" style={{ color: COLORS.text }}>
+                              {patient.phone}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <FaEnvelope className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
+                            <span className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
+                              {patient.email}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <FaCalendarAlt className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
+                          <span className="text-sm sm:text-base" style={{ color: COLORS.text }}>
+                            {patient.lastVisit}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-emerald-700 bg-emerald-50 ring-1 ring-emerald-200">
+                          <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                          <span className="hidden sm:inline">{patient.status}</span>
+                        </span>
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        <button 
+                          onClick={() => {
+                            setShowPatientSelection(false);
+                            // Update the patient state and navigate to the same component with patient details
+                            navigate(`/clinic/patient-booking/${patient.id}`, {
+                              state: { patient: patient }
+                            });
+                          }}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition shadow-sm"
+                          style={{
+                            background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
+                            color: COLORS.white,
+                          }}
+                        >
+                          <FaCalendarAlt className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">Book Appointment</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {/* Calendar Card (exact look as Patient Appointments) */}
-        <div
-          className="rounded-xl sm:rounded-2xl shadow-sm overflow-hidden"
-          style={{
-            background: COLORS.surface,
-            border: `1px solid ${COLORS.border}`,
-          }}
-        >
+        {!showPatientSelection && (
+          <div
+            className="rounded-xl sm:rounded-2xl shadow-sm overflow-hidden"
+            style={{
+              background: COLORS.surface,
+              border: `1px solid ${COLORS.border}`,
+            }}
+          >
           <div
             className="px-3 sm:px-5 py-3 sm:py-4 border-b"
             style={{ background: COLORS.white, borderColor: COLORS.border }}
@@ -730,6 +943,7 @@ const ClinicPatientBooking = () => {
             </div>
           </div>
         </div>
+        )}
 
         {/* Day Details Modal */}
         {showDayModal ? (

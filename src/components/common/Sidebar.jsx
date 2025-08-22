@@ -10,14 +10,29 @@ const Sidebar = ({ role = 'patient' }) => {
   const navItems = navigationConfig[role] || [];
   const [hoveredItem, setHoveredItem] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
-  const [expandedItems, setExpandedItems] = useState({});
+  const [expandedItems, setExpandedItems] = useState(() => {
+    // Auto-expand parent items if any of their sub-items are active
+    const initialExpanded = {};
+    navItems.forEach(item => {
+      if (item.subItems) {
+        const hasActiveSubItem = item.subItems.some(subItem => location.pathname.startsWith(subItem.path));
+        if (hasActiveSubItem) {
+          initialExpanded[item.name] = true;
+        }
+      }
+    });
+    return initialExpanded;
+  });
 
   const isActive = (path, itemName) => {
     if (!path) {
       // For items without a path (like parent items with sub-items), check if any sub-item is active
       const item = navItems.find(item => item.name === itemName);
       if (item && item.subItems) {
-        return item.subItems.some(subItem => location.pathname === subItem.path);
+        return item.subItems.some(subItem => {
+          // Check if current path starts with sub-item path (for routes with parameters)
+          return location.pathname.startsWith(subItem.path);
+        });
       }
       return false;
     }
@@ -31,7 +46,10 @@ const Sidebar = ({ role = 'patient' }) => {
     
     if (hasSubItems) {
       // For items with sub-items, check if current path matches any sub-item path
-      return isPathActive || hasSubItems.some(subItem => location.pathname === subItem.path);
+      return isPathActive || hasSubItems.some(subItem => {
+        // Check if current path starts with sub-item path (for routes with parameters)
+        return location.pathname.startsWith(subItem.path);
+      });
     }
     
     return isPathActive;
@@ -171,7 +189,7 @@ const Sidebar = ({ role = 'patient' }) => {
                     {!collapsed && isExpanded && hasSubItems && (
                       <div className="ml-4 mt-1 space-y-1">
                         {item.subItems.map((subItem, subIndex) => {
-                          const subActive = location.pathname === subItem.path;
+                          const subActive = location.pathname.startsWith(subItem.path);
                           return (
                             <Link
                               key={subItem.path}

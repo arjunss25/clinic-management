@@ -441,7 +441,7 @@ const PatientProfile = () => {
                   <button
                     onClick={() =>
                       navigate(`/clinic/patient-booking/${patient.id}`, {
-                        state: { patient },
+                        state: { patient, fromPatientProfile: true },
                       })
                     }
                     className="flex-1 sm:flex-none group px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-[#0118D8] to-[#1B56FD] text-white rounded-lg font-medium hover:from-[#1B56FD] hover:to-[#0118D8] transition-all duration-300 flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg transform hover:scale-105 text-sm"

@@ -82,6 +82,10 @@ const AppRoutes = () => {
         <Route index element={<ClinicDashboard />} />
         <Route path="appointments" element={<ClinicAppointments />} />
         <Route
+          path="patient-booking"
+          element={<ClinicPatientBooking />}
+        />
+        <Route
           path="patient-booking/:patientId"
           element={<ClinicPatientBooking />}
         />
