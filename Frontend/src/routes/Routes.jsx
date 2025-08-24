@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import PatientLayout from '../layouts/PatientLayout';
 import DoctorLayout from '../layouts/DoctorLayout';
-import StaffLayout from '../layouts/StaffLayout';
+import ClinicLayout from '../layouts/ClinicLayout';
 import SuperAdminLayout from '../layouts/SuperAdminLayout';
 import Login from '../panels/Auth/Login';
 import OtpVerification from '../panels/Auth/OtpVerification';
@@ -19,19 +19,30 @@ import PaymentHistory from '../panels/Patient/PaymentHistory';
 // Doctor Panel Imports
 import DoctorDashboard from '../panels/Doctor/Dashboard';
 import DoctorAppointments from '../panels/Doctor/Appointments';
+import AppointmentHistory from '../panels/Doctor/AppointmentHistory';
 import DoctorPatients from '../panels/Doctor/Patients';
 import DoctorPatientProfile from '../panels/Doctor/PatientProfile';
+import DoctorPatientBooking from '../panels/Doctor/PatientBooking';
+import Consultation from '../panels/Doctor/Consultation';
 
-
-// Staff Panel Imports
-import StaffDashboard from '../panels/Staff/Dashboard';
-import StaffAppointments from '../panels/Staff/Appointments';
-import StaffPatients from '../panels/Staff/Patients';
+// Clinic Panel Imports
+import ClinicDashboard from '../panels/Clinic/Dashboard';
+import ClinicAppointments from '../panels/Clinic/Appointments';
+import ClinicPatients from '../panels/Clinic/Patients';
+import Doctors from '../panels/Clinic/Doctors';
+import ClinicPatientProfile from '../panels/Clinic/PatientProfile';
+import ClinicPatientBooking from '../panels/Clinic/PatientBooking';
+import DoctorProfile from '../panels/Clinic/DoctorProfile';
 
 // SuperAdmin Panel Imports
 import SuperAdminDashboard from '../panels/SuperAdmin/Dashboard';
-import SuperAdminUsers from '../panels/SuperAdmin/Users';
-import SuperAdminSettings from '../panels/SuperAdmin/Settings';
+import SuperAdminClinics from '../panels/SuperAdmin/Clinics';
+import SuperAdminDoctors from '../panels/SuperAdmin/Doctors';
+import DoctorView from '../panels/SuperAdmin/DoctorView';
+import SuperAdminAnalytics from '../panels/SuperAdmin/Analytics';
+import Subscriptions from '../panels/SuperAdmin/Subscriptions';
+import PlatformUsage from '../panels/SuperAdmin/PlatformUsage';
+import ClinicView from '../panels/SuperAdmin/ClinicView';
 
 
 const AppRoutes = () => {
@@ -59,22 +70,42 @@ const AppRoutes = () => {
       <Route path="/doctor" element={<DoctorLayout />}>
         <Route index element={<DoctorDashboard />} />
         <Route path="appointments" element={<DoctorAppointments />} />
+        <Route path="appointments-history" element={<AppointmentHistory />} />
         <Route path="patients" element={<DoctorPatients />} />
         <Route path="patients/:patientId" element={<DoctorPatientProfile />} />
+        <Route path="patient-booking/:patientId" element={<DoctorPatientBooking />} />
+        <Route path="consultation" element={<Consultation />} />
       </Route>
 
-      {/* Staff Routes */}
-      <Route path="/staff" element={<StaffLayout />}>
-        <Route index element={<StaffDashboard />} />
-        <Route path="appointments" element={<StaffAppointments />} />
-        <Route path="patients" element={<StaffPatients />} />
+      {/* Clinic Routes */}
+      <Route path="/clinic" element={<ClinicLayout />}>
+        <Route index element={<ClinicDashboard />} />
+        <Route path="appointments" element={<ClinicAppointments />} />
+        <Route
+          path="patient-booking"
+          element={<ClinicPatientBooking />}
+        />
+        <Route
+          path="patient-booking/:patientId"
+          element={<ClinicPatientBooking />}
+        />
+        <Route path="patients" element={<ClinicPatients />} />
+        <Route path="doctors" element={<Doctors />} />
+        // Example route setup
+        <Route path="doctors/:doctorId" element={<DoctorProfile />} />
+        <Route path="patients/:patientId" element={<ClinicPatientProfile />} />
       </Route>
 
       {/* SuperAdmin Routes */}
       <Route path="/superadmin" element={<SuperAdminLayout />}>
         <Route index element={<SuperAdminDashboard />} />
-        <Route path="users" element={<SuperAdminUsers />} />
-        <Route path="settings" element={<SuperAdminSettings />} />
+        <Route path="clinics" element={<SuperAdminClinics />} />
+        <Route path="clinics/:clinicId" element={<ClinicView />} />
+        <Route path="doctors" element={<SuperAdminDoctors />} />
+        <Route path="doctors/:doctorId" element={<DoctorView />} />
+        <Route path="analytics" element={<SuperAdminAnalytics />} />
+        <Route path="subscriptions" element={<Subscriptions />} />
+        <Route path="platform-usage" element={<PlatformUsage />} />
       </Route>
 
       {/* Redirect to login for unknown routes */}

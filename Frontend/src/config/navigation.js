@@ -8,6 +8,10 @@ import {
   FaLightbulb,
   FaMoneyBill,
   FaCreditCard,
+  FaHospital,
+  FaUserMd,
+  FaChartLine,
+  FaDollarSign,
 } from 'react-icons/fa';
 
 export const navigationConfig = {
@@ -15,12 +19,12 @@ export const navigationConfig = {
     {
       name: 'Dashboard',
       path: '/patient',
-      icon: FaHome, // Export the component itself
+      icon: FaHome,
     },
     {
       name: 'Appointments',
       path: '/patient/appointments',
-      icon: FaCalendarAlt, // Export the component itself
+      icon: FaCalendarAlt,
       subItems: [
         {
           name: 'Book Appointments',
@@ -70,22 +74,38 @@ export const navigationConfig = {
       icon: FaUsers,
     },
   ],
-  staff: [
+  clinic: [
     {
       name: 'Dashboard',
-      path: '/staff',
+      path: '/clinic',
       icon: FaHome,
     },
     {
       name: 'Appointments',
-      path: '/staff/appointments',
+      path: '/clinic/appointments',
       icon: FaCalendarAlt,
+      subItems: [
+        {
+          name: 'Manage Slots',
+          path: '/clinic/appointments',
+        },
+        {
+          name: 'Book for Patient',
+          path: '/clinic/patient-booking',
+        },
+      ],
+    },
+     {
+      name: 'Doctors',
+      path: '/clinic/doctors',
+      icon: FaUserMd,
     },
     {
       name: 'Patients',
-      path: '/staff/patients',
+      path: '/clinic/patients',
       icon: FaUsers,
     },
+   
   ],
   superadmin: [
     {
@@ -94,14 +114,33 @@ export const navigationConfig = {
       icon: FaHome,
     },
     {
-      name: 'Users',
-      path: '/superadmin/users',
-      icon: FaUsers,
+      name: 'Analytics',
+      path: '/superadmin/analytics',
+      icon: FaChartLine,
     },
     {
-      name: 'Settings',
-      path: '/superadmin/settings',
-      icon: FaCog,
+      name: 'Revenue',
+      icon: FaDollarSign,
+      subItems: [
+        {
+          name: 'Subscriptions',
+          path: '/superadmin/subscriptions',
+        },
+        {
+          name: 'Platform Usage',
+          path: '/superadmin/platform-usage',
+        },
+      ],
+    },
+    {
+      name: 'Clinics',
+      path: '/superadmin/clinics',
+      icon: FaHospital,
+    },
+    {
+      name: 'Doctors',
+      path: '/superadmin/doctors',
+      icon: FaUserMd,
     },
   ],
 };

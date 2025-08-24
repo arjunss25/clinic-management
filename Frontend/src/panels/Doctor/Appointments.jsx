@@ -16,6 +16,8 @@ import {
   FaUsers,
   FaCalendarPlus,
   FaHistory,
+  FaCalendarAlt,
+  FaBan,
 } from 'react-icons/fa';
 import { SiTicktick } from "react-icons/si";
 
@@ -30,9 +32,9 @@ const COLORS = {
   text: '#111827',
   textMuted: '#6B7280',
   gray50: '#F9FAFB',
-  success: '#10B981',
+  success: '#34D399',
   warning: '#F59E0B',
-  danger: '#EF4444',
+  danger: '#F87171',
 };
 
 // Utilities
@@ -153,15 +155,15 @@ const statusStyles = {
     icon: <SiTicktick />,
   },
   booked: {
-    bg: 'linear-gradient(135deg, #ecfdf5, #d1fae5)',
-    color: '#047857',
-    border: '1px solid #a7f3d0',
+    bg: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
+    color: '#16a34a',
+    border: '1px solid #bbf7d0',
     icon: '👨🏻‍💼',
   },
   blocked: {
-    bg: 'linear-gradient(135deg, #fef2f2, #fee2e2)',
-    color: '#dc2626',
-    border: '1px solid #fecaca',
+    bg: 'linear-gradient(135deg, #fef2f2, #fecaca)',
+    color: '#ef4444',
+    border: '1px solid #fca5a5',
     icon: '🚫',
   },
 };
@@ -177,7 +179,9 @@ const Appointments = () => {
   const [showSlotModal, setShowSlotModal] = useState(false);
   const [showBulkAddModal, setShowBulkAddModal] = useState(false);
   const [showSingleDayBulkModal, setShowSingleDayBulkModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const [editingSlot, setEditingSlot] = useState(null);
+  const [cancellingSlot, setCancellingSlot] = useState(null);
   
   // Slot creation/editing form
   const [slotForm, setSlotForm] = useState({
@@ -209,6 +213,12 @@ const Appointments = () => {
     endTime: '17:00',
     slotDuration: 30,
     breakDuration: 0,
+  });
+
+  // Cancel appointment form
+  const [cancelForm, setCancelForm] = useState({
+    reason: '',
+    notes: '',
   });
 
   const monthMatrix = useMemo(
@@ -265,6 +275,8 @@ const Appointments = () => {
         recurring: false,
         recurringDays: [],
         recurringEndDate: '',
+        isReschedule: false,
+        originalSlotId: null,
       });
     } else {
       setEditingSlot(null);
@@ -276,6 +288,8 @@ const Appointments = () => {
         recurring: false,
         recurringDays: [],
         recurringEndDate: '',
+        isReschedule: false,
+        originalSlotId: null,
       });
     }
     setShowSlotModal(true);
@@ -296,12 +310,33 @@ const Appointments = () => {
     e.preventDefault();
     
     if (editingSlot) {
-      // Update existing slot
-      setSlots(prev => prev.map(slot => 
-        slot.id === editingSlot.id 
-          ? { ...slot, ...slotForm, status: slot.status }
-          : slot
-      ));
+      if (slotForm.isReschedule) {
+        // Handle rescheduling - create new slot and cancel original
+        const newSlot = {
+          id: Date.now(),
+          ...slotForm,
+          status: 'booked',
+          patient: editingSlot.patient,
+          notes: slotForm.notes ? `${slotForm.notes} (Rescheduled from ${editingSlot.date} ${editingSlot.time})` : `Rescheduled from ${editingSlot.date} ${editingSlot.time}`,
+        };
+        
+        // Cancel the original appointment
+        setSlots(prev => prev.map(slot => 
+          slot.id === slotForm.originalSlotId 
+            ? { ...slot, status: 'available', patient: null, notes: slot.notes ? `${slot.notes} (Cancelled - Rescheduled)` : 'Cancelled - Rescheduled' }
+            : slot
+        ));
+        
+        // Add the new rescheduled slot
+        setSlots(prev => [...prev, newSlot]);
+      } else {
+        // Update existing slot
+        setSlots(prev => prev.map(slot => 
+          slot.id === editingSlot.id 
+            ? { ...slot, ...slotForm, status: slot.status }
+            : slot
+        ));
+      }
     } else {
       // Create new slot
       const newSlot = {
@@ -340,6 +375,62 @@ const Appointments = () => {
         ? { ...slot, status: 'available' }
         : slot
     ));
+  };
+
+  const cancelAppointment = (slotId) => {
+    const slot = slots.find(s => s.id === slotId);
+    if (slot) {
+      setCancellingSlot(slot);
+      setCancelForm({
+        reason: '',
+        notes: '',
+      });
+      setShowCancelModal(true);
+    }
+  };
+
+  const handleCancelSubmit = (e) => {
+    e.preventDefault();
+    
+    if (cancellingSlot) {
+      const cancellationNote = cancelForm.reason 
+        ? `Cancelled: ${cancelForm.reason}${cancelForm.notes ? ` - ${cancelForm.notes}` : ''}`
+        : `Cancelled${cancelForm.notes ? `: ${cancelForm.notes}` : ''}`;
+      
+      setSlots(prev => prev.map(slot => 
+        slot.id === cancellingSlot.id 
+          ? { 
+              ...slot, 
+              status: 'available', 
+              patient: null, 
+              notes: slot.notes ? `${slot.notes} (${cancellationNote})` : cancellationNote 
+            }
+          : slot
+      ));
+      
+      setShowCancelModal(false);
+      setCancellingSlot(null);
+      setCancelForm({ reason: '', notes: '' });
+    }
+  };
+
+  const rescheduleAppointment = (slotId) => {
+    const slot = slots.find(s => s.id === slotId);
+    if (slot) {
+      setEditingSlot(slot);
+      setSlotForm({
+        date: slot.date,
+        time: slot.time,
+        duration: slot.duration,
+        notes: slot.notes,
+        recurring: false,
+        recurringDays: [],
+        recurringEndDate: '',
+        isReschedule: true,
+        originalSlotId: slotId,
+      });
+      setShowSlotModal(true);
+    }
   };
 
   const generateTimeSlots = (startTime, endTime, duration, breakDuration = 0) => {
@@ -438,12 +529,12 @@ const Appointments = () => {
                 <span className="w-2 h-2 rounded-full bg-sky-600" />
                 <span className="hidden sm:inline">Available</span>
               </span>
-              <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-emerald-700 bg-emerald-50 ring-1 ring-emerald-200">
-                <span className="w-2 h-2 rounded-full bg-emerald-600" />
+              <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-green-600 bg-green-50 ring-1 ring-green-200">
+                <span className="w-2 h-2 rounded-full bg-green-500" />
                 <span className="hidden sm:inline">Booked</span>
               </span>
-              <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-rose-700 bg-rose-50 ring-1 ring-rose-200">
-                <span className="w-2 h-2 rounded-full bg-rose-600" />
+              <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-red-500 bg-red-50 ring-1 ring-red-200">
+                <span className="w-2 h-2 rounded-full bg-red-400" />
                 <span className="hidden sm:inline">Blocked</span>
               </span>
             </div>
@@ -624,12 +715,12 @@ const Appointments = () => {
                         </div>
                       )}
                       {counts.booked > 0 && (
-                        <div className="text-[10px] px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium">
+                        <div className="text-[10px] px-2 py-1 rounded-md bg-green-50 text-green-600 border border-green-200 font-medium">
                           👨🏻‍💼 {counts.booked} booked
                         </div>
                       )}
                       {counts.blocked > 0 && (
-                        <div className="text-[10px] px-2 py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200 font-medium">
+                        <div className="text-[10px] px-2 py-1 rounded-md bg-red-50 text-red-500 border border-red-200 font-medium">
                           🚫 {counts.blocked} blocked
                         </div>
                       )}
@@ -659,7 +750,7 @@ const Appointments = () => {
                           e.stopPropagation();
                           openBulkAddForDay(date);
                         }}
-                        className="w-6 h-6 rounded-full bg-green-500 text-white text-xs flex items-center justify-center shadow-sm hover:bg-green-600 transition"
+                        className="w-6 h-6 rounded-full bg-green-400 text-white text-xs flex items-center justify-center shadow-sm hover:bg-green-500 transition"
                         title="Bulk add slots for this day"
                       >
                         <FaCalendarPlus className="w-3 h-3" />
@@ -755,252 +846,288 @@ const Appointments = () => {
                 </div>
               </div>
 
-              {/* Slots List - Updated Design */}
-<div className="p-4 sm:p-6">
-  {getSlotsForDay(selectedDate).length > 0 ? (
-    <div className="space-y-4">
-      {/* Summary */}
-      <div className="flex items-center justify-between mb-4">
-        <h4 className="text-sm font-semibold text-gray-900">
-          {getSlotsForDay(selectedDate).length} slots scheduled
-        </h4>
-        <div className="flex items-center gap-2">
-          {getSlotCounts(selectedDate).available > 0 && (
-            <span className="text-xs px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-              {getSlotCounts(selectedDate).available} available
-            </span>
-          )}
-          {getSlotCounts(selectedDate).booked > 0 && (
-            <span className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-              {getSlotCounts(selectedDate).booked} booked
-            </span>
-          )}
-          {getSlotCounts(selectedDate).blocked > 0 && (
-            <span className="text-xs px-2 py-1 rounded-full bg-red-50 text-red-700 border border-red-200">
-              {getSlotCounts(selectedDate).blocked} blocked
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Slot Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {getSlotsForDay(selectedDate)
-          .sort((a, b) => a.time.localeCompare(b.time))
-          .map((slot) => {
-            const endTime = new Date(`2000-01-01 ${slot.time}`);
-            endTime.setMinutes(endTime.getMinutes() + slot.duration);
-            const endTimeStr = endTime.toTimeString().slice(0, 5);
-
-            // Define slot styles based on status
-            const slotStyles = {
-              available: {
-                bg: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
-                border: '#7dd3fc',
-                color: '#0369a1',
-                headerBg: '#0118D8',
-                headerColor: 'white',
-                icon: <SiTicktick />
-              },
-              booked: {
-                bg: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
-                border: '#a7f3d0',
-                color: '#047857',
-                headerBg: '#10b981',
-                headerColor: 'white',
-                icon: '👨🏻‍💼'
-              },
-              blocked: {
-                bg: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-                border: '#fecaca',
-                color: '#dc2626',
-                headerBg: '#ef4444',
-                headerColor: 'white',
-                icon: '🚫'
-              }
-            };
-
-            const style = slotStyles[slot.status];
-
-            return (
-              <div
-                key={slot.id}
-                className="relative rounded-xl overflow-hidden border shadow-sm hover:shadow-md transition-all duration-200 group h-48"
-                style={{
-                  background: style.bg,
-                  borderColor: style.border,
-                }}
-              >
-                {/* Header with time range */}
-                <div 
-                  className="px-3 py-2 text-center"
-                  style={{
-                    background: style.headerBg,
-                    color: style.headerColor
-                  }}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="text-sm font-bold">
-                      {slot.time} - {endTimeStr}
-                    </span>
-                    <span className="text-xs opacity-90">
-                      ({slot.duration}m)
-                    </span>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-3 flex flex-col h-full">
-                  {/* Status indicator */}
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg text-green-500">{style.icon}</span>
-                      <span 
-                        className="text-xs font-semibold uppercase tracking-wide"
-                        style={{ color: style.color }}
-                      >
-                        {slot.status}
-                      </span>
+              {/* Square Design Slots List */}
+              <div className="p-6">
+                {getSlotsForDay(selectedDate).length > 0 ? (
+                  <div className="space-y-6">
+                    {/* Clean Header */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900">
+                          {selectedDate.toLocaleDateString('en-US', { weekday: 'long' })} Schedule
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {getSlotsForDay(selectedDate).length} time slots • {getSlotCounts(selectedDate).booked} appointments
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {getSlotCounts(selectedDate).booked > 0 && (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-green-50 text-green-600 border border-green-200">
+                            <div className="w-1.5 h-1.5 rounded-full bg-green-400"></div>
+                            {getSlotCounts(selectedDate).booked} Booked
+                          </span>
+                        )}
+                        {getSlotCounts(selectedDate).blocked > 0 && (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-red-50 text-red-500 border border-red-200">
+                            <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
+                            {getSlotCounts(selectedDate).blocked} Blocked
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    
-                    {/* Action buttons - show on hover */}
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+
+                    {/* Square Slot Cards Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {getSlotsForDay(selectedDate)
+                        .sort((a, b) => a.time.localeCompare(b.time))
+                        .map((slot) => {
+                          const endTime = new Date(`2000-01-01 ${slot.time}`);
+                          endTime.setMinutes(endTime.getMinutes() + slot.duration);
+                          const endTimeStr = endTime.toTimeString().slice(0, 5);
+
+                          // Square design styles
+                          const slotStyles = {
+                            available: {
+                              headerBg: '#0F1ED1',
+                              border: '#7dd3fc',
+                              icon: <SiTicktick className="w-4 h-4" />
+                            },
+                            booked: {
+                              headerBg: '#34D399',
+                              border: '#bbf7d0',
+                              icon: <FaUsers className="w-4 h-4" />
+                            },
+                            blocked: {
+                              headerBg: '#F87171',
+                              border: '#fca5a5',
+                              icon: <FaTimes className="w-4 h-4" />
+                            }
+                          };
+
+                          const style = slotStyles[slot.status];
+
+                          return (
+                            <div
+                              key={slot.id}
+                              className="bg-white border rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                              style={{ borderColor: style.border }}
+                            >
+                              {/* Square Header */}
+                              <div 
+                                className="px-4 py-3 text-white"
+                                style={{ background: style.headerBg }}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded flex items-center justify-center bg-white/20">
+                                      {style.icon}
+                                    </div>
+                                    <div>
+                                      <div className="text-sm font-bold">
+                                        {slot.time} - {endTimeStr}
+                                      </div>
+                                      <div className="text-xs opacity-90">
+                                        ({slot.duration}m)
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="px-2 py-1 rounded text-xs font-semibold uppercase bg-white/20">
+                                    {slot.status}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Square Content */}
+                              <div className="p-4">
+                                {/* Patient Information for Booked Slots */}
+                                {slot.patient && (
+                                  <div className="mb-4 p-3 rounded bg-gray-50 border border-gray-200">
+                                    <div className="flex items-start justify-between mb-2">
+                                      <h5 className="font-semibold text-gray-900 text-sm flex items-center gap-2">
+                                        <FaUserMd className="w-3 h-3 text-gray-500" />
+                                        Patient Details
+                                      </h5>
+                                      <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                                    </div>
+                                    <div className="space-y-2">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded bg-blue-100 flex items-center justify-center">
+                                          <span className="text-blue-600 font-semibold text-sm">
+                                            {slot.patient.name.charAt(0)}
+                                          </span>
+                                        </div>
+                                        <div>
+                                          <p className="text-sm font-semibold text-gray-900">
+                                            {slot.patient.name}
+                                          </p>
+                                          <p className="text-xs text-gray-600 flex items-center gap-1">
+                                            <FaClock className="w-3 h-3" />
+                                            {slot.patient.phone}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <div className="bg-white px-2 py-1 rounded border border-gray-200">
+                                        <p className="text-xs text-gray-700 font-medium">
+                                          {slot.patient.reason}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Notes Section */}
+                                {slot.notes && (
+                                  <div className="mb-4 p-3 rounded bg-blue-50 border border-blue-200">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <FaEdit className="w-3 h-3 text-blue-600" />
+                                      <span className="text-xs font-semibold text-blue-800 uppercase">
+                                        Notes
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-blue-900">
+                                      {slot.notes}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {/* Empty States */}
+                                {slot.status === 'available' && !slot.notes && (
+                                  <div className="text-center py-6">
+                                    <div className="w-12 h-12 rounded bg-blue-100 flex items-center justify-center mx-auto mb-3">
+                                      <SiTicktick className="w-6 h-6 text-blue-600" />
+                                    </div>
+                                    <p className="text-sm font-medium text-gray-700 mb-1">
+                                      Available for Booking
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      Ready to accept patient appointments
+                                    </p>
+                                  </div>
+                                )}
+
+                                {slot.status === 'blocked' && !slot.notes && (
+                                  <div className="text-center py-6">
+                                    <div className="w-12 h-12 rounded bg-red-100 flex items-center justify-center mx-auto mb-3">
+                                      <FaTimes className="w-6 h-6 text-red-500" />
+                                    </div>
+                                    <p className="text-sm font-medium text-gray-700 mb-1">
+                                      Time Blocked
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      Not available for appointments
+                                    </p>
+                                  </div>
+                                )}
+
+                                {/* Action Buttons */}
+                                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                                  <div className="flex items-center gap-2">
+                                    {slot.status === 'available' && (
+                                      <button
+                                        type="button"
+                                        onClick={() => blockSlot(slot.id)}
+                                        className="px-3 py-1.5 text-xs font-medium text-orange-700 bg-orange-50 border border-orange-200 rounded hover:bg-orange-100 transition-colors"
+                                      >
+                                        Block Time
+                                      </button>
+                                    )}
+                                    {slot.status === 'blocked' && (
+                                      <button
+                                        type="button"
+                                        onClick={() => unblockSlot(slot.id)}
+                                        className="px-3 py-1.5 text-xs font-medium text-green-600 bg-green-50 border border-green-200 rounded hover:bg-green-100 transition-colors"
+                                      >
+                                        Unblock
+                                      </button>
+                                    )}
+                                    {slot.status === 'booked' && (
+                                      <>
+                                        <button
+                                          type="button"
+                                          onClick={() => cancelAppointment(slot.id)}
+                                          className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded hover:bg-red-100 transition-colors flex items-center gap-1"
+                                        >
+                                          <FaBan className="w-3 h-3" />
+                                          Cancel
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => rescheduleAppointment(slot.id)}
+                                          className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors flex items-center gap-1"
+                                        >
+                                          <FaCalendarAlt className="w-3 h-3" />
+                                          Reschedule
+                                        </button>
+                                      </>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => openSlotModal(selectedDate, slot)}
+                                      className="w-8 h-8 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors flex items-center justify-center"
+                                      title="Edit slot"
+                                    >
+                                      <FaEdit className="w-3 h-3" />
+                                    </button>
+                                    {slot.status !== 'booked' && (
+                                      <button
+                                        type="button"
+                                        onClick={() => deleteSlot(slot.id)}
+                                        className="w-8 h-8 rounded bg-red-50 text-red-500 hover:bg-red-100 transition-colors flex items-center justify-center"
+                                        title="Delete slot"
+                                      >
+                                        <FaTrash className="w-3 h-3" />
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                ) : (
+                  // Clean Empty State
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 rounded bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                      <FaCalendarDay className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                      No Appointments Scheduled
+                    </h4>
+                    <p className="text-gray-600 mb-6 max-w-sm mx-auto">
+                      You haven't scheduled any time slots for this day yet. Add your first slot to start managing your availability.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
                       <button
                         type="button"
-                        onClick={() => openSlotModal(selectedDate, slot)}
-                        className="w-6 h-6 rounded-md transition flex items-center justify-center text-gray-600 hover:bg-white/80 hover:rounded-md"
-                        title="Edit slot"
+                        onClick={() => openSlotModal(selectedDate)}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded text-sm font-medium text-white shadow-sm transition"
+                        style={{
+                          background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
+                        }}
                       >
-                        <FaEdit className="w-3 h-3" />
-                      </button>
-
-                      {slot.status === 'available' && (
-                        <button
-                          type="button"
-                          onClick={() => blockSlot(slot.id)}
-                          className="w-6 h-6 rounded-md transition flex items-center justify-center text-orange-600 hover:bg-white/80 hover:rounded-md"
-                          title="Block slot"
-                        >
-                          🚫
-                        </button>
-                      )}
-
-                      {slot.status === 'blocked' && (
-                        <button
-                          type="button"
-                          onClick={() => unblockSlot(slot.id)}
-                          className="w-6 h-6 rounded-md hover:rounded-md transition flex items-center justify-center text-green-600 hover:bg-white/80"
-                          title="Unblock slot"
-                        >
-                          <FaCheck className="w-3 h-3" />
-                        </button>
-                      )}
-
-                      {slot.status !== 'booked' && (
-                        <button
-                          type="button"
-                          onClick={() => deleteSlot(slot.id)}
-                          className="w-6 h-6 rounded-md transition flex items-center justify-center text-red-600 hover:bg-white/80 hover:rounded-md"
-                          title="Delete slot"
-                        >
-                          <FaTrash className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Patient info for booked slots */}
-                  {slot.patient && (
-                    <div className="bg-white/60 backdrop-blur-sm rounded-lg p-2 mb-2 flex-shrink-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">
-                        {slot.patient.name}
-                      </p>
-                      <p className="text-xs text-gray-600 truncate">
-                        {slot.patient.phone}
-                      </p>
-                      <p className="text-xs text-gray-700 mt-1 truncate">
-                        {slot.patient.reason}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Notes */}
-                  {slot.notes && (
-                    <div className="bg-white/40 backdrop-blur-sm rounded-md p-2 flex-shrink-0">
-                      <p className="text-xs text-gray-700">
-                        <span className="font-medium">Note:</span> {slot.notes}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Empty state for available slots */}
-                  {slot.status === 'available' && !slot.notes && (
-                    <div className="text-center py-2 flex-grow flex items-center justify-center">
-                      <p className="text-xs text-gray-500 italic">
-                        Available for booking
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Blocked slot message */}
-                  {slot.status === 'blocked' && !slot.notes && (
-                    <div className="text-center py-2 flex-grow flex items-center justify-center">
-                      <p className="text-xs font-medium" style={{ color: style.color }}>
-                        Time blocked
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Quick action overlay for available slots */}
-                {slot.status === 'available' && (
-                  <div className="absolute inset-0 bg-blue-500/10 rounded-xl backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => openSlotModal(selectedDate, slot)}
-                        className="px-3 py-1 bg-white text-blue-600 rounded-md text-xs font-medium shadow-sm hover:bg-blue-50 transition"
-                      >
-                        Edit
+                        <FaPlus className="w-4 h-4" />
+                        Add Single Slot
                       </button>
                       <button
-                        onClick={() => blockSlot(slot.id)}
-                        className="px-3 py-1 bg-red-500 text-white rounded-md text-xs font-medium shadow-sm hover:bg-red-600 transition"
+                        type="button"
+                        onClick={() => openBulkAddForDay(selectedDate)}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded text-sm font-medium text-white shadow-sm transition"
+                        style={{
+                          background: `linear-gradient(135deg, ${COLORS.success}, #059669)`,
+                        }}
                       >
-                        Block
-                      </button>
-                      <button
-                        onClick={() => deleteSlot(slot.id)}
-                        className="px-3 py-1 bg-gray-500 text-white rounded-md text-xs font-medium shadow-sm hover:bg-gray-600 transition"
-                      >
-                        Delete
+                        <FaCalendarPlus className="w-4 h-4" />
+                        Bulk Add Slots
                       </button>
                     </div>
                   </div>
                 )}
               </div>
-            );
-          })}
-      </div>
-    </div>
-  ) : (
-    // Empty state remains the same
-    <div className="text-center py-8">
-      <FaCalendarDay className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-      <p className="text-gray-600">No slots scheduled for this day</p>
-      <button
-        type="button"
-        onClick={() => openSlotModal(selectedDate)}
-        className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white shadow-sm transition"
-        style={{
-          background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
-        }}
-      >
-        <FaPlus className="w-3 h-3" />
-        Add Your First Slot
-      </button>
-    </div>
-  )}
-</div>
 
             </div>
           </div>
@@ -1024,14 +1151,19 @@ const Appointments = () => {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div
-                className="px-6 py-4 border-b"
-                style={{ background: COLORS.white, borderColor: COLORS.border }}
-              >
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {editingSlot ? 'Edit Slot' : 'Add New Slot'}
-                </h3>
-              </div>
+                             <div
+                 className="px-6 py-4 border-b"
+                 style={{ background: COLORS.white, borderColor: COLORS.border }}
+               >
+                 <h3 className="text-lg font-semibold text-gray-900">
+                   {editingSlot ? (slotForm.isReschedule ? 'Reschedule Appointment' : 'Edit Slot') : 'Add New Slot'}
+                 </h3>
+                 {slotForm.isReschedule && editingSlot?.patient && (
+                   <p className="text-sm text-gray-600 mt-1">
+                     Rescheduling appointment for {editingSlot.patient.name}
+                   </p>
+                 )}
+               </div>
 
               <form onSubmit={handleSlotSubmit} className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -1092,25 +1224,25 @@ const Appointments = () => {
                   />
                 </div>
 
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="submit"
-                    className="flex-1 py-2.5 rounded-lg font-medium text-white shadow-sm transition"
-                    style={{
-                      background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
-                    }}
-                  >
-                    <FaSave className="w-4 h-4 inline mr-2" />
-                    {editingSlot ? 'Update Slot' : 'Create Slot'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowSlotModal(false)}
-                    className="flex-1 py-2.5 rounded-lg font-medium transition bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  >
-                    Cancel
-                  </button>
-                </div>
+                                 <div className="flex gap-3 pt-4">
+                   <button
+                     type="submit"
+                     className="flex-1 py-2.5 rounded-lg font-medium text-white shadow-sm transition"
+                     style={{
+                       background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
+                     }}
+                   >
+                     <FaSave className="w-4 h-4 inline mr-2" />
+                     {editingSlot ? (slotForm.isReschedule ? 'Reschedule Appointment' : 'Update Slot') : 'Create Slot'}
+                   </button>
+                   <button
+                     type="button"
+                     onClick={() => setShowSlotModal(false)}
+                     className="flex-1 py-2.5 rounded-lg font-medium transition bg-gray-100 text-gray-700 hover:bg-gray-200"
+                   >
+                     Cancel
+                   </button>
+                 </div>
               </form>
             </div>
           </div>
@@ -1473,10 +1605,114 @@ const Appointments = () => {
               </form>
             </div>
           </div>
-        )}
-      </div>
-    </div>
-  );
-};
+                 )}
+
+         {/* Cancel Appointment Modal */}
+         {showCancelModal && cancellingSlot && (
+           <div
+             className="fixed inset-0 z-[140] flex items-center justify-center p-2 sm:p-4"
+             style={{
+               background: 'rgba(15, 23, 42, 0.35)',
+               backdropFilter: 'saturate(140%) blur(6px)',
+             }}
+             onClick={() => setShowCancelModal(false)}
+           >
+             <div
+               className="w-full max-w-md rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+               style={{
+                 background: COLORS.surface,
+                 border: `1px solid ${COLORS.border}`,
+               }}
+               onClick={(e) => e.stopPropagation()}
+             >
+               <div
+                 className="px-6 py-4 border-b"
+                 style={{ background: COLORS.white, borderColor: COLORS.border }}
+               >
+                 <h3 className="text-lg font-semibold text-gray-900">
+                   Cancel Appointment
+                 </h3>
+                 <p className="text-sm text-gray-600 mt-1">
+                   Please provide a reason for cancelling the appointment with {cancellingSlot.patient?.name}
+                 </p>
+               </div>
+
+               <form onSubmit={handleCancelSubmit} className="p-6 space-y-4">
+                 <div>
+                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                     Cancellation Reason <span className="text-red-500">*</span>
+                   </label>
+                   <select
+                     required
+                     value={cancelForm.reason}
+                     onChange={(e) => setCancelForm(prev => ({ ...prev, reason: e.target.value }))}
+                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                   >
+                     <option value="">Select a reason</option>
+                     <option value="Doctor unavailable">Doctor unavailable</option>
+                     <option value="Emergency">Emergency</option>
+                     <option value="Patient requested">Patient requested</option>
+                     <option value="Scheduling conflict">Scheduling conflict</option>
+                     <option value="Technical issues">Technical issues</option>
+                     <option value="Weather conditions">Weather conditions</option>
+                     <option value="Other">Other</option>
+                   </select>
+                 </div>
+
+                 <div>
+                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                     Additional Notes (Optional)
+                   </label>
+                   <textarea
+                     rows={3}
+                     placeholder="Provide any additional details about the cancellation..."
+                     value={cancelForm.notes}
+                     onChange={(e) => setCancelForm(prev => ({ ...prev, notes: e.target.value }))}
+                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                   />
+                 </div>
+
+                 <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                   <div className="flex items-start gap-2">
+                     <FaBan className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                     <div>
+                       <p className="text-sm font-medium text-red-800">
+                         Cancellation Details
+                       </p>
+                       <p className="text-xs text-red-700 mt-1">
+                         Patient: <span className="font-medium">{cancellingSlot.patient?.name}</span><br />
+                         Time: <span className="font-medium">{cancellingSlot.time} ({cancellingSlot.duration}min)</span><br />
+                         Date: <span className="font-medium">{new Date(cancellingSlot.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+                       </p>
+                     </div>
+                   </div>
+                 </div>
+
+                 <div className="flex gap-3 pt-4">
+                   <button
+                     type="submit"
+                     className="flex-1 py-2.5  rounded-lg font-medium text-white shadow-sm transition"
+                     style={{
+                       background: `linear-gradient(135deg, ${COLORS.danger}, #dc2626)`,
+                     }}
+                   >
+                     Cancel Appointment
+                   </button>
+                   <button
+                     type="button"
+                     onClick={() => setShowCancelModal(false)}
+                     className="flex-1 py-2.5 rounded-lg font-medium transition bg-gray-100 text-gray-700 hover:bg-gray-200"
+                   >
+                     Keep Appointment
+                   </button>
+                 </div>
+               </form>
+             </div>
+           </div>
+         )}
+       </div>
+     </div>
+   );
+ };
 
 export default Appointments;
