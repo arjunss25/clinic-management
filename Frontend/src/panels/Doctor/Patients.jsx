@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
-=======
 import React, { useState, useMemo, useCallback } from 'react';
->>>>>>> main
 import { useNavigate } from 'react-router-dom';
 import {
   FaSearch,
@@ -14,22 +10,11 @@ import {
   FaTint,
   FaUserFriends,
   FaEye,
-<<<<<<< HEAD
-  FaPhoneAlt,
-  FaUsers,
-  FaMale,
-  FaFemale,
-  FaClock,
-} from 'react-icons/fa';
-
-// Theme colors (matching Appointments.jsx)
-=======
   FaPlus,
   FaTimes,
 } from 'react-icons/fa';
 
 // Theme colors
->>>>>>> main
 const COLORS = {
   primary: '#0F1ED1',
   secondary: '#1B56FD',
@@ -42,97 +27,6 @@ const COLORS = {
   gray50: '#F9FAFB',
 };
 
-<<<<<<< HEAD
-const Patients = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('all');
-  const navigate = useNavigate();
-
-  // Sample patient data - in a real app, this would come from an API
-  const patients = [
-    {
-      id: 'PAT-2024-001',
-      name: 'John Doe',
-      age: 35,
-      gender: 'Male',
-      phone: '+1 (555) 123-4567',
-      email: 'john.doe@email.com',
-      lastVisit: '15 Mar 2024',
-      status: 'Active',
-      bloodGroup: 'O+',
-      emergencyContact: 'Sarah Doe (Wife)'
-    },
-    {
-      id: 'PAT-2024-002',
-      name: 'Jane Smith',
-      age: 28,
-      gender: 'Female',
-      phone: '+1 (555) 234-5678',
-      email: 'jane.smith@email.com',
-      lastVisit: '12 Mar 2024',
-      status: 'Active',
-      bloodGroup: 'A+',
-      emergencyContact: 'Mike Smith (Husband)'
-    },
-    {
-      id: 'PAT-2024-003',
-      name: 'Robert Johnson',
-      age: 45,
-      gender: 'Male',
-      phone: '+1 (555) 345-6789',
-      email: 'robert.johnson@email.com',
-      lastVisit: '10 Mar 2024',
-      status: 'Active',
-      bloodGroup: 'B+',
-      emergencyContact: 'Lisa Johnson (Sister)'
-    },
-    {
-      id: 'PAT-2024-004',
-      name: 'Emily Davis',
-      age: 32,
-      gender: 'Female',
-      phone: '+1 (555) 456-7890',
-      email: 'emily.davis@email.com',
-      lastVisit: '08 Mar 2024',
-      status: 'Active',
-      bloodGroup: 'AB+',
-      emergencyContact: 'David Davis (Brother)'
-    },
-    {
-      id: 'PAT-2024-005',
-      name: 'Michael Wilson',
-      age: 52,
-      gender: 'Male',
-      phone: '+1 (555) 567-8901',
-      email: 'michael.wilson@email.com',
-      lastVisit: '05 Mar 2024',
-      status: 'Active',
-      bloodGroup: 'O-',
-      emergencyContact: 'Jennifer Wilson (Daughter)'
-    }
-  ];
-
-  const filteredPatients = patients.filter(patient => {
-    const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         patient.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         patient.email.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    if (selectedFilter === 'all') return matchesSearch;
-    if (selectedFilter === 'male') return matchesSearch && patient.gender === 'Male';
-    if (selectedFilter === 'female') return matchesSearch && patient.gender === 'Female';
-    if (selectedFilter === 'recent') {
-      const lastVisitDate = new Date(patient.lastVisit);
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      return matchesSearch && lastVisitDate >= weekAgo;
-    }
-    return matchesSearch;
-  });
-
-  const handleViewPatient = (patient) => {
-    navigate(`/doctor/patients/${patient.id}`);
-  };
-=======
 // Sample patient data - Move to constants file in real app
 const SAMPLE_PATIENTS = [
   {
@@ -562,7 +456,6 @@ const Patients = () => {
       handleAddAllergy();
     }
   }, [handleAddAllergy]);
->>>>>>> main
 
   return (
     <div className="min-h-screen">
@@ -598,8 +491,6 @@ const Patients = () => {
                 <span className="hidden sm:inline">Recent</span>
               </span>
             </div>
-<<<<<<< HEAD
-=======
             <button
               onClick={() => setShowAddModal(true)}
               className="inline-flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl text-sm font-medium transition shadow-sm"
@@ -611,7 +502,6 @@ const Patients = () => {
               <FaPlus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               Add Patient
             </button>
->>>>>>> main
           </div>
         </div>
 
@@ -665,18 +555,11 @@ const Patients = () => {
                     outline: 'none',
                   }}
                 >
-<<<<<<< HEAD
-                  <option value="all">All Patients</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="recent">Recent Visits</option>
-=======
                   {FILTER_OPTIONS.map(option => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
                   ))}
->>>>>>> main
                 </select>
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -703,32 +586,6 @@ const Patients = () => {
                 style={{ background: COLORS.white, borderColor: COLORS.border }}
               >
                 <tr>
-<<<<<<< HEAD
-                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-medium uppercase tracking-wider"
-                      style={{ color: COLORS.primary }}>
-                    Patient Info
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-medium uppercase tracking-wider"
-                      style={{ color: COLORS.primary }}>
-                    Contact
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-medium uppercase tracking-wider"
-                      style={{ color: COLORS.primary }}>
-                    Medical Info
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-medium uppercase tracking-wider"
-                      style={{ color: COLORS.primary }}>
-                    Last Visit
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-medium uppercase tracking-wider"
-                      style={{ color: COLORS.primary }}>
-                    Follow Up
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-medium uppercase tracking-wider"
-                      style={{ color: COLORS.primary }}>
-                    Actions
-                  </th>
-=======
                   {['Patient Info', 'Contact', 'Medical Info', 'Last Visit', 'Follow Up', 'Actions'].map((header) => (
                     <th 
                       key={header}
@@ -738,138 +595,20 @@ const Patients = () => {
                       {header}
                     </th>
                   ))}
->>>>>>> main
                 </tr>
               </thead>
               <tbody className="divide-y" style={{ background: COLORS.white, borderColor: COLORS.border }}>
                 {filteredPatients.map((patient) => (
-<<<<<<< HEAD
-                  <tr key={patient.id} 
-                      className="transition-all duration-200 hover:shadow-sm"
-                      style={{ 
-                        background: COLORS.white,
-                        borderColor: COLORS.border,
-                      }}>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center text-sm sm:text-base font-semibold flex-shrink-0"
-                          style={{
-                            background: `${COLORS.primary}1A`,
-                            color: COLORS.primary,
-                            border: `1px solid ${COLORS.primary}33`,
-                          }}
-                        >
-                          <FaUser className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </div>
-                        <div>
-                          <div className="text-sm sm:text-base font-semibold" style={{ color: COLORS.text }}>
-                            {patient.name}
-                          </div>
-                          <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
-                            ID: {patient.id}
-                          </div>
-                          <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
-                            {patient.age} years • {patient.gender}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <FaPhone className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
-                          <span className="text-sm sm:text-base" style={{ color: COLORS.text }}>
-                            {patient.phone}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <FaEnvelope className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
-                          <span className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
-                            {patient.email}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <FaTint className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
-                          <span className="text-sm sm:text-base" style={{ color: COLORS.text }}>
-                            Blood: {patient.bloodGroup}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <FaUserFriends className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
-                          <span className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
-                            {patient.emergencyContact}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <FaCalendarAlt className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
-                        <span className="text-sm sm:text-base" style={{ color: COLORS.text }}>
-                          {patient.lastVisit}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
-                        {patient.status}
-                      </span>
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="flex space-x-2">
-                        <button 
-                          onClick={() => handleViewPatient(patient)}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition shadow-sm"
-                          style={{
-                            background: `${COLORS.primary}1A`,
-                            color: COLORS.primary,
-                            border: `1px solid ${COLORS.primary}33`,
-                          }}
-                        >
-                          <FaEye className="w-3 h-3 sm:w-4 sm:h-4" />
-                          <span className="hidden sm:inline">View</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-=======
                   <PatientRow 
                     key={patient.id} 
                     patient={patient} 
                     onViewPatient={handleViewPatient} 
                   />
->>>>>>> main
                 ))}
               </tbody>
             </table>
           </div>
 
-<<<<<<< HEAD
-          {/* Empty State */}
-          {filteredPatients.length === 0 && (
-            <div className="text-center py-12 px-4 sm:px-6">
-              <div
-                className="text-lg font-medium mb-2"
-                style={{ color: COLORS.textMuted }}
-              >
-                No patients found
-              </div>
-              <div
-                className="text-sm"
-                style={{ color: COLORS.textMuted }}
-              >
-                Try adjusting your search or filter criteria
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-=======
           {filteredPatients.length === 0 && <EmptyState />}
         </div>
       </div>
@@ -1151,13 +890,8 @@ const Patients = () => {
           </div>
         </div>
       )}
->>>>>>> main
     </div>
   );
 };
 
-<<<<<<< HEAD
-export default Patients; 
-=======
 export default Patients;
->>>>>>> main
