@@ -40,6 +40,9 @@ INSTALLED_APPS = [
     'clinical_panel_app',
     'authentication_app',
     'rest_framework',
+    'doctor_app',
+    'patient_app',
+    'superadmin_app',
 
 ]
 
@@ -83,6 +86,12 @@ DATABASES = {
     }
 }
 
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES':(
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
