@@ -24,7 +24,7 @@ import {
 import { SiTicktick } from 'react-icons/si';
 import DoctorsList from './DoctorsList';
 
-// Theme colors (matching your existing design)
+// Theme colors (matching your existing design,)
 const COLORS = {
   primary: '#0F1ED1',
   secondary: '#1B56FD',
