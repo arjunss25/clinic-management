@@ -105,6 +105,11 @@ export const navigationConfig = {
       path: '/clinic/patients',
       icon: FaUsers,
     },
+    {
+      name: 'Profile',
+      path: '/clinic/profile',
+      icon: FaHospital,
+    },
    
   ],
   superadmin: [
