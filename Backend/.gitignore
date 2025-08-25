@@ -2,6 +2,7 @@ venv
 .env
 *pycache*
 *.pyc
+__pycache__/
 superadmin_app/migrations
 clinical_panel_app/migrations
 authentication_app/migrations
