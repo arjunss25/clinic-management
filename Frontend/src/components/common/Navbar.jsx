@@ -233,7 +233,11 @@ const Navbar = ({ role = 'patient', userName = 'John Doe' }) => {
                     
                     {/* Menu Items */}
                     <div className="py-2">
-                      <button className="w-full flex items-center px-6 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-[#0118D8]/5 hover:to-transparent hover:text-[#0118D8] transition-all duration-200 group">
+                      <Link
+                        to={`/${role}/profile`}
+                        onClick={() => setShowProfileDropdown(false)}
+                        className="w-full flex items-center px-6 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-[#0118D8]/5 hover:to-transparent hover:text-[#0118D8] transition-all duration-200 group"
+                      >
                         <div className="w-8 h-8 bg-gray-100 group-hover:bg-[#0118D8]/10 rounded-lg flex items-center justify-center mr-3 transition-colors">
                           <HiUser className="h-4 w-4 text-gray-500 group-hover:text-[#0118D8]" />
                         </div>
@@ -241,7 +245,7 @@ const Navbar = ({ role = 'patient', userName = 'John Doe' }) => {
                           <p className="font-medium">My Profile</p>
                           <p className="text-xs text-gray-500">View and edit profile</p>
                         </div>
-                      </button>
+                      </Link>
                       <button className="w-full flex items-center px-6 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-[#0118D8]/5 hover:to-transparent hover:text-[#0118D8] transition-all duration-200 group">
                         <div className="w-8 h-8 bg-gray-100 group-hover:bg-[#0118D8]/10 rounded-lg flex items-center justify-center mr-3 transition-colors">
                           <HiCog6Tooth className="h-4 w-4 text-gray-500 group-hover:text-[#0118D8]" />

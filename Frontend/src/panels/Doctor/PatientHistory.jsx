@@ -375,10 +375,10 @@ const PatientHistory = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center py-8 sm:py-12">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0118D8] mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading patient history...</p>
+          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-[#0118D8] mx-auto mb-4"></div>
+          <p className="text-gray-600 text-sm sm:text-base">Loading patient history...</p>
         </div>
       </div>
     );
@@ -386,15 +386,15 @@ const PatientHistory = () => {
 
   if (!patient) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center py-8 sm:py-12">
         <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FaUserMd className="w-8 h-8 text-red-600" />
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FaUserMd className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
             Patient Not Found
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-sm sm:text-base">
             The patient with ID "{patientId}" could not be found.
           </p>
         </div>
@@ -403,12 +403,10 @@ const PatientHistory = () => {
   }
 
   return (
-    <div className="space-y-6">
-
-
+    <div className="space-y-4 sm:space-y-6">
       {/* Filters */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#E9DFC3]/50">
-        <div className="flex flex-col sm:flex-row gap-4">
+      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-[#E9DFC3]/50">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Filter by Category
@@ -416,7 +414,7 @@ const PatientHistory = () => {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-[#E9DFC3] rounded-lg focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+              className="w-full px-3 py-2 border border-[#E9DFC3] rounded-lg focus:ring-2 focus:ring-[#0118D8] focus:border-transparent text-sm"
             >
               <option value="all">All Categories</option>
               {categories.map((category) => (
@@ -433,7 +431,7 @@ const PatientHistory = () => {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="w-full px-3 py-2 border border-[#E9DFC3] rounded-lg focus:ring-2 focus:ring-[#0118D8] focus:border-transparent"
+              className="w-full px-3 py-2 border border-[#E9DFC3] rounded-lg focus:ring-2 focus:ring-[#0118D8] focus:border-transparent text-sm"
             >
               <option value="all">All Years</option>
               {years.map((year) => (
@@ -448,24 +446,24 @@ const PatientHistory = () => {
 
       {/* Timeline */}
       <div className="bg-white rounded-2xl shadow-sm border border-[#E9DFC3]/50 overflow-hidden">
-        <div className="p-6 border-b border-[#E9DFC3]/50">
-          <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-            <MdTimeline className="w-5 h-5 text-[#0118D8]" />
+        <div className="p-4 sm:p-6 border-b border-[#E9DFC3]/50">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
+            <MdTimeline className="w-4 h-4 sm:w-5 sm:h-5 text-[#0118D8]" />
             Medical Timeline
           </h2>
-          <p className="text-gray-600 text-sm mt-1">
+          <p className="text-gray-600 text-xs sm:text-sm mt-1">
             {filteredHistory.length} events found
           </p>
         </div>
 
-        <div className="p-6">
+        <div className="p-3 sm:p-4 md:p-6">
           {filteredHistory.length === 0 ? (
-            <div className="text-center py-12">
-              <BsClockHistory className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <div className="text-center py-8 sm:py-12">
+              <BsClockHistory className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
                 No History Found
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-sm sm:text-base">
                 No medical events match the selected filters.
               </p>
             </div>
@@ -477,21 +475,21 @@ const PatientHistory = () => {
               className="relative"
             >
               {/* Timeline line - Modern gradient design */}
-              <div className="absolute left-8 top-0 bottom-0 w-1 bg-gradient-to-b from-[#0118D8] via-[#1B56FD] to-[#4F8FF0] rounded-full shadow-sm"></div>
+              <div className="absolute left-4 sm:left-8 top-0 bottom-0 w-0.5 sm:w-1 bg-gradient-to-b from-[#0118D8] via-[#1B56FD] to-[#4F8FF0] rounded-full shadow-sm"></div>
 
               {/* Timeline line glow effect */}
-              <div className="absolute left-8 top-0 bottom-0 w-1 bg-gradient-to-b from-[#0118D8]/20 via-[#1B56FD]/20 to-[#4F8FF0]/20 rounded-full blur-sm"></div>
+              <div className="absolute left-4 sm:left-8 top-0 bottom-0 w-0.5 sm:w-1 bg-gradient-to-b from-[#0118D8]/20 via-[#1B56FD]/20 to-[#4F8FF0]/20 rounded-full blur-sm"></div>
 
               {filteredHistory.map((event, index) => (
                 <motion.div
                   key={event.id}
                   variants={itemVariants}
-                  className="relative mb-8 last:mb-0"
+                  className="relative mb-6 sm:mb-8 last:mb-0"
                 >
                   {/* Timeline arrow with date */}
-                  <div className="absolute left-0 top-8 z-10 flex items-center">
+                  <div className="absolute left-0 top-4 sm:top-8 z-10 flex items-center">
                     {/* Date badge */}
-                    <div className="bg-gradient-to-r from-[#0118D8] to-[#1B56FD] text-white px-3 py-1 rounded-lg text-xs font-medium shadow-lg mr-2">
+                    <div className="bg-gradient-to-r from-[#0118D8] to-[#1B56FD] text-white px-2 sm:px-3 py-1 rounded-lg text-xs font-medium shadow-lg mr-2">
                       {new Date(event.date).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
@@ -500,38 +498,38 @@ const PatientHistory = () => {
                     {/* Arrow pointing to the card */}
                     <div className="relative">
                       {/* Arrow body */}
-                      <div className="w-8 h-6 bg-gradient-to-r from-[#0118D8] to-[#1B56FD] rounded-l-lg shadow-lg flex items-center justify-center">
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
+                      <div className="w-6 h-4 sm:w-8 sm:h-6 bg-gradient-to-r from-[#0118D8] to-[#1B56FD] rounded-l-lg shadow-lg flex items-center justify-center">
+                        <div className="w-2 h-2 sm:w-3 sm:h-3 bg-white rounded-full"></div>
                       </div>
                       {/* Arrow head */}
                       <div className="absolute right-0 top-1/2 transform translate-x-full -translate-y-1/2">
-                        <div className="w-0 h-0 border-l-4 border-l-[#1B56FD] border-t-3 border-t-transparent border-b-3 border-b-transparent"></div>
+                        <div className="w-0 h-0 border-l-3 sm:border-l-4 border-l-[#1B56FD] border-t-2 sm:border-t-3 border-t-transparent border-b-2 sm:border-b-3 border-b-transparent"></div>
                       </div>
                       {/* Glow effect */}
-                      <div className="absolute inset-0 w-8 h-6 bg-[#0118D8]/30 rounded-l-lg blur-sm -z-10"></div>
+                      <div className="absolute inset-0 w-6 h-4 sm:w-8 sm:h-6 bg-[#0118D8]/30 rounded-l-lg blur-sm -z-10"></div>
                     </div>
                   </div>
 
                   {/* Event card */}
-                  <div className="ml-24 bg-gray-50 rounded-2xl p-6 border border-[#E9DFC3]/50 hover:border-[#1B56FD]/20 transition-all duration-300">
+                  <div className="ml-16 sm:ml-24 bg-gray-50 rounded-2xl p-4 sm:p-6 border border-[#E9DFC3]/50 hover:border-[#1B56FD]/20 transition-all duration-300">
                     {/* Event header */}
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                      <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4">
+                      <div className="flex items-center gap-2 sm:gap-3">
                         <div
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTypeColor(
+                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center ${getTypeColor(
                             event.type
                           )}`}
                         >
                           {React.createElement(
                             getCategoryIcon(event.category),
-                            { className: 'w-5 h-5' }
+                            { className: 'w-4 h-4 sm:w-5 sm:h-5' }
                           )}
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-900">
+                          <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                             {event.title}
                           </h3>
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
                             <span className="flex items-center gap-1">
                               <FaClock className="w-3 h-3" />
                               {event.time}
@@ -543,7 +541,7 @@ const PatientHistory = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${getTypeColor(
+                          className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${getTypeColor(
                             event.type
                           )}`}
                         >
@@ -554,31 +552,31 @@ const PatientHistory = () => {
                     </div>
 
                     {/* Doctor and department */}
-                    <div className="flex items-center gap-2 mb-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 mb-4 text-xs sm:text-sm text-gray-600">
                       {React.createElement(
                         getDepartmentIcon(event.department),
-                        { className: 'w-4 h-4' }
+                        { className: 'w-3 h-3 sm:w-4 sm:h-4' }
                       )}
-                      <span>{event.doctor}</span>
+                      <span className="truncate">{event.doctor}</span>
                       <span>•</span>
-                      <span>{event.department}</span>
+                      <span className="truncate">{event.department}</span>
                     </div>
 
                     {/* Description */}
                     <div className="mb-4">
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                      <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">
                         Description
                       </h4>
-                      <p className="text-gray-600 text-sm">
+                      <p className="text-gray-600 text-xs sm:text-sm">
                         {event.description}
                       </p>
                     </div>
 
                     {/* Symptoms and Diagnosis */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                       {event.symptoms.length > 0 && (
                         <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-2">
+                          <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">
                             Symptoms
                           </h4>
                           <div className="flex flex-wrap gap-1">
@@ -594,10 +592,10 @@ const PatientHistory = () => {
                         </div>
                       )}
                       <div>
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">
                           Diagnosis
                         </h4>
-                        <p className="text-gray-600 text-sm">
+                        <p className="text-gray-600 text-xs sm:text-sm">
                           {event.diagnosis}
                         </p>
                       </div>
@@ -606,10 +604,10 @@ const PatientHistory = () => {
                     {/* Treatment */}
                     {event.treatment && (
                       <div className="mb-4">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">
                           Treatment
                         </h4>
-                        <p className="text-gray-600 text-sm">
+                        <p className="text-gray-600 text-xs sm:text-sm">
                           {event.treatment}
                         </p>
                       </div>
@@ -618,7 +616,7 @@ const PatientHistory = () => {
                     {/* Medications */}
                     {event.medications.length > 0 && (
                       <div className="mb-4">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">
                           Medications
                         </h4>
                         <div className="space-y-2">
@@ -628,8 +626,8 @@ const PatientHistory = () => {
                               className="bg-white rounded-lg p-3 border border-[#E9DFC3]/50"
                             >
                               <div className="flex items-center gap-2 mb-1">
-                                <FaPills className="w-4 h-4 text-[#0118D8]" />
-                                <span className="font-medium text-sm">
+                                <FaPills className="w-3 h-3 sm:w-4 sm:h-4 text-[#0118D8]" />
+                                <span className="font-medium text-xs sm:text-sm">
                                   {med.name}
                                 </span>
                               </div>
@@ -650,22 +648,22 @@ const PatientHistory = () => {
                     {/* Vital Signs */}
                     {event.vitalSigns && (
                       <div className="mb-4">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">
                           Vital Signs
                         </h4>
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
                           {Object.entries(event.vitalSigns).map(
                             ([key, value]) => (
                               <div
                                 key={key}
-                                className="bg-white rounded-lg p-3 border border-[#E9DFC3]/50 text-center"
+                                className="bg-white rounded-lg p-2 sm:p-3 border border-[#E9DFC3]/50 text-center"
                               >
                                 <div className="text-xs text-gray-500 mb-1">
                                   {key
                                     .replace(/([A-Z])/g, ' $1')
                                     .replace(/^./, (str) => str.toUpperCase())}
                                 </div>
-                                <div className="text-sm font-medium text-gray-900">
+                                <div className="text-xs sm:text-sm font-medium text-gray-900">
                                   {value}
                                 </div>
                               </div>
@@ -679,7 +677,7 @@ const PatientHistory = () => {
                     {(event.labReports.length > 0 ||
                       event.imagingReports.length > 0) && (
                       <div className="mb-4">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">
                           Reports
                         </h4>
                         <div className="space-y-2">
@@ -688,16 +686,16 @@ const PatientHistory = () => {
                               key={report.id}
                               className="flex items-center justify-between bg-white rounded-lg p-3 border border-[#E9DFC3]/50"
                             >
-                              <div className="flex items-center gap-2">
-                                <FaMicroscope className="w-4 h-4 text-[#0118D8]" />
-                                <span className="text-sm font-medium">
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <FaMicroscope className="w-3 h-3 sm:w-4 sm:h-4 text-[#0118D8] flex-shrink-0" />
+                                <span className="text-xs sm:text-sm font-medium truncate">
                                   {report.name}
                                 </span>
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-gray-500 flex-shrink-0">
                                   ({report.id})
                                 </span>
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-shrink-0">
                                 <span
                                   className={`px-2 py-1 rounded text-xs ${
                                     report.status === 'completed'
@@ -708,10 +706,10 @@ const PatientHistory = () => {
                                   {report.status}
                                 </span>
                                 <button className="p-1 text-[#0118D8] hover:bg-[#FFF8F8] rounded">
-                                  <FaEye className="w-4 h-4" />
+                                  <FaEye className="w-3 h-3 sm:w-4 sm:h-4" />
                                 </button>
                                 <button className="p-1 text-[#0118D8] hover:bg-[#FFF8F8] rounded">
-                                  <FaDownload className="w-4 h-4" />
+                                  <FaDownload className="w-3 h-3 sm:w-4 sm:h-4" />
                                 </button>
                               </div>
                             </div>
@@ -721,16 +719,16 @@ const PatientHistory = () => {
                               key={report.id}
                               className="flex items-center justify-between bg-white rounded-lg p-3 border border-[#E9DFC3]/50"
                             >
-                              <div className="flex items-center gap-2">
-                                <FaXRay className="w-4 h-4 text-[#0118D8]" />
-                                <span className="text-sm font-medium">
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <FaXRay className="w-3 h-3 sm:w-4 sm:h-4 text-[#0118D8] flex-shrink-0" />
+                                <span className="text-xs sm:text-sm font-medium truncate">
                                   {report.name}
                                 </span>
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-gray-500 flex-shrink-0">
                                   ({report.id})
                                 </span>
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-shrink-0">
                                 <span
                                   className={`px-2 py-1 rounded text-xs ${
                                     report.status === 'completed'
@@ -741,10 +739,10 @@ const PatientHistory = () => {
                                   {report.status}
                                 </span>
                                 <button className="p-1 text-[#0118D8] hover:bg-[#FFF8F8] rounded">
-                                  <FaEye className="w-4 h-4" />
+                                  <FaEye className="w-3 h-3 sm:w-4 sm:h-4" />
                                 </button>
                                 <button className="p-1 text-[#0118D8] hover:bg-[#FFF8F8] rounded">
-                                  <FaDownload className="w-4 h-4" />
+                                  <FaDownload className="w-3 h-3 sm:w-4 sm:h-4" />
                                 </button>
                               </div>
                             </div>
@@ -754,23 +752,23 @@ const PatientHistory = () => {
                     )}
 
                     {/* Follow-up and Notes */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {event.followUp && (
                         <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-2">
+                          <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">
                             Follow-up
                           </h4>
-                          <p className="text-gray-600 text-sm">
+                          <p className="text-gray-600 text-xs sm:text-sm">
                             {new Date(event.followUp).toLocaleDateString()}
                           </p>
                         </div>
                       )}
                       {event.notes && (
                         <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-2">
+                          <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">
                             Notes
                           </h4>
-                          <p className="text-gray-600 text-sm">{event.notes}</p>
+                          <p className="text-gray-600 text-xs sm:text-sm">{event.notes}</p>
                         </div>
                       )}
                     </div>

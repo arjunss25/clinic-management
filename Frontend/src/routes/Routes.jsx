@@ -33,6 +33,7 @@ import Doctors from '../panels/Clinic/Doctors';
 import ClinicPatientProfile from '../panels/Clinic/PatientProfile';
 import ClinicPatientBooking from '../panels/Clinic/PatientBooking';
 import DoctorProfile from '../panels/Clinic/DoctorProfile';
+import ClinicProfile from '../panels/Clinic/ClinicProfile';
 
 // SuperAdmin Panel Imports
 import SuperAdminDashboard from '../panels/SuperAdmin/Dashboard';
@@ -91,6 +92,7 @@ const AppRoutes = () => {
         />
         <Route path="patients" element={<ClinicPatients />} />
         <Route path="doctors" element={<Doctors />} />
+        <Route path="profile" element={<ClinicProfile />} />
         // Example route setup
         <Route path="doctors/:doctorId" element={<DoctorProfile />} />
         <Route path="patients/:patientId" element={<ClinicPatientProfile />} />

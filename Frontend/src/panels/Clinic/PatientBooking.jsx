@@ -506,16 +506,16 @@ const ClinicPatientBooking = () => {
   }, [showPayment]);
 
   return (
-    <div className="min-h-screen">
-      <div className="sm:space-y-6 lg:space-y-8">
+    <div className="min-h-screen px-2 sm:px-4 lg:px-6">
+      <div className="space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 sm:gap-5">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3 sm:gap-4 lg:gap-5">
           <div className="space-y-1">
-            <h1 className="text-[2rem] md:text-[2.25rem] font-semibold tracking-tight text-gray-900">
+            <h1 className="text-xl sm:text-2xl md:text-[2.25rem] font-semibold tracking-tight text-gray-900">
               {showPatientSelection ? 'Book for Patient' : `Book Appointment for ${patient ? patient.name : 'Patient'}`}
             </h1>
             <p
-              className="text-sm sm:text-base"
+              className="text-xs sm:text-sm md:text-base"
               style={{ color: COLORS.textMuted }}
             >
               {showPatientSelection 
@@ -524,19 +524,19 @@ const ClinicPatientBooking = () => {
               }
             </p>
             {patient && (
-              <div className="flex items-center gap-3 pt-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <FaUser className="w-4 h-4" />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 pt-2">
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
+                  <FaUser className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span>ID: {patient.id}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <FaPhone className="w-4 h-4" />
-                  <span>{patient.phone}</span>
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
+                  <FaPhone className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="break-all">{patient.phone}</span>
                 </div>
               </div>
             )}
           </div>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 lg:gap-4">
             <button
               type="button"
               onClick={() => {
@@ -551,12 +551,12 @@ const ClinicPatientBooking = () => {
                   navigate('/clinic/patient-booking');
                 }
               }}
-              className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-white text-sm font-medium shadow-sm transition w-full sm:w-auto justify-center"
+              className="inline-flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-2 rounded-lg sm:rounded-xl text-white text-xs sm:text-sm font-medium shadow-sm transition w-full sm:w-auto"
               style={{
                 background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
               }}
             >
-              <FaArrowLeft className="w-4 h-4" />
+              <FaArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>
                 {showPatientSelection 
                   ? 'Back to Dashboard' 
@@ -572,13 +572,80 @@ const ClinicPatientBooking = () => {
         {/* Patient Selection Interface */}
         {showPatientSelection && (
           <div
-            className="rounded-xl sm:rounded-2xl shadow-sm overflow-hidden"
+            className="rounded-lg sm:rounded-xl md:rounded-2xl shadow-sm overflow-hidden"
             style={{
               background: COLORS.surface,
               border: `1px solid ${COLORS.border}`,
             }}
           >
-            <div className="overflow-x-auto">
+            {/* Mobile Card View */}
+            <div className="block sm:hidden">
+              <div className="p-3 sm:p-4 space-y-3">
+                {SAMPLE_PATIENTS.map((patient) => (
+                  <div
+                    key={patient.id}
+                    className="bg-white rounded-lg border border-gray-200 p-3 space-y-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                        {patient.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-gray-900 truncate">
+                          {patient.name}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          ID: {patient.id}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {patient.age} years • {patient.gender}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-xs">
+                        <FaPhone className="w-3 h-3 text-gray-500" />
+                        <span className="text-gray-700 break-all">{patient.phone}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs">
+                        <FaEnvelope className="w-3 h-3 text-gray-500" />
+                        <span className="text-gray-600 break-all">{patient.email}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs">
+                        <FaCalendarAlt className="w-3 h-3 text-gray-500" />
+                        <span className="text-gray-700">{patient.lastVisit}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                        {patient.status}
+                      </span>
+                      <button 
+                        onClick={() => {
+                          setShowPatientSelection(false);
+                          navigate(`/clinic/patient-booking/${patient.id}`, {
+                            state: { patient: patient }
+                          });
+                        }}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium text-white shadow-sm transition"
+                        style={{
+                          background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
+                        }}
+                      >
+                        <FaCalendarAlt className="w-3 h-3" />
+                        Book
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full">
                 <thead
                   className="border-b"
@@ -685,22 +752,22 @@ const ClinicPatientBooking = () => {
         {/* Calendar Card (exact look as Patient Appointments) */}
         {!showPatientSelection && (
           <div
-            className="rounded-xl sm:rounded-2xl shadow-sm overflow-hidden"
+            className="rounded-lg sm:rounded-xl md:rounded-2xl shadow-sm overflow-hidden"
             style={{
               background: COLORS.surface,
               border: `1px solid ${COLORS.border}`,
             }}
           >
           <div
-            className="px-3 sm:px-5 py-3 sm:py-4 border-b"
+            className="px-2 sm:px-3 md:px-5 py-2 sm:py-3 md:py-4 border-b"
             style={{ background: COLORS.white, borderColor: COLORS.border }}
           >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
-              <div className="flex items-center justify-between sm:justify-start gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 md:gap-0">
+              <div className="flex items-center justify-between sm:justify-start gap-1 sm:gap-2">
                 <button
                   type="button"
                   onClick={prevMonth}
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl text-[inherit] transition flex items-center justify-center shadow-sm"
+                  className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-lg sm:rounded-xl text-[inherit] transition flex items-center justify-center shadow-sm"
                   style={{
                     background: COLORS.white,
                     border: `1px solid ${COLORS.border}`,
@@ -708,21 +775,29 @@ const ClinicPatientBooking = () => {
                   }}
                   aria-label="Previous month"
                 >
-                  <FaChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <FaChevronLeft className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4" />
                 </button>
                 <h2
-                  className="text-base sm:text-lg font-semibold text-center sm:text-left flex-1 sm:flex-none"
+                  className="text-sm sm:text-base md:text-lg font-semibold text-center sm:text-left flex-1 sm:flex-none px-1"
                   style={{ color: COLORS.text }}
                 >
-                  {currentMonth.toLocaleDateString('en-US', {
-                    month: 'long',
-                    year: 'numeric',
-                  })}
+                  <span className="hidden sm:inline">
+                    {currentMonth.toLocaleDateString('en-US', {
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </span>
+                  <span className="sm:hidden">
+                    {currentMonth.toLocaleDateString('en-US', {
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </span>
                 </h2>
                 <button
                   type="button"
                   onClick={nextMonth}
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl transition flex items-center justify-center shadow-sm"
+                  className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-lg sm:rounded-xl transition flex items-center justify-center shadow-sm"
                   style={{
                     background: COLORS.white,
                     border: `1px solid ${COLORS.border}`,
@@ -730,21 +805,22 @@ const ClinicPatientBooking = () => {
                   }}
                   aria-label="Next month"
                 >
-                  <FaChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <FaChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4" />
                 </button>
               </div>
               <button
                 type="button"
                 onClick={goToToday}
-                className="px-3 py-2 rounded-xl text-white text-sm font-medium shadow-sm transition w-full sm:w-auto"
+                className="px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-white text-xs sm:text-sm font-medium shadow-sm transition w-full sm:w-auto"
                 style={{
                   background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
                 }}
               >
-                Today
+                <span className="hidden sm:inline">Today</span>
+                <span className="sm:hidden">Today</span>
               </button>
             </div>
-            <div className="grid grid-cols-7 gap-1 sm:gap-2 mt-3 sm:mt-4">
+            <div className="grid grid-cols-7 gap-1 sm:gap-2 mt-2 sm:mt-3 md:mt-4">
               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
                 <div
                   key={d}
@@ -757,14 +833,14 @@ const ClinicPatientBooking = () => {
             </div>
           </div>
 
-          <div className="p-2 sm:p-4">
-            <div className="grid grid-cols-7 gap-1 sm:gap-2">
+          <div className="p-1 sm:p-2 md:p-4">
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 md:gap-2">
               {monthMatrix.flat().map((date, idx) => {
                 if (!date) {
                   return (
                     <div
                       key={`empty-${idx}`}
-                      className="h-20 sm:h-24 md:h-28 rounded-lg sm:rounded-xl bg-transparent"
+                      className="h-16 sm:h-20 md:h-24 lg:h-28 rounded-lg sm:rounded-xl bg-transparent"
                     />
                   );
                 }
@@ -778,7 +854,7 @@ const ClinicPatientBooking = () => {
                     type="button"
                     key={formatDate(date)}
                     onClick={() => openDayModal(date)}
-                    className="h-20 sm:h-24 md:h-28 rounded-lg sm:rounded-xl p-1 sm:p-2 text-left transition-all relative group"
+                    className="h-16 sm:h-20 md:h-24 lg:h-28 rounded-lg sm:rounded-xl p-1 sm:p-2 text-left transition-all relative group"
                     style={{
                       background: COLORS.white,
                       border: isSelected
@@ -790,7 +866,7 @@ const ClinicPatientBooking = () => {
                       transform: isSelected ? 'translateY(-1px)' : 'none',
                     }}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-1 sm:mb-2">
                       <span
                         className="text-xs sm:text-sm font-semibold"
                         style={{
@@ -818,11 +894,11 @@ const ClinicPatientBooking = () => {
                       ) : null}
                     </div>
 
-                    <div className="mt-1 sm:mt-2 space-y-1 sm:space-y-1.5 flex flex-col">
+                    <div className="space-y-0.5 sm:space-y-1 flex flex-col">
                       {appointments.slice(0, 2).map((appt, i) => (
                         <div
                           key={`${formatDate(date)}-appt-${i}`}
-                          className="text-[10px] sm:text-[11px] inline-flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg font-medium shadow-sm transition-all duration-200 hover:shadow-md self-start"
+                          className="text-[8px] sm:text-[10px] md:text-[11px] inline-flex items-center gap-0.5 sm:gap-1 md:gap-1.5 px-1 sm:px-1.5 md:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg font-medium shadow-sm transition-all duration-200 hover:shadow-md self-start"
                           style={{
                             background:
                               appt.status === 'confirmed'
@@ -858,7 +934,7 @@ const ClinicPatientBooking = () => {
                           }`}
                         >
                           <span
-                            className="flex items-center justify-center w-2 h-2 sm:w-3 sm:h-3 rounded-full text-[6px] sm:text-[8px] font-bold"
+                            className="flex items-center justify-center w-1.5 h-1.5 sm:w-2 sm:h-2 md:w-3 md:h-3 rounded-full text-[5px] sm:text-[6px] md:text-[8px] font-bold"
                             style={{
                               background:
                                 appt.status === 'confirmed'
@@ -885,7 +961,7 @@ const ClinicPatientBooking = () => {
                       ))}
                       {appointments.length > 2 ? (
                         <div
-                          className="text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg font-medium self-start"
+                          className="text-[8px] sm:text-[10px] md:text-[11px] px-1 sm:px-1.5 md:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg font-medium self-start"
                           style={{
                             background: `${COLORS.primary}0A`,
                             color: COLORS.primary,
@@ -898,7 +974,7 @@ const ClinicPatientBooking = () => {
 
                       {availability.length > 0 ? (
                         <div
-                          className="text-[10px] sm:text-[11px] inline-flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg font-medium shadow-sm transition-all duration-200 hover:shadow-md cursor-pointer self-start"
+                          className="text-[8px] sm:text-[10px] md:text-[11px] inline-flex items-center gap-0.5 sm:gap-1 md:gap-1.5 px-1 sm:px-1.5 md:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg font-medium shadow-sm transition-all duration-200 hover:shadow-md cursor-pointer self-start"
                           style={{
                             background:
                               'linear-gradient(135deg, #f0f9ff, #e0f2fe)',
@@ -913,10 +989,10 @@ const ClinicPatientBooking = () => {
                             .join(', ')}
                         >
                           <span
-                            className="flex items-center justify-center w-2 h-2 sm:w-3 sm:h-3 rounded-full text-[6px] sm:text-[8px] font-bold"
+                            className="flex items-center justify-center w-1.5 h-1.5 sm:w-2 sm:h-2 md:w-3 md:h-3 rounded-full text-[5px] sm:text-[6px] md:text-[8px] font-bold"
                             style={{ background: '#0ea5e9', color: 'white' }}
                           >
-                            <FaUserMd className="w-2 h-2 sm:w-3 sm:h-3" />
+                            <FaUserMd className="w-1.5 h-1.5 sm:w-2 sm:h-2 md:w-3 md:h-3" />
                           </span>
                           <span className="font-semibold hidden sm:inline">
                             +{availability.length} slot
@@ -956,7 +1032,7 @@ const ClinicPatientBooking = () => {
             onClick={() => setShowDayModal(false)}
           >
             <div
-              className="w-full max-w-sm sm:max-w-md lg:max-w-2xl rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+              className="w-full max-w-sm sm:max-w-md lg:max-w-2xl rounded-lg sm:rounded-xl md:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
               style={{
                 background: COLORS.surface,
                 border: `1px solid ${COLORS.border}`,
@@ -964,7 +1040,7 @@ const ClinicPatientBooking = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div
-                className="px-4 sm:px-6 py-3 sm:py-4 border-b flex items-center justify-between"
+                className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b flex items-center justify-between"
                 style={{ background: COLORS.white, borderColor: COLORS.border }}
               >
                 <div className="min-w-0 flex-1">
@@ -972,11 +1048,20 @@ const ClinicPatientBooking = () => {
                     className="text-base sm:text-lg font-semibold truncate"
                     style={{ color: COLORS.text }}
                   >
-                    {selectedDate.toLocaleDateString(undefined, {
-                      weekday: 'long',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
+                    <span className="hidden sm:inline">
+                      {selectedDate.toLocaleDateString(undefined, {
+                        weekday: 'long',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </span>
+                    <span className="sm:hidden">
+                      {selectedDate.toLocaleDateString(undefined, {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </span>
                   </h3>
                   <p
                     className="text-xs sm:text-sm truncate"
@@ -1000,7 +1085,7 @@ const ClinicPatientBooking = () => {
                 </button>
               </div>
 
-              <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+              <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6">
                 <div
                   className="rounded-lg sm:rounded-xl p-3 sm:p-4"
                   style={{
@@ -1033,7 +1118,7 @@ const ClinicPatientBooking = () => {
                         >
                           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                             <div
-                              className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs font-semibold flex-shrink-0"
+                              className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-lg flex items-center justify-center text-xs font-semibold flex-shrink-0"
                               style={{
                                 background: `${COLORS.primary}1A`,
                                 color: COLORS.primary,
@@ -1058,11 +1143,12 @@ const ClinicPatientBooking = () => {
                             </div>
                           </div>
                           <span
-                            className={`text-[10px] sm:text[11px] px-2 py-0.5 rounded-full flex-shrink-0 ml-2 ${statusChip(
+                            className={`text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0 ml-2 ${statusChip(
                               a.status
                             )}`}
                           >
-                            {a.status}
+                            <span className="hidden sm:inline">{a.status}</span>
+                            <span className="sm:hidden">{a.status.charAt(0)}</span>
                           </span>
                         </div>
                       ))}
@@ -1078,7 +1164,7 @@ const ClinicPatientBooking = () => {
                 </div>
 
                 <div
-                  className="rounded-lg sm:rounded-xl p-3 sm:pp-4"
+                  className="rounded-lg sm:rounded-xl p-3 sm:p-4"
                   style={{
                     border: `1px solid ${COLORS.border}`,
                     background: COLORS.white,
@@ -1127,14 +1213,15 @@ const ClinicPatientBooking = () => {
                             </p>
                           </div>
                           <span
-                            className="text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full flex-shrink-0 ml-2"
+                            className="text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0 ml-2"
                             style={{
                               background: `${COLORS.primary}1A`,
                               color: COLORS.primary,
                               border: `1px solid ${COLORS.primary}33`,
                             }}
                           >
-                            {s.specialty}
+                            <span className="hidden sm:inline">{s.specialty}</span>
+                            <span className="sm:hidden">{s.specialty.split(' ')[0]}</span>
                           </span>
                         </button>
                       ))}
@@ -1177,7 +1264,8 @@ const ClinicPatientBooking = () => {
                                 className="text-xs sm:text-sm font-semibold"
                                 style={{ color: '#d97706' }}
                               >
-                                Cardiology
+                                <span className="hidden sm:inline">Cardiology</span>
+                                <span className="sm:hidden">Cardio</span>
                               </p>
                               <p
                                 className="text-xs truncate"
@@ -1187,14 +1275,15 @@ const ClinicPatientBooking = () => {
                               </p>
                             </div>
                             <span
-                              className="text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full flex-shrink-0 ml-2"
+                              className="text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0 ml-2"
                               style={{
                                 background: '#fef3c7',
                                 color: '#d97706',
                                 border: '1px solid #fde68a',
                               }}
                             >
-                              Waitlist
+                              <span className="hidden sm:inline">Waitlist</span>
+                              <span className="sm:hidden">WL</span>
                             </span>
                           </button>
                           <button
@@ -1219,7 +1308,8 @@ const ClinicPatientBooking = () => {
                                 className="text-xs sm:text-sm font-semibold"
                                 style={{ color: '#d97706' }}
                               >
-                                General Practice
+                                <span className="hidden sm:inline">General Practice</span>
+                                <span className="sm:hidden">General</span>
                               </p>
                               <p
                                 className="text-xs truncate"
@@ -1229,14 +1319,15 @@ const ClinicPatientBooking = () => {
                               </p>
                             </div>
                             <span
-                              className="text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full flex-shrink-0 ml-2"
+                              className="text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0 ml-2"
                               style={{
                                 background: '#fef3c7',
                                 color: '#d97706',
                                 border: '1px solid #fde68a',
                               }}
                             >
-                              Waitlist
+                              <span className="hidden sm:inline">Waitlist</span>
+                              <span className="sm:hidden">WL</span>
                             </span>
                           </button>
                         </div>
@@ -1260,7 +1351,7 @@ const ClinicPatientBooking = () => {
             onClick={() => setShowBooking(false)}
           >
             <div
-              className="w-full max-w-sm sm:max-w-md rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+              className="w-full max-w-sm sm:max-w-md rounded-lg sm:rounded-xl md:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
               style={{
                 background: COLORS.surface,
                 border: `1px solid ${COLORS.border}`,
@@ -1268,7 +1359,7 @@ const ClinicPatientBooking = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div
-                className="px-4 sm:px-6 py-3 sm:py-4 border-b flex items-center justify-between"
+                className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b flex items-center justify-between"
                 style={{ background: COLORS.white, borderColor: COLORS.border }}
               >
                 <h3
@@ -1292,7 +1383,7 @@ const ClinicPatientBooking = () => {
                 </button>
               </div>
 
-              <div className="p-4 sm:p-6 space-y-4">
+              <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
                 {/* Patient Information Section */}
                 {patient && (
                   <div
@@ -1389,7 +1480,7 @@ const ClinicPatientBooking = () => {
                   </p>
                 </div>
 
-                <form className="space-y-4">
+                <form className="space-y-3 sm:space-y-4">
                   <div>
                     <label
                       className="block text-xs sm:text-sm font-medium mb-1"
@@ -1401,7 +1492,7 @@ const ClinicPatientBooking = () => {
                       required
                       placeholder="Brief description of your symptoms or reason for visit"
                       rows="3"
-                      className="w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 transition text-sm sm:text-base resize-none"
+                      className="w-full rounded-lg sm:rounded-xl px-2 sm:px-3 py-2 sm:py-2.5 transition text-xs sm:text-sm md:text-base resize-none"
                       style={{
                         background: COLORS.white,
                         border: `1px solid ${COLORS.border}`,
@@ -1412,10 +1503,10 @@ const ClinicPatientBooking = () => {
                       onChange={() => {}}
                     />
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-1">
                     <button
                       type="submit"
-                      className="flex-1 py-2.5 rounded-lg sm:rounded-xl font-medium text-white shadow-sm transition text-sm sm:text-base"
+                      className="flex-1 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-medium text-white shadow-sm transition text-xs sm:text-sm md:text-base"
                       style={{
                         background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
                       }}
@@ -1434,12 +1525,13 @@ const ClinicPatientBooking = () => {
                         setShowPayment(true);
                       }}
                     >
-                      Request Appointment
+                      <span className="hidden sm:inline">Request Appointment</span>
+                      <span className="sm:hidden">Book Appointment</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowBooking(false)}
-                      className="flex-1 py-2.5 rounded-lg sm:rounded-xl font-medium transition text-sm sm:text-base"
+                      className="flex-1 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-medium transition text-xs sm:text-sm md:text-base"
                       style={{
                         background: COLORS.gray50,
                         color: COLORS.text,
@@ -1476,7 +1568,7 @@ const ClinicPatientBooking = () => {
             onClick={() => setShowWaitlistBooking(false)}
           >
             <div
-              className="w-full max-w-sm sm:max-w-md rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+              className="w-full max-w-sm sm:max-w-md rounded-lg sm:rounded-xl md:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
               style={{
                 background: COLORS.surface,
                 border: `1px solid ${COLORS.border}`,
@@ -1484,7 +1576,7 @@ const ClinicPatientBooking = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div
-                className="px-4 sm:px-6 py-3 sm:py-4 border-b flex items-center justify-between"
+                className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b flex items-center justify-between"
                 style={{ background: COLORS.white, borderColor: COLORS.border }}
               >
                 <h3
@@ -1616,7 +1708,7 @@ const ClinicPatientBooking = () => {
                     e.preventDefault();
                     handleWaitlistSubmit(e);
                   }}
-                  className="space-y-4"
+                  className="space-y-3 sm:space-y-4"
                 >
                   <div>
                     <label
@@ -1629,7 +1721,7 @@ const ClinicPatientBooking = () => {
                       required
                       placeholder="Brief description of your symptoms or reason for visit"
                       rows="3"
-                      className="w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 transition text-sm sm:text-base resize-none"
+                      className="w-full rounded-lg sm:rounded-xl px-2 sm:px-3 py-2 sm:py-2.5 transition text-xs sm:text-sm md:text-base resize-none"
                       style={{
                         background: COLORS.white,
                         border: `1px solid ${COLORS.border}`,
@@ -1640,20 +1732,21 @@ const ClinicPatientBooking = () => {
                       onChange={() => {}}
                     />
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-1">
                     <button
                       type="submit"
-                      className="flex-1 py-2.5 rounded-lg sm:rounded-xl font-medium text-white shadow-sm transition text-sm sm:text-base"
+                      className="flex-1 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-medium text-white shadow-sm transition text-xs sm:text-sm md:text-base"
                       style={{
                         background: 'linear-gradient(135deg, #d97706, #f59e0b)',
                       }}
                     >
-                      Join Waitlist
+                      <span className="hidden sm:inline">Join Waitlist</span>
+                      <span className="sm:hidden">Join WL</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowWaitlistBooking(false)}
-                      className="flex-1 py-2.5 rounded-lg sm:rounded-xl font-medium transition text-sm sm:text-base"
+                      className="flex-1 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-medium transition text-xs sm:text-sm md:text-base"
                       style={{
                         background: COLORS.gray50,
                         color: COLORS.text,
@@ -1718,7 +1811,7 @@ const ClinicPatientBooking = () => {
                 </button>
               </div>
 
-              <div className="p-4 sm:p-6 space-y-4">
+              <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
                 {/* Patient Information Section */}
                 {patient && (
                   <div
@@ -1814,10 +1907,10 @@ const ClinicPatientBooking = () => {
                     }}
                   >
                     {paymentInitError}
-                    <div className="mt-3 flex gap-2">
+                    <div className="mt-3 flex flex-col sm:flex-row gap-2">
                       <button
                         type="button"
-                        className="px-3 py-2 rounded-lg text-white text-xs sm:text-sm"
+                        className="px-2 sm:px-3 py-2 rounded-lg text-white text-xs sm:text-sm"
                         style={{
                           background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
                         }}
@@ -1828,11 +1921,12 @@ const ClinicPatientBooking = () => {
                           );
                         }}
                       >
-                        Continue (Demo)
+                        <span className="hidden sm:inline">Continue (Demo)</span>
+                        <span className="sm:hidden">Continue</span>
                       </button>
                       <button
                         type="button"
-                        className="px-3 py-2 rounded-lg text-xs sm:text-sm"
+                        className="px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm"
                         style={{
                           background: COLORS.gray50,
                           color: COLORS.text,
