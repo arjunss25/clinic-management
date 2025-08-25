@@ -49,6 +49,7 @@ class Clinic(models.Model):
     phone = models.CharField(max_length=20)
     email = models.EmailField()
     specialties = models.ManyToManyField(Specialty, related_name="clinics_specialties")
+    documents = models.FileField(upload_to='clinic_documents/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
