@@ -66,7 +66,7 @@ const Sidebar = ({ role = 'patient' }) => {
     <div
       className={`${
         collapsed ? 'w-20' : 'w-64'
-      } min-h-screen bg-white border-r border-gray-200  flex flex-col transition-all duration-300 relative z-100`}
+      } min-h-screen bg-white border-r border-gray-200 flex flex-col transition-all duration-300 relative z-100 hidden lg:block`}
     >
       {/* Collapse Button - Positioned outside the header */}
       <button
@@ -287,17 +287,7 @@ const Sidebar = ({ role = 'patient' }) => {
       </nav>
 
       {/* Footer */}
-      {!collapsed && (
-        <div className="px-4 py-5 border-t border-gray-50 bg-gradient-to-r from-gray-50 to-white">
-          <div className="flex items-center justify-between text-sm text-gray-400">
-            <span className="font-medium">v2.1.0</span>
-            <div className="flex items-center space-x-2">
-              <div className="w-2.5 h-2.5 bg-green-400 rounded-full shadow-sm"></div>
-              <span className="font-medium text-gray-500">Online</span>
-            </div>
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 };

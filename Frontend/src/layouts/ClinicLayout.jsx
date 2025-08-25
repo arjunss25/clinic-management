@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../components/common/Sidebar';
 import Navbar from '../components/common/Navbar';
 
 const ClinicLayout = () => {
   const { pathname } = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const scrollToTop = () => {
@@ -24,18 +25,33 @@ const ClinicLayout = () => {
     return () => clearTimeout(timeoutId);
   }, [pathname]);
 
+  const handleMobileMenuToggle = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleMobileMenuClose = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <Sidebar role="clinic" />
+      <Sidebar 
+        role="clinic" 
+        isMobileOpen={isMobileMenuOpen}
+        onMobileClose={handleMobileMenuClose}
+      />
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Navbar */}
-        <Navbar />
+        <Navbar 
+          role="clinic" 
+          onMobileMenuToggle={handleMobileMenuToggle}
+        />
         
         {/* Main Content Area */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto  p-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
           <Outlet />
         </main>
       </div>

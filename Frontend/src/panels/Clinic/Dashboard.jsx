@@ -800,10 +800,6 @@ const Dashboard = () => {
               Schedule Appointment
             </button>
             <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#0118D8] border border-[#E9DFC3]/80 rounded-lg hover:border-[#1B56FD] hover:bg-[#0118D8]/5 transition-colors">
-              <FaNotesMedical className="w-4 h-4" />
-              Update Records
-            </button>
-            <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#0118D8] border border-[#E9DFC3]/80 rounded-lg hover:border-[#1B56FD] hover:bg-[#0118D8]/5 transition-colors">
               <FaHistory className="w-4 h-4" />
               Appointment History
             </button>
