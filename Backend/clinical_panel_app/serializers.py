@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from  superadmin_app.models import *
+from .models import *
 
 
 
@@ -14,10 +15,11 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Doctor
         fields = [
-            "doctor_name", "specialization", "phone", "email",
+            "id","doctor_name", "specialization", "phone", "email",
             "bio", "profile_picture", "experince_years",
-            "education", "additional_qualification"
+            "education", "additional_qualification","created_at"
         ]
+        read_only_fields = ["id", "created_at"]
 
     def create(self, validated_data):
         clinic = self.context.get("clinic")
@@ -38,3 +40,14 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
             **validated_data
         )
         return doctor
+    
+
+class DoctorAvailabilitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DoctorAvailability
+        fields = [
+            "id", "doctor", "day_of_week", "start_time", "end_time",
+            "start_date", "end_date", "slot_duration", "break_duration",
+            "notes", "created_at"
+        ]
+        read_only_fields = ["id", "created_at"]    

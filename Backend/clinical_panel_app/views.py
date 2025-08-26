@@ -7,9 +7,10 @@ import pyotp
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import get_object_or_404
 from superadmin_app.serializers import *
-from .serializers import *
+from . serializers import *
 from superadmin_app.utils import *
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
 # Create your views here.
 
 
@@ -78,3 +79,71 @@ class ClinicDoctorsListAPIView(APIView):
         doctors = Doctor.objects.filter(clinic=clinic)
         serializer = DoctorRegisterSerializer(doctors, many=True)
         return custom_200("Doctors fetched successfully", serializer.data)    
+    
+
+# search doctors by name or specialization
+class DoctorSearchAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        query = request.query_params.get("q", "").strip()
+
+        if not query:
+            return custom_404("Please provide a search query")
+
+        # Search by doctor_name OR specialization (case-insensitive)
+        doctors = Doctor.objects.filter(
+            Q(doctor_name__icontains=query) | Q(specialization__icontains=query)
+        )
+
+        serializer = DoctorRegisterSerializer(doctors, many=True)
+        return custom_200("Doctor listed successfully",serializer.data) 
+    
+# list doctor details by id
+class DoctorDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, doctor_id):
+        doctor = get_object_or_404(Doctor, id=doctor_id)
+        serializer = DoctorRegisterSerializer(doctor)
+        return custom_200("Doctor details fetched successfully", serializer.data)    
+    
+
+# add doctor availability
+class DoctorAvailabilityAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+
+        # Case 1: Doctor sets their own availability
+        if user.role == "Doctor":
+            try:
+                doctor = Doctor.objects.get(user=user)
+            except Doctor.DoesNotExist:
+                return custom_404("Doctor profile not found")
+
+        # Case 2: Clinic sets availability for a doctor
+        elif user.role == "Clinic":
+            doctor_id = request.data.get("doctor_id")
+            if not doctor_id:
+                return custom_404("doctor_id is required when clinic is setting availability")
+            try:
+                doctor = Doctor.objects.get(id=doctor_id, clinic=user.clinic_profile)
+            except Doctor.DoesNotExist:
+                return custom_404("Doctor not found for this clinic")
+
+        else:
+            return custom_404("Only Doctor or Clinic users can set availability")
+
+        # Validate and save availability
+        serializer = DoctorAvailabilitySerializer(data=request.data)
+        if serializer.is_valid():
+            availability = serializer.save(doctor=doctor)
+            return custom_201("Availability set successfully", {
+                "availability_id": availability.id,
+                "doctor_id": doctor.id,
+                "day_of_week": availability.day_of_week,
+                "start_time": availability.start_time,
+                "end_time": availability.end_time
+            })
+
+        return custom_404(serializer.errors)
