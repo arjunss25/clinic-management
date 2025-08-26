@@ -746,7 +746,7 @@ const Appointments = () => {
   }, [selectedDoctor]);
 
   return (
-    <div className="min-h-screen px-2 sm:px-4 lg:px-6">
+    <div className="min-h-screen">
       {!selectedDoctor ? (
         <DoctorsList onDoctorSelect={handleDoctorSelect} />
       ) : (

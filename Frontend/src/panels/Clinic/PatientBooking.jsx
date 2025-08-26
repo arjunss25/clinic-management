@@ -506,12 +506,12 @@ const ClinicPatientBooking = () => {
   }, [showPayment]);
 
   return (
-    <div className="min-h-screen px-2 sm:px-4 lg:px-6">
+    <div className="min-h-screen">
       <div className="space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3 sm:gap-4 lg:gap-5">
           <div className="space-y-1">
-            <h1 className="text-xl sm:text-2xl md:text-[2.25rem] font-semibold tracking-tight text-gray-900">
+            <h1 className="text-[2rem] md:text-[2.25rem] font-semibold tracking-tight text-gray-900">
               {showPatientSelection ? 'Book for Patient' : `Book Appointment for ${patient ? patient.name : 'Patient'}`}
             </h1>
             <p
