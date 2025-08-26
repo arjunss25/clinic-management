@@ -6,6 +6,7 @@ from  superadmin_app.models import *
 
 class DoctorRegisterSerializer(serializers.ModelSerializer):
     # include extra ProfileUser fields if needed
+    clinic_name = serializers.CharField(source="clinic.clinic_name", read_only=True)
     doctor_name = serializers.CharField(required=True)
     specialization = serializers.CharField(required=True)
     phone = serializers.CharField(required=True)
@@ -14,7 +15,7 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Doctor
         fields = [
-            "doctor_name", "specialization", "phone", "email",
+            "clinic_name","doctor_name", "specialization", "phone", "email",
             "bio", "profile_picture", "experince_years",
             "education", "additional_qualification"
         ]

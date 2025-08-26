@@ -10,6 +10,7 @@ from superadmin_app.serializers import *
 from .serializers import *
 from superadmin_app.utils import *
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
 # Create your views here.
 
 
@@ -49,11 +50,11 @@ class DoctorRegisterAPIView(APIView):
         if serializer.is_valid():
             doctor = serializer.save()
 
-            send_doctor_credentials_email(doctor.email, password)
+            send_doctor_credentials_email(doctor.email, password,clinic.clinic_name)
 
             return custom_201("Doctor registered successfully. Credentials sent to email.", {
                 "doctor_id": doctor.id,
-                "doctor_name": doctor.name,
+                "doctor_name": doctor.doctor_name,
                 "user_id": doctor.user.id,
                 "email": doctor.email,
                 "role": doctor.user.role
@@ -78,3 +79,19 @@ class ClinicDoctorsListAPIView(APIView):
         doctors = Doctor.objects.filter(clinic=clinic)
         serializer = DoctorRegisterSerializer(doctors, many=True)
         return custom_200("Doctors fetched successfully", serializer.data)    
+    
+# search doctors by name or specialization
+class DoctorSearchAPIView(APIView):
+    def get(self, request):
+        query = request.query_params.get("q", "").strip()
+
+        if not query:
+            return custom_404("Please provide a search query")
+
+        # Search by doctor_name OR specialization (case-insensitive)
+        doctors = Doctor.objects.filter(
+            Q(doctor_name__icontains=query) | Q(specialization__icontains=query)
+        )
+
+        serializer = DoctorRegisterSerializer(doctors, many=True)
+        return custom_200("Doctor listed successfully",serializer.data)    
