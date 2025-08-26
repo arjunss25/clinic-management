@@ -66,6 +66,32 @@ class PatientRegisterAPI(APIView):
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def patch(self, request, patient_id, *args, **kwargs):
+        
+        try:
+            patient = Patient.objects.get(id=patient_id)
+        except Patient.DoesNotExist:
+            return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = PatientRegisterSerializer(patient, data=request.data, partial=True)
+        if serializer.is_valid():
+            # Update ProfileUser (if phone/email given)
+            if "phone_number" in serializer.validated_data:
+                patient.user.phone = serializer.validated_data["phone_number"]
+                patient.user.save()
+
+            if "email" in serializer.validated_data:
+                patient.user.email = serializer.validated_data["email"]
+                patient.user.save()
+
+            # Update Patient fields (only those provided)
+            for field, value in serializer.validated_data.items():
+                setattr(patient, field, value)
+            patient.save()
+
+            return Response({"message": "Patient profile updated successfully"}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class UserDeleteAPI(APIView):
     def delete(self, request, pk, *args, **kwargs):
