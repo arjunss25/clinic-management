@@ -66,9 +66,12 @@ class PatientRegisterAPI(APIView):
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> d3774f1bc4073302fbb4054f1f8c003e6b1dfa97
+=======
+>>>>>>> 9739d74 (stop tracking db.sqlite3 and added to .gitignore, add patch method to patientRegisterAPI with serializer validation)
     def patch(self, request, patient_id, *args, **kwargs):
         
         try:
