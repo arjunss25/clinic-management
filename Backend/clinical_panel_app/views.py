@@ -65,6 +65,10 @@ class PatientRegisterAPI(APIView):
                 status=status.HTTP_201_CREATED
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+<<<<<<< HEAD
+=======
+
+>>>>>>> d3774f1bc4073302fbb4054f1f8c003e6b1dfa97
     def patch(self, request, patient_id, *args, **kwargs):
         
         try:
