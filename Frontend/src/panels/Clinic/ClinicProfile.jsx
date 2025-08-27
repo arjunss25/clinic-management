@@ -55,6 +55,18 @@ const ClinicProfile = () => {
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editForm, setEditForm] = useState({});
+  const [activeEditSection, setActiveEditSection] = useState('');
+  const [showSpecialtyModal, setShowSpecialtyModal] = useState(false);
+  const [newSpecialty, setNewSpecialty] = useState('');
+  const [showAccreditationModal, setShowAccreditationModal] = useState(false);
+  const [newAccreditation, setNewAccreditation] = useState('');
+  const [showFacilitiesModal, setShowFacilitiesModal] = useState(false);
+  const [newFacility, setNewFacility] = useState('');
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [showOperatingHoursModal, setShowOperatingHoursModal] = useState(false);
+  const [showAmenitiesModal, setShowAmenitiesModal] = useState(false);
+  const [newAmenity, setNewAmenity] = useState('');
 
   // Sample clinic data - In real app, this would come from API
   const clinicData = {
@@ -114,6 +126,7 @@ const ClinicProfile = () => {
     },
     emergencyHours: '24/7',
     totalDoctors: 45,
+    totalPatients: 8500,
     totalStaff: 120,
     totalBeds: 150,
     rating: 4.7,
@@ -167,6 +180,7 @@ const ClinicProfile = () => {
   }, []);
 
   const handleEdit = () => {
+    setActiveEditSection('basic');
     setEditForm(clinic);
     setShowEditModal(true);
   };
@@ -196,6 +210,117 @@ const ClinicProfile = () => {
     }));
   };
 
+  const handleEditSection = (section) => {
+    setActiveEditSection(section);
+    setEditForm(clinic);
+    setShowEditModal(true);
+  };
+
+  const handleAddSpecialty = () => {
+    if (newSpecialty.trim()) {
+      setClinic(prev => ({
+        ...prev,
+        specialties: [...prev.specialties, newSpecialty.trim()]
+      }));
+      setNewSpecialty('');
+      setShowSpecialtyModal(false);
+    }
+  };
+
+  const handleRemoveSpecialty = (index) => {
+    setClinic(prev => ({
+      ...prev,
+      specialties: prev.specialties.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleAddAccreditation = () => {
+    if (newAccreditation.trim()) {
+      setClinic(prev => ({
+        ...prev,
+        accreditation: [...prev.accreditation, newAccreditation.trim()]
+      }));
+      setNewAccreditation('');
+      setShowAccreditationModal(false);
+    }
+  };
+
+  const handleRemoveAccreditation = (index) => {
+    setClinic(prev => ({
+      ...prev,
+      accreditation: prev.accreditation.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleAddFacility = () => {
+    if (newFacility.trim()) {
+      setClinic(prev => ({
+        ...prev,
+        facilities: [...prev.facilities, newFacility.trim()]
+      }));
+      setNewFacility('');
+      setShowFacilitiesModal(false);
+    }
+  };
+
+  const handleRemoveFacility = (index) => {
+    setClinic(prev => ({
+      ...prev,
+      facilities: prev.facilities.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleContactUpdate = (field, value) => {
+    setClinic(prev => ({
+      ...prev,
+      contactInfo: {
+        ...prev.contactInfo,
+        [field]: value
+      }
+    }));
+  };
+
+  const handleAddressUpdate = (field, value) => {
+    setClinic(prev => ({
+      ...prev,
+      address: {
+        ...prev.address,
+        [field]: value
+      }
+    }));
+  };
+
+  const handleOperatingHoursUpdate = (day, field, value) => {
+    setClinic(prev => ({
+      ...prev,
+      operatingHours: {
+        ...prev.operatingHours,
+        [day]: {
+          ...prev.operatingHours[day],
+          [field]: value
+        }
+      }
+    }));
+  };
+
+  const handleAddAmenity = () => {
+    if (newAmenity.trim()) {
+      setClinic(prev => ({
+        ...prev,
+        amenities: [...prev.amenities, newAmenity.trim()]
+      }));
+      setNewAmenity('');
+      setShowAmenitiesModal(false);
+    }
+  };
+
+  const handleRemoveAmenity = (index) => {
+    setClinic(prev => ({
+      ...prev,
+      amenities: prev.amenities.filter((_, i) => i !== index)
+    }));
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4" style={{ background: COLORS.background }}>
@@ -209,7 +334,7 @@ const ClinicProfile = () => {
 
   if (!clinic) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: COLORS.background }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: COLORS.background }}>
         <div className="text-center max-w-md">
           <FaHospital className="w-16 h-16 mx-auto mb-4" style={{ color: COLORS.textMuted }} />
           <h2 className="text-xl font-semibold mb-2" style={{ color: COLORS.text }}>Clinic Not Found</h2>
@@ -235,7 +360,7 @@ const ClinicProfile = () => {
   ];
 
   return (
-    <div className="min-h-screen px-4 sm:px-6 lg:px-8" style={{ background: COLORS.background }}>
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
@@ -296,11 +421,8 @@ const ClinicProfile = () => {
                     </span>
                     <span className="flex items-center gap-1" style={{ color: COLORS.textMuted }}>
                       <FaUsers className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.primary }} />
-                      {clinic.totalStaff} staff
-                    </span>
-                    <span className="flex items-center gap-1" style={{ color: COLORS.textMuted }}>
-                      <FaBuilding className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.primary }} />
-                      {clinic.totalBeds} beds
+                      <span className="hidden sm:inline">{clinic.totalPatients} patients</span>
+                      <span className="sm:hidden">{clinic.totalPatients}</span>
                     </span>
                   </div>
                 </div>
@@ -343,31 +465,32 @@ const ClinicProfile = () => {
           {/* Tab Navigation */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
             <div className="border-b border-gray-100">
-              <nav className="flex space-x-4 sm:space-x-8 px-4 sm:px-6 overflow-x-auto scrollbar-hide">
+              <nav className="flex space-x-2 sm:space-x-4 lg:space-x-8 px-2 sm:px-4 lg:px-6 overflow-x-auto scrollbar-hide">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-1 sm:gap-2 py-3 sm:py-4 px-2 border-b-2 font-medium text-xs sm:text-sm transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
+                    className={`flex items-center gap-1 sm:gap-2 py-3 sm:py-4 px-2 sm:px-3 border-b-2 font-medium text-xs sm:text-sm transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
                       activeTab === tab.id
                         ? 'border-blue-500 text-blue-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
+                    title={tab.label}
                   >
-                    <tab.icon className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span>{tab.label}</span>
+                    <tab.icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="hidden sm:inline">{tab.label}</span>
                   </button>
                 ))}
               </nav>
             </div>
 
             {/* Tab Content */}
-            <div className="p-4 sm:p-6">
+            <div className="p-3 sm:p-4 lg:p-6">
               {activeTab === 'overview' && (
-                <div className="space-y-4 sm:space-y-6">
+                <div className="space-y-3 sm:space-y-4 lg:space-y-6">
                   {/* Professional Summary */}
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 sm:p-6 border border-blue-100">
-                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2" style={{ color: COLORS.text }}>
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-3 sm:p-4 lg:p-6 border border-blue-100">
+                    <h3 className="text-sm sm:text-base lg:text-lg font-semibold mb-2 sm:mb-3 lg:mb-4 flex items-center gap-2" style={{ color: COLORS.text }}>
                       <FaHospital className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: COLORS.primary }} />
                       About {clinic.name}
                     </h3>
@@ -377,18 +500,32 @@ const ClinicProfile = () => {
                   </div>
 
                   {/* Key Information Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                    <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
-                      <h4 className="font-semibold mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base" style={{ color: COLORS.text }}>
-                        <FaStethoscope className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.primary }} />
-                        Specialties
-                      </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
+                    <div className="bg-white rounded-xl border border-gray-200 p-2 sm:p-3 lg:p-4 relative">
+                      <div className="flex items-center justify-between mb-2 sm:mb-3">
+                        <h4 className="font-semibold flex items-center gap-2 text-xs sm:text-sm lg:text-base" style={{ color: COLORS.text }}>
+                          <FaStethoscope className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.primary }} />
+                          Specialties
+                        </h4>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => setShowSpecialtyModal(true)}
+                            className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                            title="Add Specialty"
+                          >
+                            <FaEdit className="w-3 h-3" style={{ color: COLORS.primary }} />
+                          </button>
+                        </div>
+                      </div>
                       <div className="flex flex-wrap gap-2">
                         {clinic.specialties.map((specialty, index) => (
                           <span
                             key={index}
                             className="px-2 py-1 rounded-full text-xs font-medium"
-                            style={{ backgroundColor: COLORS.gray50, color: COLORS.primary }}
+                            style={{ 
+                              backgroundColor: '#E3F2FD', 
+                              color: '#1976D2' 
+                            }}
                           >
                             {specialty}
                           </span>
@@ -396,11 +533,20 @@ const ClinicProfile = () => {
                       </div>
                     </div>
 
-                    <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
-                      <h4 className="font-semibold mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base" style={{ color: COLORS.text }}>
-                        <FaCertificate className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.primary }} />
-                        Accreditations
-                      </h4>
+                    <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 relative">
+                      <div className="flex items-center justify-between mb-2 sm:mb-3">
+                        <h4 className="font-semibold flex items-center gap-2 text-sm sm:text-base" style={{ color: COLORS.text }}>
+                          <FaCertificate className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.primary }} />
+                          Accreditations
+                        </h4>
+                        <button
+                          onClick={() => setShowAccreditationModal(true)}
+                          className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                          title="Manage Accreditations"
+                        >
+                          <FaEdit className="w-3 h-3" style={{ color: COLORS.primary }} />
+                        </button>
+                      </div>
                       <div className="space-y-2">
                         {clinic.accreditation.map((acc, index) => (
                           <div key={index} className="flex items-center space-x-2">
@@ -411,38 +557,28 @@ const ClinicProfile = () => {
                       </div>
                     </div>
 
-                    <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 sm:col-span-2 lg:col-span-1">
-                      <h4 className="font-semibold mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base" style={{ color: COLORS.text }}>
-                        <FaChartLine className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.primary }} />
-                        Monthly Statistics
-                      </h4>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="text-center p-2 rounded-lg" style={{ backgroundColor: COLORS.gray50 }}>
-                          <div className="text-lg font-bold" style={{ color: COLORS.primary }}>
-                            {clinic.statistics.patientsPerMonth}
-                          </div>
-                          <div className="text-xs" style={{ color: COLORS.textMuted }}>Patients</div>
-                        </div>
-                        <div className="text-center p-2 rounded-lg" style={{ backgroundColor: COLORS.gray50 }}>
-                          <div className="text-lg font-bold" style={{ color: COLORS.primary }}>
-                            {clinic.statistics.surgeriesPerMonth}
-                          </div>
-                          <div className="text-xs" style={{ color: COLORS.textMuted }}>Surgeries</div>
-                        </div>
-                      </div>
-                    </div>
+
                   </div>
                 </div>
               )}
 
               {activeTab === 'facilities' && (
-                <div className="space-y-4 sm:space-y-6">
+                <div className="space-y-3 sm:space-y-4 lg:space-y-6">
                   {/* Medical Facilities */}
-                  <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2" style={{ color: COLORS.text }}>
-                      <FaBuilding className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: COLORS.primary }} />
-                      Medical Facilities
-                    </h3>
+                  <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 lg:p-6">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                      <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2" style={{ color: COLORS.text }}>
+                        <FaBuilding className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: COLORS.primary }} />
+                        Medical Facilities
+                      </h3>
+                      <button
+                        onClick={() => setShowFacilitiesModal(true)}
+                        className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                        title="Manage Facilities"
+                      >
+                        <FaEdit className="w-3 h-3" style={{ color: COLORS.primary }} />
+                      </button>
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       {clinic.facilities.map((facility, index) => (
                         <div key={index} className="flex items-center space-x-3 p-2 sm:p-3 rounded-lg" style={{ backgroundColor: COLORS.gray50 }}>
@@ -455,10 +591,19 @@ const ClinicProfile = () => {
 
                   {/* Patient Amenities */}
                   <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2" style={{ color: COLORS.text }}>
-                      <FaCheckCircle className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: COLORS.primary }} />
-                      Patient Amenities
-                    </h3>
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                      <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2" style={{ color: COLORS.text }}>
+                        <FaCheckCircle className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: COLORS.primary }} />
+                        Patient Amenities
+                      </h3>
+                      <button
+                        onClick={() => setShowAmenitiesModal(true)}
+                        className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                        title="Manage Amenities"
+                      >
+                        <FaEdit className="w-3 h-3" style={{ color: COLORS.primary }} />
+                      </button>
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       {clinic.amenities.map((amenity, index) => (
                         <div key={index} className="flex items-center space-x-3 p-2 sm:p-3 rounded-lg" style={{ backgroundColor: COLORS.gray50 }}>
@@ -472,13 +617,22 @@ const ClinicProfile = () => {
               )}
 
               {activeTab === 'schedule' && (
-                <div className="space-y-4 sm:space-y-6">
+                <div className="space-y-3 sm:space-y-4 lg:space-y-6">
                   {/* Operating Hours */}
-                  <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2" style={{ color: COLORS.text }}>
-                      <FaClock className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: COLORS.primary }} />
-                      Operating Hours
-                    </h3>
+                  <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 lg:p-6">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                      <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2" style={{ color: COLORS.text }}>
+                        <FaClock className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: COLORS.primary }} />
+                        Operating Hours
+                      </h3>
+                      <button
+                        onClick={() => setShowOperatingHoursModal(true)}
+                        className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                        title="Edit Operating Hours"
+                      >
+                        <FaEdit className="w-3 h-3" style={{ color: COLORS.primary }} />
+                      </button>
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
                       {Object.entries(clinic.operatingHours).map(([day, hours]) => (
                         <div key={day} className="flex items-center justify-between p-2 sm:p-3 rounded-lg" style={{ backgroundColor: COLORS.gray50 }}>
@@ -498,36 +652,28 @@ const ClinicProfile = () => {
                     </div>
                   </div>
 
-                  {/* Emergency Services */}
-                  <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2" style={{ color: COLORS.text }}>
-                      <FaAmbulance className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: COLORS.primary }} />
-                      Emergency Services
-                    </h3>
-                    <div className="p-4 rounded-lg" style={{ backgroundColor: COLORS.gray50 }}>
-                      <div className="flex items-center space-x-3">
-                        <FaAmbulance size={20} style={{ color: COLORS.danger }} />
-                        <div>
-                          <div className="font-semibold text-sm sm:text-base" style={{ color: COLORS.text }}>24/7 Emergency Services</div>
-                          <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
-                            Emergency Contact: {clinic.contactInfo.emergency}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+
                 </div>
               )}
 
               {activeTab === 'contact' && (
-                <div className="space-y-4 sm:space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
                     {/* Contact Information */}
-                    <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-                      <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2" style={{ color: COLORS.text }}>
-                        <FaPhone className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: COLORS.primary }} />
-                        Contact Information
-                      </h3>
+                    <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 lg:p-6">
+                      <div className="flex items-center justify-between mb-3 sm:mb-4">
+                        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2" style={{ color: COLORS.text }}>
+                          <FaPhone className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: COLORS.primary }} />
+                          Contact Information
+                        </h3>
+                        <button
+                          onClick={() => setShowContactModal(true)}
+                          className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                          title="Edit Contact Information"
+                        >
+                          <FaEdit className="w-3 h-3" style={{ color: COLORS.primary }} />
+                        </button>
+                      </div>
                       <div className="space-y-3">
                         <div className="flex items-center space-x-3">
                           <FaPhone size={16} style={{ color: COLORS.primary }} />
@@ -561,11 +707,20 @@ const ClinicProfile = () => {
                     </div>
 
                     {/* Address */}
-                    <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-                      <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2" style={{ color: COLORS.text }}>
-                        <FaMapMarkerAlt className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: COLORS.primary }} />
-                        Address
-                      </h3>
+                    <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 lg:p-6">
+                      <div className="flex items-center justify-between mb-3 sm:mb-4">
+                        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2" style={{ color: COLORS.text }}>
+                          <FaMapMarkerAlt className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: COLORS.primary }} />
+                          Address
+                        </h3>
+                        <button
+                          onClick={() => setShowAddressModal(true)}
+                          className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                          title="Edit Address Information"
+                        >
+                          <FaEdit className="w-3 h-3" style={{ color: COLORS.primary }} />
+                        </button>
+                      </div>
                       <div className="p-4 rounded-lg" style={{ backgroundColor: COLORS.gray50 }}>
                         <div className="flex items-start space-x-3">
                           <FaMapMarkerAlt size={16} style={{ color: COLORS.primary }} className="mt-1" />
@@ -582,48 +737,12 @@ const ClinicProfile = () => {
                     </div>
                   </div>
 
-                  {/* Insurance & Payment */}
-                  <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2" style={{ color: COLORS.text }}>
-                      <FaDollarSign className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: COLORS.primary }} />
-                      Insurance & Payment
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                      <div>
-                        <h4 className="font-medium mb-2 text-sm sm:text-base" style={{ color: COLORS.text }}>Accepted Insurance</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {clinic.insurance.map((ins, index) => (
-                            <span
-                              key={index}
-                              className="px-2 py-1 rounded text-xs"
-                              style={{ backgroundColor: COLORS.gray50, color: COLORS.textMuted }}
-                            >
-                              {ins}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="font-medium mb-2 text-sm sm:text-base" style={{ color: COLORS.text }}>Payment Methods</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {clinic.paymentMethods.map((method, index) => (
-                            <span
-                              key={index}
-                              className="px-2 py-1 rounded text-xs"
-                              style={{ backgroundColor: COLORS.gray50, color: COLORS.textMuted }}
-                            >
-                              {method}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+
                 </div>
               )}
 
               {activeTab === 'reviews' && (
-                <div className="space-y-4 sm:space-y-6">
+                <div className="space-y-3 sm:space-y-4 lg:space-y-6">
                   <div className="text-center">
                     <div className="text-4xl font-bold mb-2" style={{ color: COLORS.primary }}>
                       {clinic.rating}
@@ -657,138 +776,1881 @@ const ClinicProfile = () => {
       {/* Edit Modal */}
       {showEditModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(15, 23, 42, 0.4)' }}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-1 sm:p-2 lg:p-4"
+          style={{
+            background: 'rgba(15, 23, 42, 0.4)',
+            backdropFilter: 'saturate(140%) blur(8px)',
+          }}
           onClick={() => setShowEditModal(false)}
         >
           <div
-            className="w-full max-w-2xl bg-white rounded-xl shadow-2xl max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-lg sm:max-w-xl lg:max-w-2xl rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto"
+            style={{
+              background: '#ffffff',
+              border: '1px solid #ECEEF2',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
-              <h3 className="text-lg sm:text-xl font-semibold" style={{ color: COLORS.text }}>
-                Edit Clinic Profile
-              </h3>
+            {/* Modal Header */}
+            <div
+              className="px-6 py-5 border-b flex items-center justify-between sticky top-0 z-10"
+              style={{
+                background: '#ffffff',
+                borderColor: '#ECEEF2',
+              }}
+            >
+              <div>
+                <h3
+                  className="text-xl font-semibold"
+                  style={{ color: '#111827' }}
+                >
+                  {activeEditSection === 'basic' && 'Edit Basic Information'}
+                  {activeEditSection === 'contact' && 'Edit Contact Information'}
+                  {!activeEditSection && 'Edit Clinic Profile'}
+                </h3>
+                <p className="text-sm mt-1" style={{ color: '#6B7280' }}>
+                  Update clinic information and details
+                </p>
+              </div>
               <button
+                type="button"
                 onClick={() => setShowEditModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="w-10 h-10 rounded-full transition-all flex items-center justify-center hover:scale-105 group"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '1px solid #ECEEF2',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#0F1ED115';
+                  e.target.style.borderColor = '#0F1ED1';
+                  e.target.style.color = '#0F1ED1';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = '#ECEEF2';
+                  e.target.style.color = '#6B7280';
+                }}
               >
-                <FaTimes className="w-4 h-4 sm:w-5 sm:h-5" />
+                <FaTimes className="w-4 h-4" />
               </button>
             </div>
             
-            <div className="p-4 sm:p-6 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Clinic Name</label>
-                  <input
-                    type="text"
-                    value={editForm.name || ''}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Clinic Type</label>
-                  <input
-                    type="text"
-                    value={editForm.type || ''}
-                    onChange={(e) => handleInputChange('type', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Phone</label>
-                  <input
-                    type="text"
-                    value={editForm.phone || ''}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Email</label>
-                  <input
-                    type="text"
-                    value={editForm.email || ''}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Address</label>
-                <input
-                  type="text"
-                  value={editForm.address || ''}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                />
-              </div>
+            <div className="px-3 sm:px-4 lg:px-6 py-4 sm:py-5 lg:py-6 space-y-4 sm:space-y-5 lg:space-y-6">
+              {activeEditSection === 'basic' && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Clinic Name</label>
+                      <input
+                        type="text"
+                        value={editForm.name || ''}
+                        onChange={(e) => handleInputChange('name', e.target.value)}
+                        className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                        style={{
+                          background: '#ffffff',
+                          border: '2px solid #ECEEF2',
+                          color: '#111827',
+                          outline: 'none',
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#0F1ED1';
+                          e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#ECEEF2';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Clinic Type</label>
+                      <input
+                        type="text"
+                        value={editForm.type || ''}
+                        onChange={(e) => handleInputChange('type', e.target.value)}
+                        className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                        style={{
+                          background: '#ffffff',
+                          border: '2px solid #ECEEF2',
+                          color: '#111827',
+                          outline: 'none',
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#0F1ED1';
+                          e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#ECEEF2';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Phone</label>
+                      <input
+                        type="text"
+                        value={editForm.phone || ''}
+                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                        className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                        style={{
+                          background: '#ffffff',
+                          border: '2px solid #ECEEF2',
+                          color: '#111827',
+                          outline: 'none',
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#0F1ED1';
+                          e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#ECEEF2';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Email</label>
+                      <input
+                        type="text"
+                        value={editForm.email || ''}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                        style={{
+                          background: '#ffffff',
+                          border: '2px solid #ECEEF2',
+                          color: '#111827',
+                          outline: 'none',
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#0F1ED1';
+                          e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#ECEEF2';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Address</label>
+                    <input
+                      type="text"
+                      value={editForm.address || ''}
+                      onChange={(e) => handleInputChange('address', e.target.value)}
+                      className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                      style={{
+                        background: '#ffffff',
+                        border: '2px solid #ECEEF2',
+                        color: '#111827',
+                        outline: 'none',
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#0F1ED1';
+                        e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#ECEEF2';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                    />
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>City</label>
-                  <input
-                    type="text"
-                    value={editForm.city || ''}
-                    onChange={(e) => handleInputChange('city', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>State</label>
-                  <input
-                    type="text"
-                    value={editForm.state || ''}
-                    onChange={(e) => handleInputChange('state', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>ZIP Code</label>
-                  <input
-                    type="text"
-                    value={editForm.zipCode || ''}
-                    onChange={(e) => handleInputChange('zipCode', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  />
-                </div>
-              </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>City</label>
+                      <input
+                        type="text"
+                        value={editForm.city || ''}
+                        onChange={(e) => handleInputChange('city', e.target.value)}
+                        className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                        style={{
+                          background: '#ffffff',
+                          border: '2px solid #ECEEF2',
+                          color: '#111827',
+                          outline: 'none',
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#0F1ED1';
+                          e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#ECEEF2';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>State</label>
+                      <input
+                        type="text"
+                        value={editForm.state || ''}
+                        onChange={(e) => handleInputChange('state', e.target.value)}
+                        className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                        style={{
+                          background: '#ffffff',
+                          border: '2px solid #ECEEF2',
+                          color: '#111827',
+                          outline: 'none',
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#0F1ED1';
+                          e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#ECEEF2';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>ZIP Code</label>
+                      <input
+                        type="text"
+                        value={editForm.zipCode || ''}
+                        onChange={(e) => handleInputChange('zipCode', e.target.value)}
+                        className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                        style={{
+                          background: '#ffffff',
+                          border: '2px solid #ECEEF2',
+                          color: '#111827',
+                          outline: 'none',
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#0F1ED1';
+                          e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#ECEEF2';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Description</label>
-                <textarea
-                  value={editForm.description || ''}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Description</label>
+                    <textarea
+                      value={editForm.description || ''}
+                      onChange={(e) => handleInputChange('description', e.target.value)}
+                      rows="4"
+                      className="w-full px-4 py-3 rounded-lg transition-all text-sm resize-none border-2"
+                      style={{
+                        background: '#ffffff',
+                        border: '2px solid #ECEEF2',
+                        color: '#111827',
+                        outline: 'none',
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#0F1ED1';
+                        e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#ECEEF2';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                    />
+                  </div>
+                </>
+              )}
 
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Specialties (comma-separated)</label>
-                <input
-                  type="text"
-                  value={editForm.specialties?.join(', ') || ''}
-                  onChange={(e) => handleArrayChange('specialties', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                />
-              </div>
+
+
+
+
+              {!activeEditSection && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Clinic Name</label>
+                      <input
+                        type="text"
+                        value={editForm.name || ''}
+                        onChange={(e) => handleInputChange('name', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Clinic Type</label>
+                      <input
+                        type="text"
+                        value={editForm.type || ''}
+                        onChange={(e) => handleInputChange('type', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Phone</label>
+                      <input
+                        type="text"
+                        value={editForm.phone || ''}
+                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Email</label>
+                      <input
+                        type="text"
+                        value={editForm.phone || ''}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Address</label>
+                    <input
+                      type="text"
+                      value={editForm.address || ''}
+                      onChange={(e) => handleInputChange('address', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>City</label>
+                      <input
+                        type="text"
+                        value={editForm.city || ''}
+                        onChange={(e) => handleInputChange('city', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>State</label>
+                      <input
+                        type="text"
+                        value={editForm.state || ''}
+                        onChange={(e) => handleInputChange('state', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>ZIP Code</label>
+                      <input
+                        type="text"
+                        value={editForm.zipCode || ''}
+                        onChange={(e) => handleInputChange('zipCode', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Description</label>
+                    <textarea
+                      value={editForm.description || ''}
+                      onChange={(e) => handleInputChange('description', e.target.value)}
+                      rows={4}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    />
+                  </div>
+                </>
+              )}
             </div>
             
-            <div className="flex justify-end gap-3 p-4 sm:p-6 border-t border-gray-200">
+            {/* Form Actions */}
+            <div
+              className="flex flex-col sm:flex-row gap-3 pt-6 border-t px-6 pb-6"
+              style={{ borderColor: '#ECEEF2' }}
+            >
               <button
+                type="button"
                 onClick={() => setShowEditModal(false)}
-                className="px-3 sm:px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 text-sm"
+                className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '2px solid #ECEEF2',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#6B728010';
+                  e.target.style.borderColor = '#6B7280';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = '#ECEEF2';
+                }}
               >
                 Cancel
               </button>
               <button
+                type="submit"
                 onClick={handleSave}
-                className="px-3 sm:px-4 py-2 text-white rounded-lg font-medium text-sm"
-                style={{ background: COLORS.primary }}
+                className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl"
+                style={{
+                  background: 'linear-gradient(135deg, #0F1ED1, #1B56FD)',
+                  color: '#ffffff',
+                  border: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow =
+                    '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow =
+                    '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                }}
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Specialty Modal */}
+      {showSpecialtyModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4"
+          style={{
+            background: 'rgba(15, 23, 42, 0.4)',
+            backdropFilter: 'saturate(140%) blur(8px)',
+          }}
+          onClick={() => setShowSpecialtyModal(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden"
+            style={{
+              background: '#ffffff',
+              border: '1px solid #ECEEF2',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              className="px-6 py-5 border-b flex items-center justify-between sticky top-0 z-10"
+              style={{
+                background: '#ffffff',
+                borderColor: '#ECEEF2',
+              }}
+            >
+              <div>
+                <h3
+                  className="text-xl font-semibold"
+                  style={{ color: '#111827' }}
+                >
+                  Manage Specialties
+                </h3>
+                <p className="text-sm mt-1" style={{ color: '#6B7280' }}>
+                  Add or remove clinic specialties
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSpecialtyModal(false)}
+                className="w-10 h-10 rounded-full transition-all flex items-center justify-center hover:scale-105 group"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '1px solid #ECEEF2',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#0F1ED115';
+                  e.target.style.borderColor = '#0F1ED1';
+                  e.target.style.color = '#0F1ED1';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = '#ECEEF2';
+                  e.target.style.color = '#6B7280';
+                }}
+              >
+                <FaTimes className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6 overflow-y-auto flex-1">
+              {/* Existing Specialties */}
+              <div>
+                <label className="block text-sm font-semibold mb-3" style={{ color: '#111827' }}>Current Specialties</label>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {clinic.specialties.map((specialty, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-2 rounded-full text-sm font-medium flex items-center gap-2 group"
+                      style={{ 
+                        backgroundColor: '#E3F2FD', 
+                        color: '#1976D2',
+                        border: `1px solid #1976D233` 
+                      }}
+                    >
+                      {specialty}
+                      <button
+                        onClick={() => handleRemoveSpecialty(index)}
+                        className="opacity-70 hover:opacity-100 hover:text-red-500 transition-all duration-200"
+                        title="Remove specialty"
+                      >
+                        <FaTimes className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                  {clinic.specialties.length === 0 && (
+                    <p className="text-sm" style={{ color: '#6B7280' }}>No specialties added yet</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Add New Specialty */}
+              <div>
+                <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Add New Specialty</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newSpecialty}
+                    onChange={(e) => setNewSpecialty(e.target.value)}
+                    placeholder="Enter specialty name..."
+                    className="flex-1 px-4 py-3 rounded-lg transition-all text-sm border-2"
+                    style={{
+                      background: '#ffffff',
+                      border: '2px solid #ECEEF2',
+                      color: '#111827',
+                      outline: 'none',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0F1ED1';
+                      e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#ECEEF2';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddSpecialty()}
+                  />
+                  <button
+                    onClick={handleAddSpecialty}
+                    disabled={!newSpecialty.trim()}
+                    className="px-6 py-3 text-white rounded-lg font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      background: newSpecialty.trim() ? 'linear-gradient(135deg, #0F1ED1, #1B56FD)' : '#6B7280',
+                      border: 'none',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (newSpecialty.trim()) {
+                        e.target.style.transform = 'translateY(-1px)';
+                        e.target.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (newSpecialty.trim()) {
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = 'none';
+                      }
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Form Actions */}
+            <div
+              className="flex flex-col sm:flex-row gap-3 pt-6 border-t px-6 pb-6"
+              style={{ borderColor: '#ECEEF2' }}
+            >
+              <button
+                type="button"
+                onClick={() => setShowSpecialtyModal(false)}
+                className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '2px solid #ECEEF2',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#6B728010';
+                  e.target.style.borderColor = '#6B7280';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = '#ECEEF2';
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowSpecialtyModal(false)}
+                className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl"
+                style={{
+                  background: 'linear-gradient(135deg, #0F1ED1, #1B56FD)',
+                  color: '#ffffff',
+                  border: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow =
+                    '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow =
+                    '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                }}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Accreditation Modal */}
+      {showAccreditationModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4"
+          style={{
+            background: 'rgba(15, 23, 42, 0.4)',
+            backdropFilter: 'saturate(140%) blur(8px)',
+          }}
+          onClick={() => setShowAccreditationModal(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden"
+            style={{
+              background: '#ffffff',
+              border: '1px solid #ECEEF2',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              className="px-6 py-5 border-b flex items-center justify-between sticky top-0 z-10"
+              style={{
+                background: '#ffffff',
+                borderColor: '#ECEEF2',
+              }}
+            >
+              <div>
+                <h3
+                  className="text-xl font-semibold"
+                  style={{ color: '#111827' }}
+                >
+                  Manage Accreditations
+                </h3>
+                <p className="text-sm mt-1" style={{ color: '#6B7280' }}>
+                  Add or remove clinic accreditations
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAccreditationModal(false)}
+                className="w-10 h-10 rounded-full transition-all flex items-center justify-center hover:scale-105 group"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '1px solid #ECEEF2',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#0F1ED115';
+                  e.target.style.borderColor = '#0F1ED1';
+                  e.target.style.color = '#0F1ED1';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = '#ECEEF2';
+                  e.target.style.color = '#6B7280';
+                }}
+              >
+                <FaTimes className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="px-6 py-6 space-y-6 overflow-y-auto flex-1">
+              {/* Existing Accreditations */}
+              <div>
+                <label className="block text-sm font-semibold mb-3" style={{ color: '#111827' }}>Current Accreditations</label>
+                <div className="space-y-2">
+                  {clinic.accreditation.map((acc, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 rounded-lg border"
+                      style={{
+                        backgroundColor: '#F9FAFB',
+                        borderColor: '#ECEEF2',
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <FaCertificate size={14} style={{ color: '#10B981' }} />
+                        <span className="text-sm" style={{ color: '#111827' }}>{acc}</span>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveAccreditation(index)}
+                        className="p-1 rounded-full hover:bg-red-50 transition-all duration-200"
+                        title="Remove accreditation"
+                      >
+                        <FaTimes className="w-3 h-3 text-red-500" />
+                      </button>
+                    </div>
+                  ))}
+                  {clinic.accreditation.length === 0 && (
+                    <p className="text-sm" style={{ color: '#6B7280' }}>No accreditations added yet</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Add New Accreditation */}
+              <div>
+                <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Add New Accreditation</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newAccreditation}
+                    onChange={(e) => setNewAccreditation(e.target.value)}
+                    placeholder="Enter accreditation name..."
+                    className="flex-1 px-4 py-3 rounded-lg transition-all text-sm border-2"
+                    style={{
+                      background: '#ffffff',
+                      border: '2px solid #ECEEF2',
+                      color: '#111827',
+                      outline: 'none',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0F1ED1';
+                      e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#ECEEF2';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddAccreditation()}
+                  />
+                  <button
+                    onClick={handleAddAccreditation}
+                    disabled={!newAccreditation.trim()}
+                    className="px-6 py-3 text-white rounded-lg font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      background: newAccreditation.trim() ? 'linear-gradient(135deg, #0F1ED1, #1B56FD)' : '#6B7280',
+                      border: 'none',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (newAccreditation.trim()) {
+                        e.target.style.transform = 'translateY(-1px)';
+                        e.target.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (newAccreditation.trim()) {
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = 'none';
+                      }
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Form Actions */}
+            <div
+              className="flex flex-col sm:flex-row gap-3 pt-6 border-t px-6 pb-6"
+              style={{ borderColor: '#ECEEF2' }}
+            >
+              <button
+                type="button"
+                onClick={() => setShowAccreditationModal(false)}
+                className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '2px solid #ECEEF2',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#6B728010';
+                  e.target.style.borderColor = '#6B7280';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = '#ECEEF2';
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAccreditationModal(false)}
+                className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl"
+                style={{
+                  background: 'linear-gradient(135deg, #0F1ED1, #1B56FD)',
+                  color: '#ffffff',
+                  border: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow =
+                    '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow =
+                    '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                }}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Facilities Modal */}
+      {showFacilitiesModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4"
+          style={{
+            background: 'rgba(15, 23, 42, 0.4)',
+            backdropFilter: 'saturate(140%) blur(8px)',
+          }}
+          onClick={() => setShowFacilitiesModal(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden"
+            style={{
+              background: '#ffffff',
+              border: '1px solid #ECEEF2',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              className="px-6 py-5 border-b flex items-center justify-between sticky top-0 z-10"
+              style={{
+                background: '#ffffff',
+                borderColor: '#ECEEF2',
+              }}
+            >
+              <div>
+                <h3
+                  className="text-xl font-semibold"
+                  style={{ color: '#111827' }}
+                >
+                  Manage Medical Facilities
+                </h3>
+                <p className="text-sm mt-1" style={{ color: '#6B7280' }}>
+                  Add or remove clinic facilities
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowFacilitiesModal(false)}
+                className="w-10 h-10 rounded-full transition-all flex items-center justify-center hover:scale-105 group"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '1px solid #ECEEF2',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#0F1ED115';
+                  e.target.style.borderColor = '#0F1ED1';
+                  e.target.style.color = '#0F1ED1';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = '#ECEEF2';
+                  e.target.style.color = '#6B7280';
+                }}
+              >
+                <FaTimes className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="px-6 py-6 space-y-6 overflow-y-auto flex-1">
+              {/* Existing Facilities */}
+              <div>
+                <label className="block text-sm font-semibold mb-3" style={{ color: '#111827' }}>Current Facilities</label>
+                <div className="space-y-2">
+                  {clinic.facilities.map((facility, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 rounded-lg border"
+                      style={{
+                        backgroundColor: '#F9FAFB',
+                        borderColor: '#ECEEF2',
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <FaCheckCircle size={14} style={{ color: '#10B981' }} />
+                        <span className="text-sm" style={{ color: '#111827' }}>{facility}</span>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveFacility(index)}
+                        className="p-1 rounded-full hover:bg-red-50 transition-all duration-200"
+                        title="Remove facility"
+                      >
+                        <FaTimes className="w-3 h-3 text-red-500" />
+                      </button>
+                    </div>
+                  ))}
+                  {clinic.facilities.length === 0 && (
+                    <p className="text-sm" style={{ color: '#6B7280' }}>No facilities added yet</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Add New Facility */}
+              <div>
+                <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Add New Facility</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newFacility}
+                    onChange={(e) => setNewFacility(e.target.value)}
+                    placeholder="Enter facility name..."
+                    className="flex-1 px-4 py-3 rounded-lg transition-all text-sm border-2"
+                    style={{
+                      background: '#ffffff',
+                      border: '2px solid #ECEEF2',
+                      color: '#111827',
+                      outline: 'none',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0F1ED1';
+                      e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#ECEEF2';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddFacility()}
+                  />
+                  <button
+                    onClick={handleAddFacility}
+                    disabled={!newFacility.trim()}
+                    className="px-6 py-3 text-white rounded-lg font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      background: newFacility.trim() ? 'linear-gradient(135deg, #0F1ED1, #1B56FD)' : '#6B7280',
+                      border: 'none',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (newFacility.trim()) {
+                        e.target.style.transform = 'translateY(-1px)';
+                        e.target.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (newFacility.trim()) {
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = 'none';
+                      }
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Form Actions */}
+            <div
+              className="flex flex-col sm:flex-row gap-3 pt-6 border-t px-6 pb-6"
+              style={{ borderColor: '#ECEEF2' }}
+            >
+              <button
+                type="button"
+                onClick={() => setShowFacilitiesModal(false)}
+                className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '2px solid #ECEEF2',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#6B728010';
+                  e.target.style.borderColor = '#6B7280';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = '#ECEEF2';
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowFacilitiesModal(false)}
+                className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl"
+                style={{
+                  background: 'linear-gradient(135deg, #0F1ED1, #1B56FD)',
+                  color: '#ffffff',
+                  border: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow =
+                    '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow =
+                    '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                }}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contact Modal */}
+      {showContactModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4"
+          style={{
+            background: 'rgba(15, 23, 42, 0.4)',
+            backdropFilter: 'saturate(140%) blur(8px)',
+          }}
+          onClick={() => setShowContactModal(false)}
+        >
+          <div
+            className="w-full max-w-2xl rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            style={{
+              background: '#ffffff',
+              border: '1px solid #ECEEF2',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              maxHeight: '80vh',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              className="px-6 py-5 border-b flex items-center justify-between sticky top-0 z-10"
+              style={{
+                background: '#ffffff',
+                borderColor: '#ECEEF2',
+              }}
+            >
+              <div>
+                <h3
+                  className="text-xl font-semibold"
+                  style={{ color: '#111827' }}
+                >
+                  Edit Contact Information
+                </h3>
+                <p className="text-sm mt-1" style={{ color: '#6B7280' }}>
+                  Update clinic contact details
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowContactModal(false)}
+                className="w-10 h-10 rounded-full transition-all flex items-center justify-center hover:scale-105 group"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '1px solid #ECEEF2',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#0F1ED115';
+                  e.target.style.borderColor = '#0F1ED1';
+                  e.target.style.color = '#0F1ED1';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = '#ECEEF2';
+                  e.target.style.color = '#6B7280';
+                }}
+              >
+                <FaTimes className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="px-6 py-6 space-y-6 overflow-y-auto flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>General Contact</label>
+                  <input
+                    type="text"
+                    value={clinic.contactInfo.general}
+                    onChange={(e) => handleContactUpdate('general', e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                    style={{
+                      background: '#ffffff',
+                      border: '2px solid #ECEEF2',
+                      color: '#111827',
+                      outline: 'none',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0F1ED1';
+                      e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#ECEEF2';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Appointments</label>
+                  <input
+                    type="text"
+                    value={clinic.contactInfo.appointment}
+                    onChange={(e) => handleContactUpdate('appointment', e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                    style={{
+                      background: '#ffffff',
+                      border: '2px solid #ECEEF2',
+                      color: '#111827',
+                      outline: 'none',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0F1ED1';
+                      e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#ECEEF2';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Emergency</label>
+                  <input
+                    type="text"
+                    value={clinic.contactInfo.emergency}
+                    onChange={(e) => handleContactUpdate('emergency', e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                    style={{
+                      background: '#ffffff',
+                      border: '2px solid #ECEEF2',
+                      color: '#111827',
+                      outline: 'none',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0F1ED1';
+                      e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#ECEEF2';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Billing</label>
+                  <input
+                    type="text"
+                    value={clinic.contactInfo.billing}
+                    onChange={(e) => handleContactUpdate('billing', e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                    style={{
+                      background: '#ffffff',
+                      border: '2px solid #ECEEF2',
+                      color: '#111827',
+                      outline: 'none',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0F1ED1';
+                      e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#ECEEF2';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {/* Form Actions */}
+            <div
+              className="flex flex-col sm:flex-row gap-3 pt-6 border-t px-6 pb-6"
+              style={{ borderColor: '#ECEEF2' }}
+            >
+              <button
+                type="button"
+                onClick={() => setShowContactModal(false)}
+                className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '2px solid #ECEEF2',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#6B728010';
+                  e.target.style.borderColor = '#6B7280';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = '#ECEEF2';
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowContactModal(false)}
+                className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl"
+                style={{
+                  background: 'linear-gradient(135deg, #0F1ED1, #1B56FD)',
+                  color: '#ffffff',
+                  border: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow =
+                    '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow =
+                    '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                }}
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Amenities Modal */}
+      {showAmenitiesModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4"
+          style={{
+            background: 'rgba(15, 23, 42, 0.4)',
+            backdropFilter: 'saturate(140%) blur(8px)',
+          }}
+          onClick={() => setShowAmenitiesModal(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            style={{
+              background: '#ffffff',
+              border: '1px solid #ECEEF2',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              maxHeight: '80vh',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              className="px-6 py-5 border-b flex items-center justify-between sticky top-0 z-10"
+              style={{
+                background: '#ffffff',
+                borderColor: '#ECEEF2',
+              }}
+            >
+              <div>
+                <h3
+                  className="text-xl font-semibold"
+                  style={{ color: '#111827' }}
+                >
+                  Manage Patient Amenities
+                </h3>
+                <p className="text-sm mt-1" style={{ color: '#6B7280' }}>
+                  Add or remove patient amenities
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAmenitiesModal(false)}
+                className="w-10 h-10 rounded-full transition-all flex items-center justify-center hover:scale-105 group"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '1px solid #ECEEF2',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#0F1ED115';
+                  e.target.style.borderColor = '#0F1ED1';
+                  e.target.style.color = '#0F1ED1';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = '#ECEEF2';
+                  e.target.style.color = '#6B7280';
+                }}
+              >
+                <FaTimes className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="px-6 py-6 space-y-6 overflow-y-auto flex-1">
+              {/* Existing Amenities */}
+              <div>
+                <label className="block text-sm font-semibold mb-3" style={{ color: '#111827' }}>Current Amenities</label>
+                <div className="space-y-2">
+                  {clinic.amenities.map((amenity, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 rounded-lg border"
+                      style={{
+                        backgroundColor: '#F9FAFB',
+                        borderColor: '#ECEEF2',
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <FaCheckCircle size={14} style={{ color: '#10B981' }} />
+                        <span className="text-sm" style={{ color: '#111827' }}>{amenity}</span>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveAmenity(index)}
+                        className="p-1 rounded-full hover:bg-red-50 transition-all duration-200"
+                        title="Remove amenity"
+                      >
+                        <FaTimes className="w-3 h-3 text-red-500" />
+                      </button>
+                    </div>
+                  ))}
+                  {clinic.amenities.length === 0 && (
+                    <p className="text-sm" style={{ color: '#6B7280' }}>No amenities added yet</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Add New Amenity */}
+              <div>
+                <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Add New Amenity</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newAmenity}
+                    onChange={(e) => setNewAmenity(e.target.value)}
+                    placeholder="Enter amenity name..."
+                    className="flex-1 px-4 py-3 rounded-lg transition-all text-sm border-2"
+                    style={{
+                      background: '#ffffff',
+                      border: '2px solid #ECEEF2',
+                      color: '#111827',
+                      outline: 'none',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0F1ED1';
+                      e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#ECEEF2';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddAmenity()}
+                  />
+                  <button
+                    onClick={handleAddAmenity}
+                    disabled={!newAmenity.trim()}
+                    className="px-6 py-3 text-white rounded-lg font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      background: newAmenity.trim() ? 'linear-gradient(135deg, #0F1ED1, #1B56FD)' : '#6B7280',
+                      border: 'none',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (newAmenity.trim()) {
+                        e.target.style.transform = 'translateY(-1px)';
+                        e.target.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (newAmenity.trim()) {
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = 'none';
+                      }
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Form Actions */}
+            <div
+              className="flex flex-col sm:flex-row gap-3 pt-6 border-t px-6 pb-6"
+              style={{ borderColor: '#ECEEF2' }}
+            >
+              <button
+                type="button"
+                onClick={() => setShowAmenitiesModal(false)}
+                className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '2px solid #ECEEF2',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#6B728010';
+                  e.target.style.borderColor = '#6B7280';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = '#ECEEF2';
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAmenitiesModal(false)}
+                className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl"
+                style={{
+                  background: 'linear-gradient(135deg, #0F1ED1, #1B56FD)',
+                  color: '#ffffff',
+                  border: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow =
+                    '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow =
+                    '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                }}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Address Modal */}
+      {showAddressModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4"
+          style={{
+            background: 'rgba(15, 23, 42, 0.4)',
+            backdropFilter: 'saturate(140%) blur(8px)',
+          }}
+          onClick={() => setShowAddressModal(false)}
+        >
+          <div
+            className="w-full max-w-2xl rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            style={{
+              background: '#ffffff',
+              border: '1px solid #ECEEF2',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              maxHeight: '80vh',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              className="px-6 py-5 border-b flex items-center justify-between sticky top-0 z-10"
+              style={{
+                background: '#ffffff',
+                borderColor: '#ECEEF2',
+              }}
+            >
+              <div>
+                <h3
+                  className="text-xl font-semibold"
+                  style={{ color: '#111827' }}
+                >
+                  Edit Address Information
+                </h3>
+                <p className="text-sm mt-1" style={{ color: '#6B7280' }}>
+                  Update clinic address details
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddressModal(false)}
+                className="w-10 h-10 rounded-full transition-all flex items-center justify-center hover:scale-105 group"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '1px solid #ECEEF2',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#0F1ED115';
+                  e.target.style.borderColor = '#0F1ED1';
+                  e.target.style.color = '#0F1ED1';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = '#ECEEF2';
+                  e.target.style.color = '#6B7280';
+                }}
+              >
+                <FaTimes className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="px-6 py-6 space-y-6 overflow-y-auto flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Street Address</label>
+                  <input
+                    type="text"
+                    value={clinic.address}
+                    onChange={(e) => handleAddressUpdate('address', e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                    style={{
+                      background: '#ffffff',
+                      border: '2px solid #ECEEF2',
+                      color: '#111827',
+                      outline: 'none',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0F1ED1';
+                      e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#ECEEF2';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>City</label>
+                  <input
+                    type="text"
+                    value={clinic.city}
+                    onChange={(e) => handleAddressUpdate('city', e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                    style={{
+                      background: '#ffffff',
+                      border: '2px solid #ECEEF2',
+                      color: '#111827',
+                      outline: 'none',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0F1ED1';
+                      e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#ECEEF2';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>State/Province</label>
+                  <input
+                    type="text"
+                    value={clinic.state}
+                    onChange={(e) => handleAddressUpdate('state', e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                    style={{
+                      background: '#ffffff',
+                      border: '2px solid #ECEEF2',
+                      color: '#111827',
+                      outline: 'none',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0F1ED1';
+                      e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#ECEEF2';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>ZIP/Postal Code</label>
+                  <input
+                    type="text"
+                    value={clinic.zipCode}
+                    onChange={(e) => handleAddressUpdate('zipCode', e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                    style={{
+                      background: '#ffffff',
+                      border: '2px solid #ECEEF2',
+                      color: '#111827',
+                      outline: 'none',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0F1ED1';
+                      e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#ECEEF2';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Country</label>
+                  <input
+                    type="text"
+                    value={clinic.country}
+                    onChange={(e) => handleAddressUpdate('country', e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+                    style={{
+                      background: '#ffffff',
+                      border: '2px solid #ECEEF2',
+                      color: '#111827',
+                      outline: 'none',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0F1ED1';
+                      e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#ECEEF2';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {/* Form Actions */}
+            <div
+              className="flex flex-col sm:flex-row gap-3 pt-6 border-t px-6 pb-6"
+              style={{ borderColor: '#ECEEF2' }}
+            >
+              <button
+                type="button"
+                onClick={() => setShowAddressModal(false)}
+                className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '2px solid #ECEEF2',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#6B728010';
+                  e.target.style.borderColor = '#6B7280';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = '#ECEEF2';
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAddressModal(false)}
+                className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl"
+                style={{
+                  background: 'linear-gradient(135deg, #0F1ED1, #1B56FD)',
+                  color: '#ffffff',
+                  border: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow =
+                    '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow =
+                    '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                }}
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Operating Hours Modal */}
+      {showOperatingHoursModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4"
+          style={{
+            background: 'rgba(15, 23, 42, 0.4)',
+            backdropFilter: 'saturate(140%) blur(8px)',
+          }}
+          onClick={() => setShowOperatingHoursModal(false)}
+        >
+          <div
+            className="w-full max-w-4xl rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            style={{
+              background: '#ffffff',
+              border: '1px solid #ECEEF2',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              maxHeight: '80vh',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              className="px-6 py-5 border-b flex items-center justify-between sticky top-0 z-10"
+              style={{
+                background: '#ffffff',
+                borderColor: '#ECEEF2',
+              }}
+            >
+              <div>
+                <h3
+                  className="text-xl font-semibold"
+                  style={{ color: '#111827' }}
+                >
+                  Edit Operating Hours
+                </h3>
+                <p className="text-sm mt-1" style={{ color: '#6B7280' }}>
+                  Update clinic operating hours for each day
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowOperatingHoursModal(false)}
+                className="w-10 h-10 rounded-full transition-all flex items-center justify-center hover:scale-105 group"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '1px solid #ECEEF2',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#0F1ED115';
+                  e.target.style.borderColor = '#0F1ED1';
+                  e.target.style.color = '#0F1ED1';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = '#ECEEF2';
+                  e.target.style.color = '#6B7280';
+                }}
+              >
+                <FaTimes className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="px-6 py-6 space-y-6 overflow-y-auto flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Object.entries(clinic.operatingHours).map(([day, hours]) => (
+                  <div
+                    key={day}
+                    className="p-4 rounded-lg border"
+                    style={{
+                      backgroundColor: '#F9FAFB',
+                      borderColor: '#ECEEF2',
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="font-semibold capitalize" style={{ color: '#111827' }}>
+                        {day}
+                      </h4>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={hours.available}
+                          onChange={(e) => handleOperatingHoursUpdate(day, 'available', e.target.checked)}
+                          className="w-4 h-4 rounded border-2 transition-all"
+                          style={{
+                            borderColor: '#ECEEF2',
+                            accentColor: '#0F1ED1',
+                          }}
+                        />
+                        <span className="text-sm" style={{ color: '#6B7280' }}>Available</span>
+                      </label>
+                    </div>
+                    
+                    {hours.available && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Start Time</label>
+                          <input
+                            type="time"
+                            value={hours.start}
+                            onChange={(e) => handleOperatingHoursUpdate(day, 'start', e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg transition-all text-sm border-2"
+                            style={{
+                              background: '#ffffff',
+                              border: '2px solid #ECEEF2',
+                              color: '#111827',
+                              outline: 'none',
+                            }}
+                            onFocus={(e) => {
+                              e.target.style.borderColor = '#0F1ED1';
+                              e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                            }}
+                            onBlur={(e) => {
+                              e.target.style.borderColor = '#ECEEF2';
+                              e.target.style.boxShadow = 'none';
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>End Time</label>
+                          <input
+                            type="time"
+                            value={hours.end}
+                            onChange={(e) => handleOperatingHoursUpdate(day, 'end', e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg transition-all text-sm border-2"
+                            style={{
+                              background: '#ffffff',
+                              border: '2px solid #ECEEF2',
+                              color: '#111827',
+                              outline: 'none',
+                            }}
+                            onFocus={(e) => {
+                              e.target.style.borderColor = '#0F1ED1';
+                              e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                            }}
+                            onBlur={(e) => {
+                              e.target.style.borderColor = '#ECEEF2';
+                              e.target.style.boxShadow = 'none';
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
+                    {!hours.available && (
+                      <div className="text-center py-4">
+                        <p className="text-sm" style={{ color: '#6B7280' }}>Not Available</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Form Actions */}
+            <div
+              className="flex flex-col sm:flex-row gap-3 pt-6 border-t px-6 pb-6"
+              style={{ borderColor: '#ECEEF2' }}
+            >
+              <button
+                type="button"
+                onClick={() => setShowOperatingHoursModal(false)}
+                className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '2px solid #ECEEF2',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#6B728010';
+                  e.target.style.borderColor = '#6B7280';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = '#ECEEF2';
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowOperatingHoursModal(false)}
+                className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl"
+                style={{
+                  background: 'linear-gradient(135deg, #0F1ED1, #1B56FD)',
+                  color: '#ffffff',
+                  border: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow =
+                    '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow =
+                    '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                }}
               >
                 Save Changes
               </button>

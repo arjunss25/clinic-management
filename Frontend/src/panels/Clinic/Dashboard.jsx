@@ -18,6 +18,7 @@ import {
   FaUserClock,
   FaUpload,
   FaUser,
+  FaFilter,
 } from 'react-icons/fa';
 import {
   Users,
@@ -56,7 +57,56 @@ const Dashboard = () => {
     bmi: '',
     notes: '',
   });
+  
+  // Filter states
+  const [selectedDepartment, setSelectedDepartment] = useState('all');
+  const [selectedDoctor, setSelectedDoctor] = useState('all');
+  
   const navigate = useNavigate();
+
+  // Sample departments data
+  const departments = [
+    { id: 'all', name: 'All Departments' },
+    { id: 'cardiology', name: 'Cardiology' },
+    { id: 'neurology', name: 'Neurology' },
+    { id: 'orthopedics', name: 'Orthopedics' },
+    { id: 'pediatrics', name: 'Pediatrics' },
+    { id: 'dermatology', name: 'Dermatology' },
+    { id: 'oncology', name: 'Oncology' },
+    { id: 'psychiatry', name: 'Psychiatry' },
+    { id: 'general', name: 'General Medicine' },
+  ];
+
+  // Sample doctors data
+  const doctors = [
+    { id: 'all', name: 'All Doctors', department: 'all' },
+    { id: 'dr-smith', name: 'Dr. Sarah Smith', department: 'cardiology' },
+    { id: 'dr-johnson', name: 'Dr. Michael Johnson', department: 'neurology' },
+    { id: 'dr-williams', name: 'Dr. Emily Williams', department: 'orthopedics' },
+    { id: 'dr-brown', name: 'Dr. David Brown', department: 'pediatrics' },
+    { id: 'dr-davis', name: 'Dr. Lisa Davis', department: 'dermatology' },
+    { id: 'dr-miller', name: 'Dr. Robert Miller', department: 'oncology' },
+    { id: 'dr-wilson', name: 'Dr. Jennifer Wilson', department: 'psychiatry' },
+    { id: 'dr-moore', name: 'Dr. Thomas Moore', department: 'general' },
+    { id: 'dr-taylor', name: 'Dr. Amanda Taylor', department: 'cardiology' },
+    { id: 'dr-anderson', name: 'Dr. Christopher Anderson', department: 'neurology' },
+  ];
+
+  // Filter doctors based on selected department
+  const filteredDoctors = doctors.filter(doctor => 
+    selectedDepartment === 'all' || doctor.department === selectedDepartment
+  );
+
+  // Filter appointments based on selected filters
+  const filterAppointments = (appointments) => {
+    return appointments.filter(appointment => {
+      const matchesDepartment = selectedDepartment === 'all' || 
+        (appointment.doctor && appointment.doctor.department === selectedDepartment);
+      const matchesDoctor = selectedDoctor === 'all' || 
+        (appointment.doctor && appointment.doctor.id === selectedDoctor);
+      return matchesDepartment && matchesDoctor;
+    });
+  };
 
   // Animation variants
   const containerVariants = {
@@ -107,6 +157,7 @@ const Dashboard = () => {
         age: 28,
         condition: 'Asthma',
         symptoms: 'Shortness of breath, wheezing',
+        doctor: { id: 'dr-smith', name: 'Dr. Sarah Smith', department: 'cardiology' },
         vitalSigns: {
           bloodPressure: '120/80',
           heartRate: '72',
@@ -128,6 +179,7 @@ const Dashboard = () => {
         age: 45,
         condition: 'Hypertension',
         symptoms: 'Headaches, dizziness',
+        doctor: { id: 'dr-johnson', name: 'Dr. Michael Johnson', department: 'neurology' },
         vitalSigns: {
           bloodPressure: '150/95',
           heartRate: '85',
@@ -149,6 +201,7 @@ const Dashboard = () => {
         age: 32,
         condition: 'Diabetes',
         symptoms: 'Increased thirst, frequent urination',
+        doctor: { id: 'dr-moore', name: 'Dr. Thomas Moore', department: 'general' },
         vitalSigns: {
           bloodPressure: '118/78',
           heartRate: '76',
@@ -171,6 +224,7 @@ const Dashboard = () => {
         patientId: 'PT-2024-0895',
         age: 58,
         condition: 'Chest Pain',
+        doctor: { id: 'dr-smith', name: 'Dr. Sarah Smith', department: 'cardiology' },
         notes: 'ECG normal, prescribed medication',
       },
       {
@@ -183,6 +237,7 @@ const Dashboard = () => {
         patientId: 'PT-2024-0896',
         age: 35,
         condition: 'Diabetes',
+        doctor: { id: 'dr-moore', name: 'Dr. Thomas Moore', department: 'general' },
         notes: 'Blood sugar levels improved',
       },
     ],
@@ -197,6 +252,7 @@ const Dashboard = () => {
         patientId: 'PT-2024-0897',
         age: 42,
         condition: 'Back Pain',
+        doctor: { id: 'dr-williams', name: 'Dr. Emily Williams', department: 'orthopedics' },
       },
     ],
     waitingList: [
@@ -210,6 +266,7 @@ const Dashboard = () => {
         patientId: 'PT-2024-0898',
         age: 38,
         condition: 'Migraine',
+        doctor: { id: 'dr-johnson', name: 'Dr. Michael Johnson', department: 'neurology' },
         waitingSince: '3 hours ago',
       },
       {
@@ -222,6 +279,7 @@ const Dashboard = () => {
         patientId: 'PT-2024-0899',
         age: 52,
         condition: 'Diabetes',
+        doctor: { id: 'dr-moore', name: 'Dr. Thomas Moore', department: 'general' },
         waitingSince: '1 hour ago',
       },
       {
@@ -234,28 +292,36 @@ const Dashboard = () => {
         patientId: 'PT-2024-0900',
         age: 29,
         condition: 'Anxiety',
+        doctor: { id: 'dr-wilson', name: 'Dr. Jennifer Wilson', department: 'psychiatry' },
         waitingSince: '45 minutes ago',
       },
     ],
   };
 
   const getTabData = () => {
+    let appointments;
     switch (activeTab) {
       case 'upcoming':
-        return todayAppointments.upcoming;
+        appointments = todayAppointments.upcoming;
+        break;
       case 'completed':
-        return todayAppointments.completed;
+        appointments = todayAppointments.completed;
+        break;
       case 'notVisited':
-        return todayAppointments.notVisited;
+        appointments = todayAppointments.notVisited;
+        break;
       case 'waitingList':
-        return todayAppointments.waitingList;
+        appointments = todayAppointments.waitingList;
+        break;
       default:
-        return todayAppointments.upcoming;
+        appointments = todayAppointments.upcoming;
     }
+    return filterAppointments(appointments);
   };
 
   const getTabCount = (tab) => {
-    return todayAppointments[tab]?.length || 0;
+    const appointments = todayAppointments[tab] || [];
+    return filterAppointments(appointments).length;
   };
 
   const handleFileUpload = (event) => {
@@ -370,7 +436,7 @@ const Dashboard = () => {
           </div>
           <div className="mt-4 space-y-1">
             <p className="text-2xl font-semibold text-gray-900">
-              {Object.values(todayAppointments).flat().length -
+              {filterAppointments(Object.values(todayAppointments).flat()).length -
                 getTabCount('waitingList')}
             </p>
             <p className="text-gray-600 text-sm">
@@ -440,6 +506,73 @@ const Dashboard = () => {
             <p className="text-red-600 text-sm">Missed appointments</p>
           </div>
         </motion.div>
+      </motion.div>
+
+      {/* Filters */}
+      <motion.div
+        variants={itemVariants}
+        className="bg-white rounded-xl p-4 border border-[#E9DFC3]/70 shadow-sm"
+      >
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+          <div className="flex items-center gap-2">
+            <FaFilter className="w-4 h-4 text-[#0118D8]" />
+            <span className="text-sm font-medium text-gray-700">Filter Appointments:</span>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3 flex-1">
+            {/* Department Filter */}
+            <div className="flex-1 min-w-0">
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Department
+              </label>
+              <select
+                value={selectedDepartment}
+                onChange={(e) => {
+                  setSelectedDepartment(e.target.value);
+                  setSelectedDoctor('all'); // Reset doctor when department changes
+                }}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0118D8] focus:border-[#0118D8] transition-colors"
+              >
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Doctor Filter */}
+            <div className="flex-1 min-w-0">
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Doctor
+              </label>
+              <select
+                value={selectedDoctor}
+                onChange={(e) => setSelectedDoctor(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0118D8] focus:border-[#0118D8] transition-colors"
+              >
+                {filteredDoctors.map((doctor) => (
+                  <option key={doctor.id} value={doctor.id}>
+                    {doctor.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Clear Filters Button */}
+            <div className="flex items-end">
+              <button
+                onClick={() => {
+                  setSelectedDepartment('all');
+                  setSelectedDoctor('all');
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        </div>
       </motion.div>
 
       {/* Today's Schedule with Tabs */}
@@ -594,6 +727,12 @@ const Dashboard = () => {
                               <FaNotesMedical className="w-4 h-4 lg:w-3.5 lg:h-3.5 text-gray-400" />
                               {appointment.type}
                             </span>
+                            {appointment.doctor && (
+                              <span className="flex items-center gap-1.5">
+                                <FaUserMd className="w-4 h-4 lg:w-3.5 lg:h-3.5 text-gray-400" />
+                                {appointment.doctor.name}
+                              </span>
+                            )}
                             {activeTab === 'waitingList' && (
                               <span
                                 className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
@@ -796,33 +935,6 @@ const Dashboard = () => {
         </motion.div>
       </motion.div>
 
-      {/* Quick Actions */}
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="bg-white rounded-xl p-5 border border-[#E9DFC3]/70 shadow-sm"
-      >
-        <motion.div variants={itemVariants}>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Quick Actions
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#0118D8] border border-[#E9DFC3]/80 rounded-lg hover:border-[#1B56FD] hover:bg-[#0118D8]/5 transition-colors">
-              <FaCalendarAlt className="w-4 h-4" />
-              Schedule Appointment
-            </button>
-            <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#0118D8] border border-[#E9DFC3]/80 rounded-lg hover:border-[#1B56FD] hover:bg-[#0118D8]/5 transition-colors">
-              <FaHistory className="w-4 h-4" />
-              Appointment History
-            </button>
-            <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#0118D8] border border-[#E9DFC3]/80 rounded-lg hover:border-[#1B56FD] hover:bg-[#0118D8]/5 transition-colors">
-              <FaUserInjured className="w-4 h-4" />
-              Patient Management
-            </button>
-          </div>
-        </motion.div>
-      </motion.div>
 
       {/* Upload Report Modal */}
       {showUploadModal && (

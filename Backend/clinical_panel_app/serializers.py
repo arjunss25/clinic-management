@@ -1,4 +1,5 @@
 from rest_framework import serializers
+<<<<<<< HEAD
 from superadmin_app.models import Patient, ProfileUser
 
 # class PatientRegisterSerializer(serializers.ModelSerializer):
@@ -54,3 +55,45 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
 
         return data
         
+=======
+from django.contrib.auth import authenticate
+from  superadmin_app.models import *
+
+
+
+class DoctorRegisterSerializer(serializers.ModelSerializer):
+    # include extra ProfileUser fields if needed
+    clinic_name = serializers.CharField(source="clinic.clinic_name", read_only=True)
+    doctor_name = serializers.CharField(required=True)
+    specialization = serializers.CharField(required=True)
+    phone = serializers.CharField(required=True)
+    email = serializers.EmailField(required=True)
+
+    class Meta:
+        model = Doctor
+        fields = [
+            "clinic_name","doctor_name", "specialization", "phone", "email",
+            "bio", "profile_picture", "experince_years",
+            "education", "additional_qualification"
+        ]
+
+    def create(self, validated_data):
+        clinic = self.context.get("clinic")
+        password = self.context.get("password")
+
+        # ✅ Create ProfileUser first
+        user = ProfileUser.objects.create_user(
+            email=validated_data["email"],
+            password=password,
+            role="Doctor",
+            username=None
+        )
+
+        # ✅ Create Doctor profile
+        doctor = Doctor.objects.create(
+            user=user,
+            clinic=clinic,
+            **validated_data
+        )
+        return doctor
+>>>>>>> 603d2dba2c6f90d0503cbf8a33374d9cf6a046a8
