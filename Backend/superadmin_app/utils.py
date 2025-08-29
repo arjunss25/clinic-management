@@ -44,3 +44,7 @@ def send_doctor_credentials_email(email, password, clinic_name):
     subject = "Your Doctor Account Credentials"
     message = f"Your doctor account has been created under the clinic '{clinic_name}'.\n\nEmail: {email}\nPassword: {password}\n\nPlease login and change your password."
     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
+
+
+
+
