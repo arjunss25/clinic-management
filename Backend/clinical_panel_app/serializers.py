@@ -14,7 +14,13 @@ from datetime import timedelta, datetime
 #         ]
 
 class PatientRegisterSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(required=True)
+    # email = serializers.EmailField(required=True)
+
+    # Input field (write-only)
+    email = serializers.EmailField(write_only=True, required=True)
+    # Output field (read-only, mapped from user relation)
+    email_display = serializers.EmailField(source="user.email", read_only=True)
+ 
     phone_number = serializers.CharField(required=True, min_length=10, max_length=15)
 
     class Meta:
@@ -30,6 +36,8 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
             "emergency_contact_phone",
             "address",
             "known_allergies",
+            "email",          # for POST/PATCH input
+            "email_display",  # for GET response
         ]
 
     # ✅ Field-level validation
@@ -53,8 +61,9 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
         # Gender check
         if data.get("gender") and data["gender"] not in ["Male", "Female", "Other"]:
             raise serializers.ValidationError({"gender": "Invalid gender choice."})
-
         return data
+        
+    
         
 from django.contrib.auth import authenticate
 from  superadmin_app.models import *

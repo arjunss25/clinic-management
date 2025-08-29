@@ -15,8 +15,10 @@ urlpatterns = [
 
 
 
-      # patient section
+    # patient section
     path("patients/register/", PatientRegisterAPI.as_view(), name="patient-register"),
     path("patients/edit/<int:patient_id>/", PatientRegisterAPI.as_view(), name="patient-edit"),
+    path("patients/get/<int:patient_id>/", PatientRegisterAPI.as_view(), name="patient-detail"),
+
     path("delete_users/<int:pk>/", UserDeleteAPI.as_view(), name="user-delete"),
 ]
