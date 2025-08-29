@@ -52,7 +52,6 @@ class Clinic(models.Model):
 
     def __str__(self):
         return self.clinic_name
-<<<<<<< HEAD
 
 #Patient Registration model
 class Patient(models.Model):
@@ -86,7 +85,6 @@ class Patient(models.Model):
     def __str__(self):
         return f"{self.full_name} ({self.user.email})"
 
-=======
     
 
 # doctor model
@@ -107,4 +105,3 @@ class Doctor(models.Model):
 
     def __str__(self):
         return f"Dr. {self.doctor_name} - {self.specialization}"    
->>>>>>> 603d2dba2c6f90d0503cbf8a33374d9cf6a046a8

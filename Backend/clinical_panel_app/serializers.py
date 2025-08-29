@@ -1,6 +1,5 @@
 from rest_framework import serializers
-<<<<<<< HEAD
-from superadmin_app.models import Patient, ProfileUser
+from superadmin_app.models import *
 
 # class PatientRegisterSerializer(serializers.ModelSerializer):
 #     email = serializers.EmailField(write_only=True)   # will be used for ProfileUser
@@ -55,9 +54,7 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
 
         return data
         
-=======
-from django.contrib.auth import authenticate
-from  superadmin_app.models import *
+
 
 
 
@@ -96,4 +93,3 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
             **validated_data
         )
         return doctor
->>>>>>> 603d2dba2c6f90d0503cbf8a33374d9cf6a046a8
