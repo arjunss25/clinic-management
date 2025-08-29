@@ -10,6 +10,7 @@ from superadmin_app.serializers import *
 from . serializers import *
 from superadmin_app.utils import *
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
 from .models import *
 from datetime import datetime, timedelta
 import calendar
@@ -26,6 +27,17 @@ from django.shortcuts import get_object_or_404
 
 
 class PatientRegisterAPI(APIView):
+    def get(self, request, patient_id, *args, **kwargs):
+        """Fetch a patient's details by ID"""
+        try:
+            patient = Patient.objects.get(id=patient_id)
+        except Patient.DoesNotExist:
+            return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = PatientRegisterSerializer(patient)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
     def post(self, request, *args, **kwargs):
         serializer = PatientRegisterSerializer(data=request.data)
         if serializer.is_valid():

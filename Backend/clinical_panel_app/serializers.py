@@ -56,7 +56,8 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
 
         return data
         
-
+from django.contrib.auth import authenticate
+from  superadmin_app.models import *
 
 
 
@@ -71,11 +72,10 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Doctor
         fields = [
-            "id","doctor_name", "specialization", "phone", "email",
+            "clinic_name","doctor_name", "specialization", "phone", "email",
             "bio", "profile_picture", "experince_years",
-            "education", "additional_qualification","created_at"
+            "education", "additional_qualification"
         ]
-        read_only_fields = ["id", "created_at"]
 
     def create(self, validated_data):
         clinic = self.context.get("clinic")
