@@ -10,7 +10,7 @@ from superadmin_app.serializers import *
 from . serializers import *
 from superadmin_app.utils import *
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Q
+from .models import *
 from datetime import datetime, timedelta
 import calendar
 # Create your views here.
