@@ -44,3 +44,16 @@ def send_doctor_credentials_email(email, password, clinic_name):
     subject = "Your Doctor Account Credentials"
     message = f"Your doctor account has been created under the clinic '{clinic_name}'.\n\nEmail: {email}\nPassword: {password}\n\nPlease login and change your password."
     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
+
+
+
+import re
+
+def extract_minutes(value):
+    """
+    Extract integer minutes from strings like '30 minutes' or '5 mins'
+    """
+    if not value:
+        return None
+    match = re.search(r'\d+', str(value))
+    return int(match.group()) if match else None

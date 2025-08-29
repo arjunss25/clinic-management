@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import authenticate
 from  superadmin_app.models import *
 from .models import *
-
+from datetime import timedelta, datetime
 
 
 class DoctorRegisterSerializer(serializers.ModelSerializer):
@@ -42,6 +42,7 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
         return doctor
     
 
+
 class DoctorAvailabilitySerializer(serializers.ModelSerializer):
     class Meta:
         model = DoctorAvailability
@@ -50,4 +51,40 @@ class DoctorAvailabilitySerializer(serializers.ModelSerializer):
             "start_date", "end_date", "slot_duration", "break_duration",
             "notes", "created_at"
         ]
-        read_only_fields = ["id", "created_at"]    
+        read_only_fields = ["id", "created_at"]
+
+    def validate_day_of_week(self, value):
+        allowed_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        for day in value:
+            if day not in allowed_days:
+                raise serializers.ValidationError(f"{day} is not a valid weekday")
+        return value
+
+    def validate(self, attrs):
+        start_time = attrs.get("start_time")
+        end_time = attrs.get("end_time")
+        slot_duration = attrs.get("slot_duration")
+        break_duration = attrs.get("break_duration")
+
+        # Convert str → int safely
+        if isinstance(slot_duration, str):
+            try:
+                slot_duration = int(slot_duration)
+                attrs["slot_duration"] = slot_duration
+            except ValueError:
+                raise serializers.ValidationError({"slot_duration": "Must be an integer"})
+
+        if isinstance(break_duration, str):
+            try:
+                break_duration = int(break_duration)
+                attrs["break_duration"] = break_duration
+            except ValueError:
+                raise serializers.ValidationError({"break_duration": "Must be an integer"})
+
+        # Auto-calculate end_time if not provided
+        if start_time and not end_time and slot_duration:
+            end_time = (datetime.combine(datetime.today(), start_time) +
+                        timedelta(minutes=slot_duration)).time()
+            attrs["end_time"] = end_time
+
+        return attrs

@@ -75,3 +75,37 @@ class Doctor(models.Model):
 
     def __str__(self):
         return f"Dr. {self.doctor_name} - {self.specialization}"    
+    
+
+
+#Patient Registration model
+class Patient(models.Model):
+    GENDER_CHOICES = [
+        ('Male', 'Male'),
+        ('Female', 'Female'),
+        ('Other', 'Other'),
+    ]
+
+    BLOOD_GROUP_CHOICES = [
+        ('A+', 'A+'),
+        ('A-', 'A-'),
+        ('B+', 'B+'),
+        ('B-', 'B-'),
+        ('O+', 'O+'),
+        ('O-', 'O-'),
+        ('AB+', 'AB+'),
+        ('AB-', 'AB-'),
+    ]
+    user = models.OneToOneField(ProfileUser, on_delete=models.CASCADE, related_name="patient_profile")
+    full_name = models.CharField(max_length=255)
+    age = models.PositiveIntegerField()
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
+    phone_number = models.CharField(max_length=20)
+    blood_group = models.CharField(max_length=5, choices=BLOOD_GROUP_CHOICES)
+    emergency_contact_name = models.CharField(max_length=255)
+    emergency_contact_phone = models.CharField(max_length=20)
+    address = models.TextField()
+    known_allergies = models.TextField(blank=True, help_text="Enter allergies separated by commas (e.g., Penicillin, Peanuts)")
+
+    def __str__(self):
+        return f"{self.full_name} ({self.user.email})"    
