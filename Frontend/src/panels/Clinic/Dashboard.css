@@ -1,0 +1,20 @@
+/* Custom scrollbar styling for mobile tabs */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+/* Additional mobile optimizations */
+@media (max-width: 640px) {
+  .mobile-optimized-tabs {
+    scroll-snap-type: x mandatory;
+  }
+  
+  .mobile-optimized-tabs button {
+    scroll-snap-align: start;
+  }
+}

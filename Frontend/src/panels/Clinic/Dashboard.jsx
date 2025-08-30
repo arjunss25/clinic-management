@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import './Dashboard.css';
 import {
   FaCalendarAlt,
   FaUserInjured,
@@ -15,9 +16,9 @@ import {
   FaHistory,
   FaChartLine,
   FaUserClock,
-  FaTimes,
   FaUpload,
   FaUser,
+  FaFilter,
 } from 'react-icons/fa';
 import {
   Users,
@@ -56,7 +57,56 @@ const Dashboard = () => {
     bmi: '',
     notes: '',
   });
+  
+  // Filter states
+  const [selectedDepartment, setSelectedDepartment] = useState('all');
+  const [selectedDoctor, setSelectedDoctor] = useState('all');
+  
   const navigate = useNavigate();
+
+  // Sample departments data
+  const departments = [
+    { id: 'all', name: 'All Departments' },
+    { id: 'cardiology', name: 'Cardiology' },
+    { id: 'neurology', name: 'Neurology' },
+    { id: 'orthopedics', name: 'Orthopedics' },
+    { id: 'pediatrics', name: 'Pediatrics' },
+    { id: 'dermatology', name: 'Dermatology' },
+    { id: 'oncology', name: 'Oncology' },
+    { id: 'psychiatry', name: 'Psychiatry' },
+    { id: 'general', name: 'General Medicine' },
+  ];
+
+  // Sample doctors data
+  const doctors = [
+    { id: 'all', name: 'All Doctors', department: 'all' },
+    { id: 'dr-smith', name: 'Dr. Sarah Smith', department: 'cardiology' },
+    { id: 'dr-johnson', name: 'Dr. Michael Johnson', department: 'neurology' },
+    { id: 'dr-williams', name: 'Dr. Emily Williams', department: 'orthopedics' },
+    { id: 'dr-brown', name: 'Dr. David Brown', department: 'pediatrics' },
+    { id: 'dr-davis', name: 'Dr. Lisa Davis', department: 'dermatology' },
+    { id: 'dr-miller', name: 'Dr. Robert Miller', department: 'oncology' },
+    { id: 'dr-wilson', name: 'Dr. Jennifer Wilson', department: 'psychiatry' },
+    { id: 'dr-moore', name: 'Dr. Thomas Moore', department: 'general' },
+    { id: 'dr-taylor', name: 'Dr. Amanda Taylor', department: 'cardiology' },
+    { id: 'dr-anderson', name: 'Dr. Christopher Anderson', department: 'neurology' },
+  ];
+
+  // Filter doctors based on selected department
+  const filteredDoctors = doctors.filter(doctor => 
+    selectedDepartment === 'all' || doctor.department === selectedDepartment
+  );
+
+  // Filter appointments based on selected filters
+  const filterAppointments = (appointments) => {
+    return appointments.filter(appointment => {
+      const matchesDepartment = selectedDepartment === 'all' || 
+        (appointment.doctor && appointment.doctor.department === selectedDepartment);
+      const matchesDoctor = selectedDoctor === 'all' || 
+        (appointment.doctor && appointment.doctor.id === selectedDoctor);
+      return matchesDepartment && matchesDoctor;
+    });
+  };
 
   // Animation variants
   const containerVariants = {
@@ -107,6 +157,7 @@ const Dashboard = () => {
         age: 28,
         condition: 'Asthma',
         symptoms: 'Shortness of breath, wheezing',
+        doctor: { id: 'dr-smith', name: 'Dr. Sarah Smith', department: 'cardiology' },
         vitalSigns: {
           bloodPressure: '120/80',
           heartRate: '72',
@@ -128,6 +179,7 @@ const Dashboard = () => {
         age: 45,
         condition: 'Hypertension',
         symptoms: 'Headaches, dizziness',
+        doctor: { id: 'dr-johnson', name: 'Dr. Michael Johnson', department: 'neurology' },
         vitalSigns: {
           bloodPressure: '150/95',
           heartRate: '85',
@@ -149,6 +201,7 @@ const Dashboard = () => {
         age: 32,
         condition: 'Diabetes',
         symptoms: 'Increased thirst, frequent urination',
+        doctor: { id: 'dr-moore', name: 'Dr. Thomas Moore', department: 'general' },
         vitalSigns: {
           bloodPressure: '118/78',
           heartRate: '76',
@@ -171,6 +224,7 @@ const Dashboard = () => {
         patientId: 'PT-2024-0895',
         age: 58,
         condition: 'Chest Pain',
+        doctor: { id: 'dr-smith', name: 'Dr. Sarah Smith', department: 'cardiology' },
         notes: 'ECG normal, prescribed medication',
       },
       {
@@ -183,6 +237,7 @@ const Dashboard = () => {
         patientId: 'PT-2024-0896',
         age: 35,
         condition: 'Diabetes',
+        doctor: { id: 'dr-moore', name: 'Dr. Thomas Moore', department: 'general' },
         notes: 'Blood sugar levels improved',
       },
     ],
@@ -197,6 +252,7 @@ const Dashboard = () => {
         patientId: 'PT-2024-0897',
         age: 42,
         condition: 'Back Pain',
+        doctor: { id: 'dr-williams', name: 'Dr. Emily Williams', department: 'orthopedics' },
       },
     ],
     waitingList: [
@@ -210,6 +266,7 @@ const Dashboard = () => {
         patientId: 'PT-2024-0898',
         age: 38,
         condition: 'Migraine',
+        doctor: { id: 'dr-johnson', name: 'Dr. Michael Johnson', department: 'neurology' },
         waitingSince: '3 hours ago',
       },
       {
@@ -222,6 +279,7 @@ const Dashboard = () => {
         patientId: 'PT-2024-0899',
         age: 52,
         condition: 'Diabetes',
+        doctor: { id: 'dr-moore', name: 'Dr. Thomas Moore', department: 'general' },
         waitingSince: '1 hour ago',
       },
       {
@@ -234,28 +292,36 @@ const Dashboard = () => {
         patientId: 'PT-2024-0900',
         age: 29,
         condition: 'Anxiety',
+        doctor: { id: 'dr-wilson', name: 'Dr. Jennifer Wilson', department: 'psychiatry' },
         waitingSince: '45 minutes ago',
       },
     ],
   };
 
   const getTabData = () => {
+    let appointments;
     switch (activeTab) {
       case 'upcoming':
-        return todayAppointments.upcoming;
+        appointments = todayAppointments.upcoming;
+        break;
       case 'completed':
-        return todayAppointments.completed;
+        appointments = todayAppointments.completed;
+        break;
       case 'notVisited':
-        return todayAppointments.notVisited;
+        appointments = todayAppointments.notVisited;
+        break;
       case 'waitingList':
-        return todayAppointments.waitingList;
+        appointments = todayAppointments.waitingList;
+        break;
       default:
-        return todayAppointments.upcoming;
+        appointments = todayAppointments.upcoming;
     }
+    return filterAppointments(appointments);
   };
 
   const getTabCount = (tab) => {
-    return todayAppointments[tab]?.length || 0;
+    const appointments = todayAppointments[tab] || [];
+    return filterAppointments(appointments).length;
   };
 
   const handleFileUpload = (event) => {
@@ -327,17 +393,6 @@ const Dashboard = () => {
             Manage patients, appointments, and clinic operations
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#0118D8] text-white rounded-lg hover:bg-[#0118D8]/90 transition-colors">
-            <FaUserMd className="w-4 h-4" />
-            View Profile
-          </button>
-          <div className="hidden md:block text-sm text-gray-600">
-            <span className="font-medium text-gray-900">{clinic.name}</span>
-            <span className="mx-2 text-gray-300">•</span>
-                          <span>{clinic.role}</span>
-          </div>
-        </div>
       </div>
 
       {/* Summary Cards */}
@@ -381,7 +436,7 @@ const Dashboard = () => {
           </div>
           <div className="mt-4 space-y-1">
             <p className="text-2xl font-semibold text-gray-900">
-              {Object.values(todayAppointments).flat().length -
+              {filterAppointments(Object.values(todayAppointments).flat()).length -
                 getTabCount('waitingList')}
             </p>
             <p className="text-gray-600 text-sm">
@@ -453,6 +508,73 @@ const Dashboard = () => {
         </motion.div>
       </motion.div>
 
+      {/* Filters */}
+      <motion.div
+        variants={itemVariants}
+        className="bg-white rounded-xl p-4 border border-[#E9DFC3]/70 shadow-sm"
+      >
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+          <div className="flex items-center gap-2">
+            <FaFilter className="w-4 h-4 text-[#0118D8]" />
+            <span className="text-sm font-medium text-gray-700">Filter Appointments:</span>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3 flex-1">
+            {/* Department Filter */}
+            <div className="flex-1 min-w-0">
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Department
+              </label>
+              <select
+                value={selectedDepartment}
+                onChange={(e) => {
+                  setSelectedDepartment(e.target.value);
+                  setSelectedDoctor('all'); // Reset doctor when department changes
+                }}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0118D8] focus:border-[#0118D8] transition-colors"
+              >
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Doctor Filter */}
+            <div className="flex-1 min-w-0">
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Doctor
+              </label>
+              <select
+                value={selectedDoctor}
+                onChange={(e) => setSelectedDoctor(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0118D8] focus:border-[#0118D8] transition-colors"
+              >
+                {filteredDoctors.map((doctor) => (
+                  <option key={doctor.id} value={doctor.id}>
+                    {doctor.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Clear Filters Button */}
+            <div className="flex items-end">
+              <button
+                onClick={() => {
+                  setSelectedDepartment('all');
+                  setSelectedDoctor('all');
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
       {/* Today's Schedule with Tabs */}
       <motion.div
         variants={containerVariants}
@@ -462,14 +584,14 @@ const Dashboard = () => {
       >
         <motion.div variants={itemVariants}>
           {/* Header */}
-          <div className="bg-gradient-to-r from-[#0118D8] to-[#1B56FD] px-6 py-4">
+          <div className="bg-gradient-to-r from-[#0118D8] to-[#1B56FD] px-4 sm:px-6 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <FaCalendarAlt className="w-5 h-5 text-white" />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <FaCalendarAlt className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-white">
+                  <h3 className="text-xs sm:text-sm font-semibold text-white">
                     {activeTab === 'waitingList'
                       ? 'Patient Waiting List'
                       : "Today's Schedule"}
@@ -487,283 +609,313 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="border-b border-gray-200">
-            <nav className="flex">
-              <button
-                onClick={() => setActiveTab('upcoming')}
-                className={`flex-1 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'upcoming'
-                    ? 'border-[#0118D8] text-[#0118D8] bg-[#0118D8]/5'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  Upcoming ({getTabCount('upcoming')})
-                </div>
-              </button>
-              <button
-                onClick={() => setActiveTab('completed')}
-                className={`flex-1 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'completed'
-                    ? 'border-green-500 text-green-600 bg-green-50'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <CheckCircle2 className="w-4 h-4" />
-                  Completed ({getTabCount('completed')})
-                </div>
-              </button>
-              <button
-                onClick={() => setActiveTab('waitingList')}
-                className={`flex-1 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'waitingList'
-                    ? 'border-orange-500 text-orange-600 bg-orange-50'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <FaUserClock className="w-4 h-4" />
-                  Waiting List ({getTabCount('waitingList')})
-                </div>
-              </button>
-              <button
-                onClick={() => setActiveTab('notVisited')}
-                className={`flex-1 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'notVisited'
-                    ? 'border-red-500 text-red-600 bg-red-50'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <XCircle className="w-4 h-4" />
-                  No Shows ({getTabCount('notVisited')})
-                </div>
-              </button>
-            </nav>
-          </div>
+                     {/* Tabs */}
+           <div className="border-b border-gray-200">
+             <nav className="flex overflow-x-auto scrollbar-hide mobile-optimized-tabs">
+               <button
+                 onClick={() => setActiveTab('upcoming')}
+                 className={`flex-shrink-0 py-4 px-4 sm:px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                   activeTab === 'upcoming'
+                     ? 'border-[#0118D8] text-[#0118D8] bg-[#0118D8]/5'
+                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                 }`}
+               >
+                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-1 sm:gap-2">
+                   <Clock className="w-5 h-5 sm:w-5 sm:h-5 mx-auto sm:mx-0" />
+                   <span className="hidden sm:inline">Upcoming</span>
+                   <span className="sm:hidden text-xs font-medium">({getTabCount('upcoming')})</span>
+                 </div>
+               </button>
+               <button
+                 onClick={() => setActiveTab('completed')}
+                 className={`flex-shrink-0 py-4 px-4 sm:px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                   activeTab === 'completed'
+                     ? 'border-green-500 text-green-600 bg-green-50'
+                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                 }`}
+               >
+                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-1 sm:gap-2">
+                   <CheckCircle2 className="w-5 h-5 sm:w-5 sm:h-5 mx-auto sm:mx-0" />
+                   <span className="hidden sm:inline">Completed</span>
+                   <span className="sm:hidden text-xs font-medium">({getTabCount('completed')})</span>
+                 </div>
+               </button>
+               <button
+                 onClick={() => setActiveTab('waitingList')}
+                 className={`flex-shrink-0 py-4 px-4 sm:px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                   activeTab === 'waitingList'
+                     ? 'border-orange-500 text-orange-600 bg-orange-50'
+                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                 }`}
+               >
+                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-1 sm:gap-2">
+                   <FaUserClock className="w-5 h-5 sm:w-5 sm:h-5 mx-auto sm:mx-0" />
+                   <span className="hidden sm:inline">Waiting List</span>
+                   <span className="sm:hidden text-xs font-medium">({getTabCount('waitingList')})</span>
+                 </div>
+               </button>
+               <button
+                 onClick={() => setActiveTab('notVisited')}
+                 className={`flex-shrink-0 py-4 px-4 sm:px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                   activeTab === 'notVisited'
+                     ? 'border-red-500 text-red-600 bg-red-50'
+                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                 }`}
+               >
+                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-1 sm:gap-2">
+                   <XCircle className="w-5 h-5 sm:w-5 sm:h-5 mx-auto sm:mx-0" />
+                   <span className="hidden sm:inline">No Shows</span>
+                   <span className="sm:hidden text-xs font-medium">({getTabCount('notVisited')})</span>
+                 </div>
+               </button>
+             </nav>
+           </div>
 
-          {/* Appointments List */}
-          <div className="p-6">
-            <div className="space-y-4">
-              {getTabData().map((appointment) => (
-                <motion.div
-                  key={appointment.id}
-                  variants={itemVariants}
-                  className="group bg-white rounded-xl p-4 border border-[#E9DFC3]/70 hover:border-[#1B56FD] shadow-sm hover:shadow-md transition-all"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 flex-1">
-                      {/* Time or Waiting Info */}
-                      <div className="text-center">
-                        {activeTab === 'waitingList' ? (
-                          <>
-                            <div className="text-sm font-semibold text-orange-600">
-                              Waiting
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {appointment.waitingSince}
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="text-lg font-semibold text-[#0118D8]">
-                              {appointment.time}
-                            </div>
-                            <div className="text-xs text-gray-500">30min</div>
-                          </>
-                        )}
-                      </div>
-
-                      {/* Patient Info */}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h4 className="text-gray-900 font-semibold group-hover:text-[#0118D8] transition-colors">
-                            {appointment.patientName}
-                          </h4>
-                          <span className="text-xs text-gray-500">
-                            ID: {appointment.patientId}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            Age: {appointment.age}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm">
-                          <span className="flex items-center gap-1.5">
-                            <FaStethoscope className="w-3.5 h-3.5 text-gray-400" />
-                            {appointment.condition}
-                          </span>
-                          <span className="flex items-center gap-1.5">
-                            <FaNotesMedical className="w-3.5 h-3.5 text-gray-400" />
-                            {appointment.type}
-                          </span>
-                          {activeTab === 'waitingList' && (
-                            <span
-                              className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
-                                appointment.priority === 'High'
-                                  ? 'bg-red-50 text-red-700 border border-red-100'
-                                  : 'bg-blue-50 text-blue-700 border border-blue-100'
-                              }`}
-                            >
-                              {appointment.priority} Priority
-                            </span>
+                     {/* Appointments List */}
+           <div className="p-4 sm:p-6">
+             <div className="space-y-6">
+               {getTabData().map((appointment) => (
+                 <motion.div
+                   key={appointment.id}
+                   variants={itemVariants}
+                   className="group bg-white rounded-xl p-4 sm:p-4 border border-[#E9DFC3]/70 hover:border-[#1B56FD] shadow-sm hover:shadow-md transition-all"
+                 >
+                                       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                      <div className="flex items-start lg:items-center gap-3 lg:gap-4 flex-1">
+                        {/* Time or Waiting Info */}
+                        <div className="text-center flex-shrink-0">
+                          {activeTab === 'waitingList' ? (
+                            <>
+                              <div className="text-lg lg:text-base font-semibold text-orange-600">
+                                Waiting
+                              </div>
+                              <div className="text-sm lg:text-xs text-gray-500">
+                                {appointment.waitingSince}
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="text-xl lg:text-lg font-semibold text-[#0118D8]">
+                                {appointment.time}
+                              </div>
+                              <div className="text-sm lg:text-xs text-gray-500">30min</div>
+                            </>
                           )}
                         </div>
-                        {appointment.notes && (
-                          <div className="mt-2 text-sm text-gray-600 bg-gray-50 p-2 rounded-lg">
-                            <strong>Notes:</strong> {appointment.notes}
+
+                        {/* Patient Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col lg:flex-row lg:items-center gap-1 lg:gap-3 mb-2">
+                            <h4 className="text-lg lg:text-base font-semibold text-gray-900 group-hover:text-[#0118D8] transition-colors">
+                              {appointment.patientName}
+                            </h4>
+                            <div className="flex flex-wrap gap-2 lg:gap-3">
+                              <span className="text-sm lg:text-xs text-gray-500">
+                                ID: {appointment.patientId}
+                              </span>
+                              <span className="text-sm lg:text-xs text-gray-500">
+                                Age: {appointment.age}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4 text-sm lg:text-xs">
+                            <span className="flex items-center gap-1.5">
+                              <FaStethoscope className="w-4 h-4 lg:w-3.5 lg:h-3.5 text-gray-400" />
+                              {appointment.condition}
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                              <FaNotesMedical className="w-4 h-4 lg:w-3.5 lg:h-3.5 text-gray-400" />
+                              {appointment.type}
+                            </span>
+                            {appointment.doctor && (
+                              <span className="flex items-center gap-1.5">
+                                <FaUserMd className="w-4 h-4 lg:w-3.5 lg:h-3.5 text-gray-400" />
+                                {appointment.doctor.name}
+                              </span>
+                            )}
+                            {activeTab === 'waitingList' && (
+                              <span
+                                className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
+                                  appointment.priority === 'High'
+                                    ? 'bg-red-50 text-red-700 border border-red-100'
+                                    : 'bg-blue-50 text-blue-700 border border-blue-100'
+                                }`}
+                              >
+                                {appointment.priority} Priority
+                              </span>
+                            )}
+                          </div>
+                          {appointment.notes && (
+                            <div className="mt-2 text-xs lg:text-sm text-gray-600 bg-gray-50 p-2 rounded-lg">
+                              <strong>Notes:</strong> {appointment.notes}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Status */}
+                        {activeTab !== 'waitingList' && (
+                          <div className="flex flex-col items-start lg:items-end gap-2 lg:mr-4">
+                            <span
+                              className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
+                                appointment.status === 'Completed'
+                                  ? 'bg-green-50 text-green-700 border border-green-100'
+                                  : appointment.status === 'Confirmed'
+                                  ? 'bg-blue-50 text-blue-700 border border-blue-100'
+                                  : appointment.status === 'No Show'
+                                  ? 'bg-red-50 text-red-700 border border-red-100'
+                                  : 'bg-yellow-50 text-yellow-700 border border-yellow-100'
+                              }`}
+                            >
+                              {appointment.status}
+                            </span>
                           </div>
                         )}
                       </div>
 
-                      {/* Status */}
-                      {activeTab !== 'waitingList' && (
-                        <div className="flex flex-col items-end gap-2 mr-4">
-                          <span
-                            className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
-                              appointment.status === 'Completed'
-                                ? 'bg-green-50 text-green-700 border border-green-100'
-                                : appointment.status === 'Confirmed'
-                                ? 'bg-blue-50 text-blue-700 border border-blue-100'
-                                : appointment.status === 'No Show'
-                                ? 'bg-red-50 text-red-700 border border-red-100'
-                                : 'bg-yellow-50 text-yellow-700 border border-yellow-100'
-                            }`}
-                          >
-                            {appointment.status}
-                          </span>
+                      {/* Allocate Slot Button for Waiting List */}
+                      {activeTab === 'waitingList' && (
+                        <div className="lg:ml-4">
+                          <button className="w-full lg:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-xs lg:text-sm font-medium">
+                            <UserPlus className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="hidden lg:inline">Allocate Slot</span>
+                            <span className="lg:hidden">Allocate</span>
+                          </button>
                         </div>
                       )}
                     </div>
 
-                    {/* Allocate Slot Button for Waiting List */}
-                    {activeTab === 'waitingList' && (
-                      <div className="ml-4">
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium">
-                          <UserPlus className="w-3.5 h-3.5" />
-                          Allocate Slot
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                                     {/* Secondary Action Buttons */}
+                                       <div className="mt-4 lg:mt-6 pt-3 lg:pt-4 border-t border-gray-100">
+                      {activeTab === 'upcoming' && (
+                        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+                          <button className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-[#0118D8]/5 text-[#0118D8] rounded-lg hover:bg-[#0118D8]/10 transition-colors text-xs lg:text-sm font-medium">
+                            <FaPhone className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="hidden lg:inline">Call Patient</span>
+                            <span className="lg:hidden">Call</span>
+                          </button>
+                          <button className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-[#1B56FD]/5 text-[#1B56FD] rounded-lg hover:bg-[#1B56FD]/10 transition-colors text-xs lg:text-sm font-medium">
+                            <FaEye className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="hidden lg:inline">View Profile</span>
+                            <span className="lg:hidden">Profile</span>
+                          </button>
+                          <button className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-[#E9DFC3]/30 text-[#8B7355] rounded-lg hover:bg-[#E9DFC3]/50 transition-colors text-xs lg:text-sm font-medium">
+                            <FaChartLine className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="hidden lg:inline">Patient Timeline</span>
+                            <span className="lg:hidden">Timeline</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedVitalsAppointment(appointment);
+                              setShowVitalsModal(true);
+                            }}
+                            className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-[#0118D8]/5 text-[#0118D8] rounded-lg hover:bg-[#0118D8]/10 transition-colors text-xs lg:text-sm font-medium"
+                          >
+                            <Activity className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="hidden lg:inline">Add Vitals</span>
+                            <span className="lg:hidden">Vitals</span>
+                          </button>
+                          <button
+                            onClick={() => setShowUploadModal(true)}
+                            className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-[#4CAF50]/5 text-[#4CAF50] rounded-lg hover:bg-[#4CAF50]/10 transition-colors text-xs lg:text-sm font-medium"
+                          >
+                            <FaUpload className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="hidden lg:inline">Upload Report</span>
+                            <span className="lg:hidden">Upload</span>
+                          </button>
+                        </div>
+                      )}
 
-                  {/* Secondary Action Buttons */}
-                  <div className="mt-4 flex items-center gap-2 pt-3 border-t border-gray-100">
-                    {activeTab === 'upcoming' && (
-                      <>
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0118D8]/5 text-[#0118D8] rounded-lg hover:bg-[#0118D8]/10 transition-colors text-xs font-medium">
-                          <FaPhone className="w-3 h-3" />
-                          Call Patient
-                        </button>
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1B56FD]/5 text-[#1B56FD] rounded-lg hover:bg-[#1B56FD]/10 transition-colors text-xs font-medium">
-                          <FaEye className="w-3 h-3" />
-                          View Profile
-                        </button>
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E9DFC3]/30 text-[#8B7355] rounded-lg hover:bg-[#E9DFC3]/50 transition-colors text-xs font-medium">
-                          <FaChartLine className="w-3 h-3" />
-                          Patient Timeline
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedVitalsAppointment(appointment);
-                            setShowVitalsModal(true);
-                          }}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0118D8]/5 text-[#0118D8] rounded-lg hover:bg-[#0118D8]/10 transition-colors text-xs font-medium"
-                        >
-                          <Activity className="w-3 h-3" />
-                          Add Vitals
-                        </button>
-                        <button
-                          onClick={() => setShowUploadModal(true)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#4CAF50]/5 text-[#4CAF50] rounded-lg hover:bg-[#4CAF50]/10 transition-colors text-xs font-medium"
-                        >
-                          <FaUpload className="w-3 h-3" />
-                          Upload Report
-                        </button>
-                      </>
-                    )}
+                                                               {activeTab === 'waitingList' && (
+                        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+                          <button 
+                            onClick={() => navigate('/clinic/patient-booking')}
+                            className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-purple-500/5 text-purple-600 rounded-lg hover:bg-purple-500/10 transition-colors text-xs lg:text-sm font-medium"
+                          >
+                            <FaCalendarAlt className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="hidden lg:inline">Book Appointment</span>
+                            <span className="lg:hidden">Book</span>
+                          </button>
+                          <button className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-[#0118D8]/5 text-[#0118D8] rounded-lg hover:bg-[#0118D8]/10 transition-colors text-xs lg:text-sm font-medium">
+                            <FaPhone className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="hidden lg:inline">Call Patient</span>
+                            <span className="lg:hidden">Call</span>
+                          </button>
+                          <button className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-[#1B56FD]/5 text-[#1B56FD] rounded-lg hover:bg-[#1B56FD]/10 transition-colors text-xs lg:text-sm font-medium">
+                            <FaEye className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="hidden lg:inline">View Profile</span>
+                            <span className="lg:hidden">Profile</span>
+                          </button>
+                          <button className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-[#E9DFC3]/30 text-[#8B7355] rounded-lg hover:bg-[#E9DFC3]/50 transition-colors text-xs lg:text-sm font-medium">
+                            <FaChartLine className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="hidden lg:inline">Patient Timeline</span>
+                            <span className="lg:hidden">Timeline</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedVitalsAppointment(appointment);
+                              setShowVitalsModal(true);
+                            }}
+                            className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-[#0118D8]/5 text-[#0118D8] rounded-lg hover:bg-[#0118D8]/10 transition-colors text-xs lg:text-sm font-medium"
+                          >
+                            <Activity className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="hidden lg:inline">Add Vitals</span>
+                            <span className="lg:hidden">Vitals</span>
+                          </button>
+                          <button className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-red-500/5 text-red-600 rounded-lg hover:bg-red-500/10 transition-colors text-xs lg:text-sm font-medium">
+                            <X className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="hidden lg:inline">Remove from List</span>
+                            <span className="lg:hidden">Remove</span>
+                          </button>
+                          <button
+                            onClick={() => setShowUploadModal(true)}
+                            className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-[#4CAF50]/5 text-[#4CAF50] rounded-lg hover:bg-[#4CAF50]/10 transition-colors text-xs lg:text-sm font-medium"
+                          >
+                            <FaUpload className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="hidden lg:inline">Upload Report</span>
+                            <span className="lg:hidden">Upload</span>
+                          </button>
+                        </div>
+                      )}
 
-                    {activeTab === 'waitingList' && (
-                      <>
-                        <button 
-                          onClick={() => navigate('/clinic/patient-booking')}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/5 text-purple-600 rounded-lg hover:bg-purple-500/10 transition-colors text-xs font-medium"
-                        >
-                          <FaCalendarAlt className="w-3 h-3" />
-                          Book Appointment
-                        </button>
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0118D8]/5 text-[#0118D8] rounded-lg hover:bg-[#0118D8]/10 transition-colors text-xs font-medium">
-                          <FaPhone className="w-3 h-3" />
-                          Call Patient
-                        </button>
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1B56FD]/5 text-[#1B56FD] rounded-lg hover:bg-[#1B56FD]/10 transition-colors text-xs font-medium">
-                          <FaEye className="w-3 h-3" />
-                          View Profile
-                        </button>
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E9DFC3]/30 text-[#8B7355] rounded-lg hover:bg-[#E9DFC3]/50 transition-colors text-xs font-medium">
-                          <FaChartLine className="w-3 h-3" />
-                          Patient Timeline
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedVitalsAppointment(appointment);
-                            setShowVitalsModal(true);
-                          }}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0118D8]/5 text-[#0118D8] rounded-lg hover:bg-[#0118D8]/10 transition-colors text-xs font-medium"
-                        >
-                          <Activity className="w-3 h-3" />
-                          Add Vitals
-                        </button>
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/5 text-red-600 rounded-lg hover:bg-red-500/10 transition-colors text-xs font-medium">
-                          <FaTimes className="w-3 h-3" />
-                          Remove from List
-                        </button>
-                        <button
-                          onClick={() => setShowUploadModal(true)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#4CAF50]/5 text-[#4CAF50] rounded-lg hover:bg-[#4CAF50]/10 transition-colors text-xs font-medium"
-                        >
-                          <FaUpload className="w-3 h-3" />
-                          Upload Report
-                        </button>
-                      </>
-                    )}
-
-                    {(activeTab === 'completed' ||
-                      activeTab === 'notVisited') && (
-                      <>
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0118D8]/5 text-[#0118D8] rounded-lg hover:bg-[#0118D8]/10 transition-colors text-xs font-medium">
-                          <FaHistory className="w-3 h-3" />
-                          View Consultation Log
-                        </button>
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1B56FD]/5 text-[#1B56FD] rounded-lg hover:bg-[#1B56FD]/10 transition-colors text-xs font-medium">
-                          <FaEye className="w-3 h-3" />
-                          View Profile
-                        </button>
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E9DFC3]/30 text-[#8B7355] rounded-lg hover:bg-[#E9DFC3]/50 transition-colors text-xs font-medium">
-                          <FaChartLine className="w-3 h-3" />
-                          Patient Timeline
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedVitalsAppointment(appointment);
-                            setShowVitalsModal(true);
-                          }}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0118D8]/5 text-[#0118D8] rounded-lg hover:bg-[#0118D8]/10 transition-colors text-xs font-medium"
-                        >
-                          <Activity className="w-3 h-3" />
-                          Add Vitals
-                        </button>
-                        <button
-                          onClick={() => setShowUploadModal(true)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#4CAF50]/5 text-[#4CAF50] rounded-lg hover:bg-[#4CAF50]/10 transition-colors text-xs font-medium"
-                        >
-                          <FaUpload className="w-3 h-3" />
-                          Upload Report
-                        </button>
-                      </>
-                    )}
+                                                               {(activeTab === 'completed' ||
+                        activeTab === 'notVisited') && (
+                        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+                          <button className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-[#0118D8]/5 text-[#0118D8] rounded-lg hover:bg-[#0118D8]/10 transition-colors text-xs lg:text-sm font-medium">
+                            <FaHistory className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="hidden lg:inline">View Consultation Log</span>
+                            <span className="lg:hidden">View Log</span>
+                          </button>
+                          <button className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-[#1B56FD]/5 text-[#1B56FD] rounded-lg hover:bg-[#1B56FD]/10 transition-colors text-xs lg:text-sm font-medium">
+                            <FaEye className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="hidden lg:inline">View Profile</span>
+                            <span className="lg:hidden">Profile</span>
+                          </button>
+                          <button className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-[#E9DFC3]/30 text-[#8B7355] rounded-lg hover:bg-[#E9DFC3]/50 transition-colors text-xs lg:text-sm font-medium">
+                            <FaChartLine className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="hidden lg:inline">Patient Timeline</span>
+                            <span className="lg:hidden">Timeline</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedVitalsAppointment(appointment);
+                              setShowVitalsModal(true);
+                            }}
+                            className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-[#0118D8]/5 text-[#0118D8] rounded-lg hover:bg-[#0118D8]/10 transition-colors text-xs lg:text-sm font-medium"
+                          >
+                            <Activity className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="hidden lg:inline">Add Vitals</span>
+                            <span className="lg:hidden">Vitals</span>
+                          </button>
+                          <button
+                            onClick={() => setShowUploadModal(true)}
+                            className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 bg-[#4CAF50]/5 text-[#4CAF50] rounded-lg hover:bg-[#4CAF50]/10 transition-colors text-xs lg:text-sm font-medium"
+                          >
+                            <FaUpload className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            <span className="hidden lg:inline">Upload Report</span>
+                            <span className="lg:hidden">Upload</span>
+                          </button>
+                        </div>
+                      )}
                   </div>
                 </motion.div>
               ))}
@@ -783,33 +935,6 @@ const Dashboard = () => {
         </motion.div>
       </motion.div>
 
-      {/* Quick Actions */}
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="bg-white rounded-xl p-5 border border-[#E9DFC3]/70 shadow-sm"
-      >
-        <motion.div variants={itemVariants}>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Quick Actions
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#0118D8] border border-[#E9DFC3]/80 rounded-lg hover:border-[#1B56FD] hover:bg-[#0118D8]/5 transition-colors">
-              <FaCalendarAlt className="w-4 h-4" />
-              Schedule Appointment
-            </button>
-            <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#0118D8] border border-[#E9DFC3]/80 rounded-lg hover:border-[#1B56FD] hover:bg-[#0118D8]/5 transition-colors">
-              <FaHistory className="w-4 h-4" />
-              Appointment History
-            </button>
-            <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-[#0118D8] border border-[#E9DFC3]/80 rounded-lg hover:border-[#1B56FD] hover:bg-[#0118D8]/5 transition-colors">
-              <FaUserInjured className="w-4 h-4" />
-              Patient Management
-            </button>
-          </div>
-        </motion.div>
-      </motion.div>
 
       {/* Upload Report Modal */}
       {showUploadModal && (
@@ -869,7 +994,7 @@ const Dashboard = () => {
                   e.target.style.color = '#6B7280';
                 }}
               >
-                <FaTimes className="w-4 h-4" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 

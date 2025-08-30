@@ -138,11 +138,11 @@ const DoctorsList = ({ onDoctorSelect }) => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen">
+      <div className="">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-[2rem] md:text-[2.25rem] font-semibold tracking-tight text-gray-900 mb-2">
             Doctors Directory
           </h1>
           <p className="text-gray-600">

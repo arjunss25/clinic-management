@@ -13,7 +13,7 @@ class ProfileUser(AbstractUser):
     ]
     username = None 
     email = models.EmailField(_('email address'), unique=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES,default='SuperAdmin')
     otp_secret = models.CharField(max_length=32, null=True, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     is_verified = models.BooleanField(default=False)
@@ -85,3 +85,23 @@ class Patient(models.Model):
     def __str__(self):
         return f"{self.full_name} ({self.user.email})"
 
+    
+
+# doctor model
+class Doctor(models.Model):
+    user = models.OneToOneField(ProfileUser, on_delete=models.CASCADE, related_name='doctor_profile',limit_choices_to={'role': 'Doctor'})
+    doctor_name = models.CharField(max_length=100)
+    specialization  = models.CharField(max_length=100)
+    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='doctors')
+    phone = models.CharField(max_length=20)
+    email = models.EmailField()
+    bio = models.TextField(blank=True)
+    profile_picture = models.ImageField(upload_to='doctor_profiles/', null=True, blank=True)
+    experince_years = models.IntegerField(default=0)
+    education = models.TextField(blank=True)
+    additional_qualification = models.JSONField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Dr. {self.doctor_name} - {self.specialization}"    

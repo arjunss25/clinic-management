@@ -12,6 +12,8 @@ import {
   FaEye,
   FaPlus,
   FaTimes,
+  FaChevronDown,
+  FaChevronUp,
 } from 'react-icons/fa';
 
 // Theme colors (matching Appointments.jsx)
@@ -162,20 +164,20 @@ const StatusBadge = React.memo(({ status }) => (
 
 const PatientIcon = React.memo(() => (
   <div
-    className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center text-sm sm:text-base font-semibold flex-shrink-0"
+    className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-lg flex items-center justify-center text-sm font-semibold flex-shrink-0"
     style={{
       background: `${COLORS.primary}1A`,
       color: COLORS.primary,
       border: `1px solid ${COLORS.primary}33`,
     }}
   >
-    <FaUser className="w-4 h-4 sm:w-5 sm:h-5" />
+    <FaUser className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" />
   </div>
 ));
 
 const EmptyState = React.memo(() => (
-  <div className="text-center py-12 px-4 sm:px-6">
-    <div className="text-lg font-medium mb-2" style={{ color: COLORS.textMuted }}>
+  <div className="text-center py-8 sm:py-12 px-4">
+    <div className="text-base sm:text-lg font-medium mb-2" style={{ color: COLORS.textMuted }}>
       No patients found
     </div>
     <div className="text-sm" style={{ color: COLORS.textMuted }}>
@@ -205,7 +207,7 @@ const FormInput = React.memo(({
       value={value}
       onChange={onChange}
       required={required}
-      className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg transition-all text-sm border-2"
       style={{
         background: COLORS.white,
         border: `2px solid ${COLORS.border}`,
@@ -245,7 +247,7 @@ const FormSelect = React.memo(({
         value={value}
         onChange={onChange}
         required={required}
-        className="w-full px-4 py-3 pr-12 rounded-lg transition-all text-sm border-2 appearance-none cursor-pointer"
+        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 pr-10 rounded-lg transition-all text-sm border-2 appearance-none cursor-pointer"
         style={{
           background: COLORS.white,
           border: `2px solid ${COLORS.border}`,
@@ -269,10 +271,10 @@ const FormSelect = React.memo(({
         ))}
       </select>
       <div 
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none"
+        className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
         style={{ color: COLORS.textMuted }}
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </div>
@@ -282,7 +284,7 @@ const FormSelect = React.memo(({
 
 const AllergyTag = React.memo(({ allergy, onRemove, index }) => (
   <div
-    className="inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium shadow-sm"
+    className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium shadow-sm"
     style={{
       background: `${COLORS.primary}10`,
       color: COLORS.primary,
@@ -293,7 +295,7 @@ const AllergyTag = React.memo(({ allergy, onRemove, index }) => (
     <button
       type="button"
       onClick={() => onRemove(index)}
-      className="w-5 h-5 rounded-full flex items-center justify-center transition-all hover:scale-110"
+      className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center transition-all hover:scale-110"
       style={{
         background: COLORS.white,
         color: COLORS.textMuted,
@@ -307,10 +309,78 @@ const AllergyTag = React.memo(({ allergy, onRemove, index }) => (
         e.target.style.color = COLORS.textMuted;
       }}
     >
-      <FaTimes className="w-2.5 h-2.5" />
+      <FaTimes className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
     </button>
   </div>
 ));
+
+// Mobile Patient Card Component
+const MobilePatientCard = React.memo(({ patient, onViewPatient }) => (
+  <div
+    className="bg-white rounded-lg border p-4 space-y-3"
+    style={{ borderColor: COLORS.border }}
+  >
+    <div className="flex items-start justify-between">
+      <div className="flex items-center gap-3 flex-1">
+        <PatientIcon />
+        <div className="flex-1 min-w-0">
+          <div className="text-base font-semibold truncate" style={{ color: COLORS.text }}>
+            {patient.name}
+          </div>
+          <div className="text-xs text-gray-500">
+            ID: {patient.id}
+          </div>
+          <div className="text-xs text-gray-500">
+            {patient.age} years • {patient.gender}
+          </div>
+        </div>
+      </div>
+      <StatusBadge status={patient.status} />
+    </div>
+    
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 text-sm">
+        <FaPhone className="w-3 h-3 flex-shrink-0" style={{ color: COLORS.textMuted }} />
+        <span className="truncate" style={{ color: COLORS.text }}>
+          {patient.phone}
+        </span>
+      </div>
+      <div className="flex items-center gap-2 text-sm">
+        <FaEnvelope className="w-3 h-3 flex-shrink-0" style={{ color: COLORS.textMuted }} />
+        <span className="truncate" style={{ color: COLORS.textMuted }}>
+          {patient.email}
+        </span>
+      </div>
+      <div className="flex items-center gap-2 text-sm">
+        <FaTint className="w-3 h-3 flex-shrink-0" style={{ color: COLORS.textMuted }} />
+        <span style={{ color: COLORS.text }}>
+          Blood: {patient.bloodGroup}
+        </span>
+      </div>
+      <div className="flex items-center gap-2 text-sm">
+        <FaCalendarAlt className="w-3 h-3 flex-shrink-0" style={{ color: COLORS.textMuted }} />
+        <span style={{ color: COLORS.text }}>
+          Last Visit: {patient.lastVisit}
+        </span>
+      </div>
+    </div>
+    
+    <button 
+      onClick={() => onViewPatient(patient)}
+      className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition shadow-sm"
+      style={{
+        background: `${COLORS.primary}1A`,
+        color: COLORS.primary,
+        border: `1px solid ${COLORS.primary}33`,
+      }}
+    >
+      <FaEye className="w-3 h-3" />
+      View Details
+    </button>
+  </div>
+));
+
+// Desktop Patient Row Component
 
 const PatientRow = React.memo(({ patient, onViewPatient }) => (
   <tr 
@@ -320,11 +390,11 @@ const PatientRow = React.memo(({ patient, onViewPatient }) => (
       borderColor: COLORS.border,
     }}
   >
-    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-      <div className="flex items-center gap-3">
+    <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
+      <div className="flex items-center gap-2 sm:gap-3">
         <PatientIcon />
-        <div>
-          <div className="text-sm sm:text-base font-semibold" style={{ color: COLORS.text }}>
+        <div className="min-w-0">
+          <div className="text-sm sm:text-base font-semibold truncate" style={{ color: COLORS.text }}>
             {patient.name}
           </div>
           <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
@@ -336,50 +406,50 @@ const PatientRow = React.memo(({ patient, onViewPatient }) => (
         </div>
       </div>
     </td>
-    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+    <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <FaPhone className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
-          <span className="text-sm sm:text-base" style={{ color: COLORS.text }}>
+          <FaPhone className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" style={{ color: COLORS.textMuted }} />
+          <span className="text-xs sm:text-sm md:text-base truncate" style={{ color: COLORS.text }}>
             {patient.phone}
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <FaEnvelope className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
-          <span className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
+          <FaEnvelope className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" style={{ color: COLORS.textMuted }} />
+          <span className="text-xs sm:text-sm truncate" style={{ color: COLORS.textMuted }}>
             {patient.email}
           </span>
         </div>
       </div>
     </td>
-    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+    <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <FaTint className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
-          <span className="text-sm sm:text-base" style={{ color: COLORS.text }}>
+          <FaTint className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" style={{ color: COLORS.textMuted }} />
+          <span className="text-xs sm:text-sm md:text-base" style={{ color: COLORS.text }}>
             Blood: {patient.bloodGroup}
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <FaUserFriends className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
-          <span className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
+          <FaUserFriends className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" style={{ color: COLORS.textMuted }} />
+          <span className="text-xs sm:text-sm truncate" style={{ color: COLORS.textMuted }}>
             {patient.emergencyContact}
           </span>
         </div>
       </div>
     </td>
-    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+    <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
       <div className="flex items-center gap-2">
-        <FaCalendarAlt className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
-        <span className="text-sm sm:text-base" style={{ color: COLORS.text }}>
+        <FaCalendarAlt className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" style={{ color: COLORS.textMuted }} />
+        <span className="text-xs sm:text-sm md:text-base" style={{ color: COLORS.text }}>
           {patient.lastVisit}
         </span>
       </div>
     </td>
-    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+    <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
       <StatusBadge status={patient.status} />
     </td>
-    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+    <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
       <button 
         onClick={() => onViewPatient(patient)}
         className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition shadow-sm"
@@ -400,6 +470,7 @@ const Patients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const navigate = useNavigate();
 
   const {
@@ -435,7 +506,7 @@ const Patients = () => {
 
   // Event handlers
   const handleViewPatient = useCallback((patient) => {
-            navigate(`/clinic/patients/${patient.id}`);
+    navigate(`/clinic/patients/${patient.id}`);
   }, [navigate]);
 
   const handleAddPatient = useCallback((e) => {
@@ -457,14 +528,27 @@ const Patients = () => {
     }
   }, [handleAddAllergy]);
 
+  // Close filter dropdown when clicking outside
+  const handleClickOutside = useCallback((e) => {
+    if (isFilterOpen && !e.target.closest('.filter-dropdown')) {
+      setIsFilterOpen(false);
+    }
+  }, [isFilterOpen]);
+
+  // Add click outside listener
+  React.useEffect(() => {
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [handleClickOutside]);
+
   return (
     <div className="min-h-screen">
-      <div className="sm:space-y-6 lg:space-y-8">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 sm:gap-5">
           <div className="space-y-1">
             <h1
-              className="text-[2rem] md:text-[2.25rem] font-semibold tracking-tight"
+              className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight"
               style={{ color: COLORS.text }}
             >
               Patient Directory
@@ -493,7 +577,7 @@ const Patients = () => {
             </div>
             <button
               onClick={() => setShowAddModal(true)}
-              className="inline-flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl text-sm font-medium transition shadow-sm"
+              className="inline-flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg text-sm font-medium transition shadow-sm w-full sm:w-auto justify-center"
               style={{
                 background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
                 color: COLORS.white,
@@ -507,14 +591,81 @@ const Patients = () => {
 
         {/* Search and Filter Section */}
         <div
-          className="rounded-xl sm:rounded-2xl shadow-sm overflow-hidden"
+          className="rounded-xl shadow-sm overflow-hidden"
           style={{
             background: COLORS.surface,
             border: `1px solid ${COLORS.border}`,
           }}
         >
           <div className="p-4 sm:p-6">
-            <div className="flex flex-col md:flex-row gap-4">
+            {/* Mobile Search and Filter */}
+            <div className="block lg:hidden space-y-4">
+              {/* Search Bar */}
+              <div className="relative">
+                <FaSearch
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4"
+                  style={{ color: COLORS.textMuted }}
+                />
+                <input
+                  type="text"
+                  placeholder="Search patients..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 rounded-lg transition text-sm"
+                  style={{
+                    background: COLORS.white,
+                    border: `1px solid ${COLORS.border}`,
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                    color: COLORS.text,
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              {/* Mobile Filter Toggle */}
+              <div className="relative filter-dropdown">
+                <button
+                  onClick={() => setIsFilterOpen(!isFilterOpen)}
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-lg transition text-sm"
+                  style={{
+                    background: COLORS.white,
+                    border: `1px solid ${COLORS.border}`,
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                    color: COLORS.text,
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <FaFilter className="w-4 h-4" style={{ color: COLORS.textMuted }} />
+                    <span>Filter: {FILTER_OPTIONS.find(f => f.value === selectedFilter)?.label}</span>
+                  </div>
+                  {isFilterOpen ? <FaChevronUp className="w-4 h-4" /> : <FaChevronDown className="w-4 h-4" />}
+                </button>
+                
+                {isFilterOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded-lg shadow-lg z-10">
+                    {FILTER_OPTIONS.map(option => (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          setSelectedFilter(option.value);
+                          setIsFilterOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-3 text-sm transition ${
+                          selectedFilter === option.value 
+                            ? 'bg-blue-50 text-blue-700' 
+                            : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Desktop Search and Filter */}
+            <div className="hidden lg:flex gap-4">
               {/* Search Bar */}
               <div className="flex-1 relative">
                 <FaSearch
@@ -526,7 +677,7 @@ const Patients = () => {
                   placeholder="Search by name, ID, or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl transition text-sm sm:text-base"
+                  className="w-full pl-10 pr-4 py-3 rounded-lg transition text-sm"
                   style={{
                     background: COLORS.white,
                     border: `1px solid ${COLORS.border}`,
@@ -538,7 +689,7 @@ const Patients = () => {
               </div>
 
               {/* Filter Dropdown */}
-              <div className="md:w-48 relative">
+              <div className="w-48 relative">
                 <FaFilter
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 pointer-events-none"
                   style={{ color: COLORS.textMuted }}
@@ -546,7 +697,7 @@ const Patients = () => {
                 <select
                   value={selectedFilter}
                   onChange={(e) => setSelectedFilter(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl transition text-sm sm:text-base appearance-none"
+                  className="w-full pl-10 pr-4 py-3 rounded-lg transition text-sm appearance-none"
                   style={{
                     background: COLORS.white,
                     border: `1px solid ${COLORS.border}`,
@@ -571,25 +722,42 @@ const Patients = () => {
           </div>
         </div>
 
-        {/* Patients Table */}
+        {/* Patients List/Table */}
         <div
-          className="rounded-xl sm:rounded-2xl shadow-sm overflow-hidden"
+          className="rounded-xl shadow-sm overflow-hidden"
           style={{
             background: COLORS.surface,
             border: `1px solid ${COLORS.border}`,
           }}
         >
-          <div className="overflow-x-auto">
+          {/* Mobile View - Cards */}
+          <div className="block lg:hidden">
+            <div className="p-4 sm:p-6">
+              <div className="space-y-4">
+                {filteredPatients.map((patient) => (
+                  <MobilePatientCard 
+                    key={patient.id} 
+                    patient={patient} 
+                    onViewPatient={handleViewPatient} 
+                  />
+                ))}
+              </div>
+              {filteredPatients.length === 0 && <EmptyState />}
+            </div>
+          </div>
+
+          {/* Desktop View - Table */}
+          <div className="hidden lg:block overflow-x-auto">
             <table className="w-full">
               <thead
                 className="border-b"
                 style={{ background: COLORS.white, borderColor: COLORS.border }}
               >
                 <tr>
-                  {['Patient Info', 'Contact', 'Medical Info', 'Last Visit', 'Follow Up', 'Actions'].map((header) => (
+                  {['Patient Info', 'Contact', 'Medical Info', 'Last Visit', 'Status', 'Actions'].map((header) => (
                     <th 
                       key={header}
-                      className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-medium uppercase tracking-wider"
+                      className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider"
                       style={{ color: COLORS.primary }}
                     >
                       {header}
@@ -609,7 +777,7 @@ const Patients = () => {
             </table>
           </div>
 
-          {filteredPatients.length === 0 && <EmptyState />}
+          {filteredPatients.length === 0 && <div className="hidden lg:block"><EmptyState /></div>}
         </div>
       </div>
 
@@ -624,7 +792,7 @@ const Patients = () => {
           onClick={handleCloseModal}
         >
           <div
-            className="w-full max-w-2xl rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
             style={{
               background: COLORS.surface,
               border: `1px solid ${COLORS.border}`,
@@ -634,14 +802,14 @@ const Patients = () => {
           >
             {/* Modal Header */}
             <div
-              className="px-6 py-5 border-b flex items-center justify-between sticky top-0 z-10"
+              className="px-4 sm:px-6 py-4 sm:py-5 border-b flex items-center justify-between sticky top-0 z-10"
               style={{
                 background: COLORS.white,
                 borderColor: COLORS.border,
               }}
             >
               <div>
-                <h3 className="text-xl font-semibold" style={{ color: COLORS.text }}>
+                <h3 className="text-lg sm:text-xl font-semibold" style={{ color: COLORS.text }}>
                   Add New Patient
                 </h3>
                 <p className="text-sm mt-1" style={{ color: COLORS.textMuted }}>
@@ -651,7 +819,7 @@ const Patients = () => {
               <button
                 type="button"
                 onClick={handleCloseModal}
-                className="w-10 h-10 rounded-full transition-all flex items-center justify-center hover:scale-105 group"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all flex items-center justify-center hover:scale-105 group"
                 style={{
                   background: COLORS.white,
                   color: COLORS.textMuted,
@@ -673,8 +841,8 @@ const Patients = () => {
             </div>
 
             {/* Modal Form */}
-            <form onSubmit={handleAddPatient} className="p-6 space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <form onSubmit={handleAddPatient} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 <div className="lg:col-span-2">
                   <FormInput
                     label="Full Name"
@@ -762,7 +930,7 @@ const Patients = () => {
                     value={newPatient.address}
                     onChange={handleInputChange}
                     rows="3"
-                    className="w-full px-4 py-3 rounded-lg transition-all text-sm resize-none border-2"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg transition-all text-sm resize-none border-2"
                     style={{
                       background: COLORS.white,
                       border: `2px solid ${COLORS.border}`,
@@ -787,13 +955,13 @@ const Patients = () => {
                     Known Allergies
                   </label>
                   <div className="space-y-4">
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-3">
                       <input
                         type="text"
                         value={newAllergy}
                         onChange={(e) => setNewAllergy(e.target.value)}
                         onKeyPress={handleAllergyKeyPress}
-                        className="flex-1 px-4 py-3 rounded-lg transition-all text-sm border-2"
+                        className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg transition-all text-sm border-2"
                         style={{
                           background: COLORS.white,
                           border: `2px solid ${COLORS.border}`,
@@ -814,7 +982,7 @@ const Patients = () => {
                         type="button"
                         onClick={handleAddAllergy}
                         disabled={!newAllergy.trim()}
-                        className="px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm font-semibold transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{ background: '#10B981', color: COLORS.white }}
                         onMouseEnter={(e) => !e.target.disabled && (e.target.style.background = '#059669')}
                         onMouseLeave={(e) => !e.target.disabled && (e.target.style.background = '#10B981')}
@@ -845,11 +1013,11 @@ const Patients = () => {
               </div>
 
               {/* Form Actions */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t" style={{ borderColor: COLORS.border }}>
+              <div className="flex flex-col sm:flex-row gap-3 pt-4 sm:pt-6 border-t" style={{ borderColor: COLORS.border }}>
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all"
+                  className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm font-semibold transition-all"
                   style={{
                     background: COLORS.white,
                     color: COLORS.textMuted,
@@ -868,7 +1036,7 @@ const Patients = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl"
+                  className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl"
                   style={{
                     background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
                     color: COLORS.white,

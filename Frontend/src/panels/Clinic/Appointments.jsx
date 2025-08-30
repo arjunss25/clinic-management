@@ -750,60 +750,62 @@ const Appointments = () => {
       {!selectedDoctor ? (
         <DoctorsList onDoctorSelect={handleDoctorSelect} />
       ) : (
-        <div className="sm:space-y-6 lg:space-y-8">
+        <div className="space-y-4 sm:space-y-6 lg:space-y-8">
           {/* Header */}
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 sm:gap-5">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3 sm:gap-4 lg:gap-5">
             <div className="space-y-1">
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2">
                 <button
                   onClick={handleBackToDoctors}
-                  className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                  className="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors rounded-lg"
                 >
-                  <FaArrowLeft className="w-4 h-4" />
-                  Back to Doctors
+                  <FaArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden xs:inline">Back to Doctors</span>
+                  <span className="xs:hidden">Back</span>
                 </button>
               </div>
-              <h1 className="text-[2rem] md:text-[2.25rem] font-semibold tracking-tight text-gray-900">
+              <h1 className="text-xl sm:text-2xl md:text-[2.25rem] font-semibold tracking-tight text-gray-900">
                 {selectedDoctor.name}'s Schedule
               </h1>
               <p
-                className="text-sm sm:text-base"
+                className="text-xs sm:text-sm md:text-base"
                 style={{ color: COLORS.textMuted }}
               >
                 Manage {selectedDoctor.name}'s availability and appointments
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 lg:gap-4">
               {/* Status indicators */}
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-sky-700 bg-sky-50 ring-1 ring-sky-200">
-                  <span className="w-2 h-2 rounded-full bg-sky-600" />
+              <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs">
+                <span className="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-2.5 py-1 rounded-md text-sky-700 bg-sky-50 ring-1 ring-sky-200">
+                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-sky-600" />
                   <span className="hidden sm:inline">Available</span>
+                  <span className="sm:hidden">Avail</span>
                 </span>
-                <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-emerald-700 bg-emerald-50 ring-1 ring-emerald-200">
-                  <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                <span className="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-2.5 py-1 rounded-md text-emerald-700 bg-emerald-50 ring-1 ring-emerald-200">
+                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-600" />
                   <span className="hidden sm:inline">Booked</span>
+                  <span className="sm:hidden">Booked</span>
                 </span>
-                <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-rose-700 bg-rose-50 ring-1 ring-rose-200">
-                  <span className="w-2 h-2 rounded-full bg-rose-600" />
+                <span className="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-2.5 py-1 rounded-md text-rose-700 bg-rose-50 ring-1 ring-rose-200">
+                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-rose-600" />
                   <span className="hidden sm:inline">Blocked</span>
+                  <span className="sm:hidden">Blocked</span>
                 </span>
               </div>
 
               {/* Action buttons */}
               <div className="flex gap-2 w-full sm:w-auto">
-              
-
                 <button
                   type="button"
                   onClick={() => setShowBulkAddModal(true)}
-                  className="flex-1 sm:flex-none inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-white text-sm font-medium shadow-sm transition"
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-2 rounded-lg sm:rounded-xl text-white text-xs sm:text-sm font-medium shadow-sm transition"
                   style={{
                     background: `linear-gradient(135deg, ${COLORS.success}, #059669)`,
                   }}
                 >
-                  <FaCalendarPlus className="w-4 h-4" />
+                  <FaCalendarPlus className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span className="hidden sm:inline">Bulk Add</span>
                   <span className="sm:hidden">Bulk</span>
                 </button>
@@ -811,12 +813,12 @@ const Appointments = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/clinic/appointment-history')}
-                  className="flex-1 sm:flex-none inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-white text-sm font-medium shadow-sm transition"
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-2 rounded-lg sm:rounded-xl text-white text-xs sm:text-sm font-medium shadow-sm transition"
                   style={{
                     background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
                   }}
                 >
-                  <FaHistory className="w-4 h-4" />
+                  <FaHistory className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span className="hidden sm:inline">History</span>
                   <span className="sm:hidden">History</span>
                 </button>
@@ -825,36 +827,38 @@ const Appointments = () => {
           </div>
 
           {/* Doctor Info Card */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-4 sm:mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center space-x-3 sm:space-x-4">
                 <img
                   src={
                     selectedDoctor.image ||
                     'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&h=150&fit=crop&crop=face'
                   }
                   alt={selectedDoctor.name}
-                  className="w-16 h-16 rounded-full object-cover border-2 border-blue-100"
+                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-blue-100 flex-shrink-0"
                 />
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">
                     {selectedDoctor.name}
                   </h3>
-                  <p className="text-blue-600 font-medium">
+                  <p className="text-blue-600 font-medium text-sm sm:text-base">
                     {selectedDoctor.specialization}
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs sm:text-sm text-gray-600">
                     {selectedDoctor.experience} experience •{' '}
                     {selectedDoctor.rating} ★
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Contact</p>
-                <p className="text-sm font-medium text-gray-900">
+              <div className="text-left sm:text-right">
+                <p className="text-xs sm:text-sm text-gray-600">Contact</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-900 break-all">
                   {selectedDoctor.phone}
                 </p>
-                <p className="text-sm text-gray-600">{selectedDoctor.email}</p>
+                <p className="text-xs sm:text-sm text-gray-600 break-all">
+                  {selectedDoctor.email}
+                </p>
               </div>
             </div>
           </div>
@@ -869,15 +873,15 @@ const Appointments = () => {
           >
             {/* Calendar Header */}
             <div
-              className="px-3 sm:px-5 py-3 sm:py-4 border-b"
+              className="px-2 sm:px-3 md:px-5 py-2 sm:py-3 md:py-4 border-b"
               style={{ background: COLORS.white, borderColor: COLORS.border }}
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
-                <div className="flex items-center justify-between sm:justify-start gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 md:gap-0">
+                <div className="flex items-center justify-between sm:justify-start gap-1 sm:gap-2">
                   <button
                     type="button"
                     onClick={prevMonth}
-                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl text-[inherit] transition flex items-center justify-center shadow-sm"
+                    className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-lg sm:rounded-xl text-[inherit] transition flex items-center justify-center shadow-sm"
                     style={{
                       background: COLORS.white,
                       border: `1px solid ${COLORS.border}`,
@@ -885,22 +889,30 @@ const Appointments = () => {
                     }}
                     aria-label="Previous month"
                   >
-                    <FaChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <FaChevronLeft className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4" />
                   </button>
                   <h2
-                    className="text-base sm:text-lg font-semibold text-center sm:text-left flex-1 sm:flex-none"
+                    className="text-sm sm:text-base md:text-lg font-semibold text-center sm:text-left flex-1 sm:flex-none px-1"
                     style={{ color: COLORS.text }}
                   >
-                    {currentMonth.toLocaleDateString('en-US', {
-                      month: 'long',
-                      year: 'numeric',
-                    })}{' '}
-                    - {selectedDoctor.name}
+                    <span className="hidden sm:inline">
+                      {currentMonth.toLocaleDateString('en-US', {
+                        month: 'long',
+                        year: 'numeric',
+                      })}{' '}
+                      - {selectedDoctor.name}
+                    </span>
+                    <span className="sm:hidden">
+                      {currentMonth.toLocaleDateString('en-US', {
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </span>
                   </h2>
                   <button
                     type="button"
                     onClick={nextMonth}
-                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl transition flex items-center justify-center shadow-sm"
+                    className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-lg sm:rounded-xl transition flex items-center justify-center shadow-sm"
                     style={{
                       background: COLORS.white,
                       border: `1px solid ${COLORS.border}`,
@@ -908,21 +920,22 @@ const Appointments = () => {
                     }}
                     aria-label="Next month"
                   >
-                    <FaChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <FaChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4" />
                   </button>
                 </div>
                 <button
                   type="button"
                   onClick={goToToday}
-                  className="px-3 py-2 rounded-xl text-white text-sm font-medium shadow-sm transition w-full sm:w-auto"
+                  className="px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-white text-xs sm:text-sm font-medium shadow-sm transition w-full sm:w-auto"
                   style={{
                     background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
                   }}
                 >
-                  Today - {selectedDoctor.name}
+                  <span className="hidden sm:inline">Today - {selectedDoctor.name}</span>
+                  <span className="sm:hidden">Today</span>
                 </button>
               </div>
-              <div className="grid grid-cols-7 gap-1 sm:gap-2 mt-3 sm:mt-4">
+              <div className="grid grid-cols-7 gap-1 sm:gap-2 mt-2 sm:mt-3 md:mt-4">
                 {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
                   <div
                     key={d}
@@ -936,14 +949,14 @@ const Appointments = () => {
             </div>
 
             {/* Calendar Grid */}
-            <div className="p-2 sm:p-4">
-              <div className="grid grid-cols-7 gap-1 sm:gap-2">
+            <div className="p-1 sm:p-2 md:p-4">
+              <div className="grid grid-cols-7 gap-0.5 sm:gap-1 md:gap-2">
                 {monthMatrix.flat().map((date, idx) => {
                   if (!date) {
                     return (
                       <div
                         key={`empty-${idx}`}
-                        className="h-24 sm:h-28 md:h-32 rounded-lg sm:rounded-xl bg-transparent"
+                        className="h-20 sm:h-24 md:h-28 lg:h-32 rounded-lg sm:rounded-xl bg-transparent"
                       />
                     );
                   }
@@ -957,7 +970,7 @@ const Appointments = () => {
                       type="button"
                       key={formatDate(date)}
                       onClick={() => openDayModal(date)}
-                      className="h-24 sm:h-28 md:h-32 rounded-lg sm:rounded-xl p-2 text-left transition-all relative group"
+                      className="h-20 sm:h-24 md:h-28 lg:h-32 rounded-lg sm:rounded-xl p-1 sm:p-2 text-left transition-all relative group"
                       style={{
                         background: COLORS.white,
                         border: isSelected
@@ -970,9 +983,9 @@ const Appointments = () => {
                       }}
                     >
                       {/* Date header */}
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center justify-between mb-1 sm:mb-2">
                         <span
-                          className="text-sm font-semibold"
+                          className="text-xs sm:text-sm font-semibold"
                           style={{
                             color: isSelected
                               ? COLORS.primary
@@ -985,55 +998,60 @@ const Appointments = () => {
                         </span>
                         {isToday && !isSelected ? (
                           <span
-                            className="text-[10px] px-1.5 py-0.5 rounded"
+                            className="text-[8px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded"
                             style={{
                               background: `${COLORS.secondary}1A`,
                               color: COLORS.secondary,
                               border: `1px solid ${COLORS.secondary}33`,
                             }}
                           >
-                            Today
+                            <span className="hidden sm:inline">Today</span>
+                            <span className="sm:hidden">T</span>
                           </span>
                         ) : null}
                       </div>
 
                       {/* Slot counts */}
-                      <div className="space-y-1">
+                      <div className="space-y-0.5 sm:space-y-1">
                         {counts.available > 0 && (
-                          <div className="text-[10px] px-2 py-1 rounded-md bg-sky-50 text-sky-700 border flex gap-1 items-center border-sky-200 font-medium">
-                            <SiTicktick className="text-green-500" />{' '}
-                            {counts.available} available
+                          <div className="text-[8px] sm:text-[10px] px-1 sm:px-2 py-0.5 sm:py-1 rounded-md bg-sky-50 text-sky-700 border flex gap-0.5 sm:gap-1 items-center border-sky-200 font-medium">
+                            <SiTicktick className="text-green-500 w-2 h-2 sm:w-3 sm:h-3" />
+                            <span className="hidden sm:inline">{counts.available} available</span>
+                            <span className="sm:hidden">{counts.available}</span>
                           </div>
                         )}
                         {counts.booked > 0 && (
-                          <div className="text-[10px] px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium">
-                            👨🏻‍💼 {counts.booked} booked
+                          <div className="text-[8px] sm:text-[10px] px-1 sm:px-2 py-0.5 sm:py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium">
+                            <span className="hidden sm:inline">👨🏻‍💼 {counts.booked} booked</span>
+                            <span className="sm:hidden">👨🏻‍💼 {counts.booked}</span>
                           </div>
                         )}
                         {counts.blocked > 0 && (
-                          <div className="text-[10px] px-2 py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200 font-medium">
-                            🚫 {counts.blocked} blocked
+                          <div className="text-[8px] sm:text-[10px] px-1 sm:px-2 py-0.5 sm:py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200 font-medium">
+                            <span className="hidden sm:inline">🚫 {counts.blocked} blocked</span>
+                            <span className="sm:hidden">🚫 {counts.blocked}</span>
                           </div>
                         )}
                         {counts.total === 0 && (
-                          <div className="text-[10px] text-gray-400 italic">
-                            No slots
+                          <div className="text-[8px] sm:text-[10px] text-gray-400 italic">
+                            <span className="hidden sm:inline">No slots</span>
+                            <span className="sm:hidden">-</span>
                           </div>
                         )}
                       </div>
 
                       {/* Quick action buttons */}
-                      <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                      <div className="absolute bottom-1 sm:bottom-2 right-1 sm:right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-0.5 sm:gap-1">
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             openSlotModal(date);
                           }}
-                          className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center shadow-sm hover:bg-blue-600 transition"
+                          className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center shadow-sm hover:bg-blue-600 transition"
                           title="Add single slot"
                         >
-                          <FaPlus className="w-3 h-3" />
+                          <FaPlus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         </button>
                         <button
                           type="button"
@@ -1041,10 +1059,10 @@ const Appointments = () => {
                             e.stopPropagation();
                             openBulkAddForDay(date);
                           }}
-                          className="w-6 h-6 rounded-full bg-green-500 text-white text-xs flex items-center justify-center shadow-sm hover:bg-green-600 transition"
+                          className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-green-500 text-white text-xs flex items-center justify-center shadow-sm hover:bg-green-600 transition"
                           title="Bulk add slots for this day"
                         >
-                          <FaCalendarPlus className="w-3 h-3" />
+                          <FaCalendarPlus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         </button>
                       </div>
 
@@ -1075,7 +1093,7 @@ const Appointments = () => {
               onClick={() => setShowDayModal(false)}
             >
               <div
-                className="w-full max-w-2xl rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+                className="w-full max-w-2xl rounded-lg sm:rounded-xl md:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
                 style={{
                   background: COLORS.surface,
                   border: `1px solid ${COLORS.border}`,
@@ -1084,101 +1102,118 @@ const Appointments = () => {
               >
                 {/* Modal Header */}
                 <div
-                  className="px-4 sm:px-6 py-3 sm:py-4 border-b"
+                  className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b"
                   style={{
                     background: COLORS.white,
                     borderColor: COLORS.border,
                   }}
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {selectedDate.toLocaleDateString(undefined, {
-                          weekday: 'long',
-                          month: 'long',
-                          day: 'numeric',
-                        })}{' '}
-                        - {selectedDoctor.name}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
+                        <span className="hidden sm:inline">
+                          {selectedDate.toLocaleDateString(undefined, {
+                            weekday: 'long',
+                            month: 'long',
+                            day: 'numeric',
+                          })}{' '}
+                          - {selectedDoctor.name}
+                        </span>
+                        <span className="sm:hidden">
+                          {selectedDate.toLocaleDateString(undefined, {
+                            weekday: 'short',
+                            month: 'short',
+                            day: 'numeric',
+                          })}{' '}
+                          - {selectedDoctor.name.split(' ')[0]}
+                        </span>
                       </h3>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Manage {selectedDoctor.name}'s slots for this day
+                      <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                        Manage {selectedDoctor.name.split(' ')[0]}'s slots for this day
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setShowDayModal(false)}
-                      className="w-10 h-10 rounded-lg transition flex items-center justify-center ml-4 flex-shrink-0"
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg transition flex items-center justify-center ml-2 sm:ml-4 flex-shrink-0"
                       style={{
                         background: COLORS.white,
                         color: COLORS.textMuted,
                         border: `1px solid ${COLORS.border}`,
                       }}
                     >
-                      <FaTimes className="w-5 h-5" />
+                      <FaTimes className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                   </div>
                 </div>
 
                 {/* Action Buttons Section */}
-                <div className="px-4 sm:px-6 py-3 border-b bg-gray-50">
-                  <div className="flex flex-col sm:flex-row gap-3">
+                <div className="px-3 sm:px-4 md:px-6 py-3 border-b bg-gray-50">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <button
                       type="button"
                       onClick={() => openSlotModal(selectedDate)}
-                      className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white shadow-sm transition"
+                      className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium text-white shadow-sm transition"
                       style={{
                         background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
                       }}
                     >
-                      <FaPlus className="w-4 h-4" />
+                      <FaPlus className="w-3 h-3 sm:w-4 sm:h-4" />
                       Add Slot
                     </button>
                     <button
                       type="button"
                       onClick={() => openBulkAddForDay(selectedDate)}
-                      className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white shadow-sm transition"
+                      className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium text-white shadow-sm transition"
                       style={{
                         background: `linear-gradient(135deg, ${COLORS.success}, #059669)`,
                       }}
                     >
-                      <FaCalendarPlus className="w-4 h-4" />
+                      <FaCalendarPlus className="w-3 h-3 sm:w-4 sm:h-4" />
                       Bulk Add
                     </button>
                   </div>
                 </div>
 
                 {/* Square Design Slots List */}
-                <div className="p-6">
+                <div className="p-3 sm:p-4 md:p-6">
                   {getSlotsForDay(selectedDate).length > 0 ? (
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
                       {/* Clean Header */}
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
                         <div>
-                          <h4 className="text-lg font-semibold text-gray-900">
-                            {selectedDate.toLocaleDateString('en-US', { weekday: 'long' })} Schedule
+                          <h4 className="text-base sm:text-lg font-semibold text-gray-900">
+                            <span className="hidden sm:inline">
+                              {selectedDate.toLocaleDateString('en-US', { weekday: 'long' })} Schedule
+                            </span>
+                            <span className="sm:hidden">
+                              {selectedDate.toLocaleDateString('en-US', { weekday: 'short' })} Schedule
+                            </span>
                           </h4>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-xs sm:text-sm text-gray-600">
                             {getSlotsForDay(selectedDate).length} time slots • {getSlotCounts(selectedDate).booked} appointments
                           </p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 sm:gap-2">
                           {getSlotCounts(selectedDate).booked > 0 && (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-green-50 text-green-600 border border-green-200">
+                            <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded text-xs font-medium bg-green-50 text-green-600 border border-green-200">
                               <div className="w-1.5 h-1.5 rounded-full bg-green-400"></div>
-                              {getSlotCounts(selectedDate).booked} Booked
+                              <span className="hidden sm:inline">{getSlotCounts(selectedDate).booked} Booked</span>
+                              <span className="sm:hidden">{getSlotCounts(selectedDate).booked}</span>
                             </span>
                           )}
                           {getSlotCounts(selectedDate).blocked > 0 && (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-red-50 text-red-500 border border-red-200">
+                            <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded text-xs font-medium bg-red-50 text-red-500 border border-red-200">
                               <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
-                              {getSlotCounts(selectedDate).blocked} Blocked
+                              <span className="hidden sm:inline">{getSlotCounts(selectedDate).blocked} Blocked</span>
+                              <span className="sm:hidden">{getSlotCounts(selectedDate).blocked}</span>
                             </span>
                           )}
                         </div>
                       </div>
 
                       {/* Square Slot Cards Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                         {getSlotsForDay(selectedDate)
                           .sort((a, b) => a.time.localeCompare(b.time))
                           .map((slot) => {
@@ -1215,60 +1250,62 @@ const Appointments = () => {
                               >
                                 {/* Square Header */}
                                 <div 
-                                  className="px-4 py-3 text-white"
+                                  className="px-3 sm:px-4 py-2 sm:py-3 text-white"
                                   style={{ background: style.headerBg }}
                                 >
                                   <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                      <div className="w-8 h-8 rounded flex items-center justify-center bg-white/20">
+                                    <div className="flex items-center gap-2 sm:gap-3">
+                                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded flex items-center justify-center bg-white/20">
                                         {style.icon}
                                       </div>
-                                      <div>
-                                        <div className="text-sm font-bold">
+                                      <div className="min-w-0 flex-1">
+                                        <div className="text-xs sm:text-sm font-bold truncate">
                                           {slot.time} - {endTimeStr}
                                         </div>
-                                        <div className="text-xs opacity-90">
+                                        <div className="text-[10px] sm:text-xs opacity-90">
                                           ({slot.duration}m)
                                         </div>
                                       </div>
                                     </div>
-                                    <div className="px-2 py-1 rounded text-xs font-semibold uppercase bg-white/20">
-                                      {slot.status}
+                                    <div className="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-semibold uppercase bg-white/20 flex-shrink-0">
+                                      <span className="hidden sm:inline">{slot.status}</span>
+                                      <span className="sm:hidden">{slot.status.charAt(0)}</span>
                                     </div>
                                   </div>
                                 </div>
 
                                 {/* Square Content */}
-                                <div className="p-4">
+                                <div className="p-3 sm:p-4">
                                   {/* Patient Information for Booked Slots */}
                                   {slot.patient && (
-                                    <div className="mb-4 p-3 rounded bg-gray-50 border border-gray-200">
+                                    <div className="mb-3 sm:mb-4 p-2 sm:p-3 rounded bg-gray-50 border border-gray-200">
                                       <div className="flex items-start justify-between mb-2">
-                                        <h5 className="font-semibold text-gray-900 text-sm flex items-center gap-2">
-                                          <FaUserMd className="w-3 h-3 text-gray-500" />
-                                          Patient Details
+                                        <h5 className="font-semibold text-gray-900 text-xs sm:text-sm flex items-center gap-1 sm:gap-2">
+                                          <FaUserMd className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-500" />
+                                          <span className="hidden sm:inline">Patient Details</span>
+                                          <span className="sm:hidden">Patient</span>
                                         </h5>
-                                        <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                                        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-400"></div>
                                       </div>
                                       <div className="space-y-2">
-                                        <div className="flex items-center gap-3">
-                                          <div className="w-8 h-8 rounded bg-blue-100 flex items-center justify-center">
-                                            <span className="text-blue-600 font-semibold text-sm">
+                                        <div className="flex items-center gap-2 sm:gap-3">
+                                          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-blue-600 font-semibold text-xs sm:text-sm">
                                               {slot.patient.name.charAt(0)}
                                             </span>
                                           </div>
-                                          <div>
-                                            <p className="text-sm font-semibold text-gray-900">
+                                          <div className="min-w-0 flex-1">
+                                            <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">
                                               {slot.patient.name}
                                             </p>
-                                            <p className="text-xs text-gray-600 flex items-center gap-1">
-                                              <FaClock className="w-3 h-3" />
-                                              {slot.patient.phone}
+                                            <p className="text-[10px] sm:text-xs text-gray-600 flex items-center gap-1">
+                                              <FaClock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                              <span className="truncate">{slot.patient.phone}</span>
                                             </p>
                                           </div>
                                         </div>
                                         <div className="bg-white px-2 py-1 rounded border border-gray-200">
-                                          <p className="text-xs text-gray-700 font-medium">
+                                          <p className="text-[10px] sm:text-xs text-gray-700 font-medium">
                                             {slot.patient.reason}
                                           </p>
                                         </div>
@@ -1278,14 +1315,14 @@ const Appointments = () => {
 
                                   {/* Notes Section */}
                                   {slot.notes && (
-                                    <div className="mb-4 p-3 rounded bg-blue-50 border border-blue-200">
-                                      <div className="flex items-center gap-2 mb-2">
-                                        <FaEdit className="w-3 h-3 text-blue-600" />
-                                        <span className="text-xs font-semibold text-blue-800 uppercase">
+                                    <div className="mb-3 sm:mb-4 p-2 sm:p-3 rounded bg-blue-50 border border-blue-200">
+                                      <div className="flex items-center gap-1 sm:gap-2 mb-2">
+                                        <FaEdit className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-600" />
+                                        <span className="text-[10px] sm:text-xs font-semibold text-blue-800 uppercase">
                                           Notes
                                         </span>
                                       </div>
-                                      <p className="text-sm text-blue-900">
+                                      <p className="text-xs sm:text-sm text-blue-900">
                                         {slot.notes}
                                       </p>
                                     </div>
@@ -1293,52 +1330,58 @@ const Appointments = () => {
 
                                   {/* Empty States */}
                                   {slot.status === 'available' && !slot.notes && (
-                                    <div className="text-center py-6">
-                                      <div className="w-12 h-12 rounded bg-blue-100 flex items-center justify-center mx-auto mb-3">
-                                        <SiTicktick className="w-6 h-6 text-blue-600" />
+                                    <div className="text-center py-4 sm:py-6">
+                                      <div className="w-8 h-8 sm:w-12 sm:h-12 rounded bg-blue-100 flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                                        <SiTicktick className="w-4 h-4 sm:w-6 sm:h-6 text-blue-600" />
                                       </div>
-                                      <p className="text-sm font-medium text-gray-700 mb-1">
-                                        Available for Booking
+                                      <p className="text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                                        <span className="hidden sm:inline">Available for Booking</span>
+                                        <span className="sm:hidden">Available</span>
                                       </p>
-                                      <p className="text-xs text-gray-500">
-                                        Ready to accept patient appointments
+                                      <p className="text-[10px] sm:text-xs text-gray-500">
+                                        <span className="hidden sm:inline">Ready to accept patient appointments</span>
+                                        <span className="sm:hidden">Ready for booking</span>
                                       </p>
                                     </div>
                                   )}
 
                                   {slot.status === 'blocked' && !slot.notes && (
-                                    <div className="text-center py-6">
-                                      <div className="w-12 h-12 rounded bg-red-100 flex items-center justify-center mx-auto mb-3">
-                                        <FaTimes className="w-6 h-6 text-red-500" />
+                                    <div className="text-center py-4 sm:py-6">
+                                      <div className="w-8 h-8 sm:w-12 sm:h-12 rounded bg-red-100 flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                                        <FaTimes className="w-4 h-4 sm:w-6 sm:h-6 text-red-500" />
                                       </div>
-                                      <p className="text-sm font-medium text-gray-700 mb-1">
-                                        Time Blocked
+                                      <p className="text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                                        <span className="hidden sm:inline">Time Blocked</span>
+                                        <span className="sm:hidden">Blocked</span>
                                       </p>
-                                      <p className="text-xs text-gray-500">
-                                        Not available for appointments
+                                      <p className="text-[10px] sm:text-xs text-gray-500">
+                                        <span className="hidden sm:inline">Not available for appointments</span>
+                                        <span className="sm:hidden">Not available</span>
                                       </p>
                                     </div>
                                   )}
 
                                   {/* Action Buttons */}
-                                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                                    <div className="flex items-center gap-2">
+                                  <div className="flex items-center justify-between pt-2 sm:pt-3 border-t border-gray-100">
+                                    <div className="flex items-center gap-1 sm:gap-2">
                                       {slot.status === 'available' && (
                                         <button
                                           type="button"
                                           onClick={() => blockSlot(slot.id)}
-                                          className="px-3 py-1.5 text-xs font-medium text-orange-700 bg-orange-50 border border-orange-200 rounded hover:bg-orange-100 transition-colors"
+                                          className="px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium text-orange-700 bg-orange-50 border border-orange-200 rounded hover:bg-orange-100 transition-colors"
                                         >
-                                          Block Time
+                                          <span className="hidden sm:inline">Block Time</span>
+                                          <span className="sm:hidden">Block</span>
                                         </button>
                                       )}
                                       {slot.status === 'blocked' && (
                                         <button
                                           type="button"
                                           onClick={() => unblockSlot(slot.id)}
-                                          className="px-3 py-1.5 text-xs font-medium text-green-600 bg-green-50 border border-green-200 rounded hover:bg-green-100 transition-colors"
+                                          className="px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium text-green-600 bg-green-50 border border-green-200 rounded hover:bg-green-100 transition-colors"
                                         >
-                                          Unblock
+                                          <span className="hidden sm:inline">Unblock</span>
+                                          <span className="sm:hidden">Unblock</span>
                                         </button>
                                       )}
                                       {slot.status === 'booked' && (
@@ -1346,18 +1389,20 @@ const Appointments = () => {
                                           <button
                                             type="button"
                                             onClick={() => cancelAppointment(slot.id)}
-                                            className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded hover:bg-red-100 transition-colors flex items-center gap-1"
+                                            className="px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded hover:bg-red-100 transition-colors flex items-center gap-1"
                                           >
-                                            <FaBan className="w-3 h-3" />
-                                            Cancel
+                                            <FaBan className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                            <span className="hidden sm:inline">Cancel</span>
+                                            <span className="sm:hidden">Cancel</span>
                                           </button>
                                           <button
                                             type="button"
                                             onClick={() => rescheduleAppointment(slot.id)}
-                                            className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors flex items-center gap-1"
+                                            className="px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors flex items-center gap-1"
                                           >
-                                            <FaCalendarAlt className="w-3 h-3" />
-                                            Reschedule
+                                            <FaCalendarAlt className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                            <span className="hidden sm:inline">Reschedule</span>
+                                            <span className="sm:hidden">Reschedule</span>
                                           </button>
                                         </>
                                       )}
@@ -1367,19 +1412,19 @@ const Appointments = () => {
                                       <button
                                         type="button"
                                         onClick={() => openSlotModal(selectedDate, slot)}
-                                        className="w-8 h-8 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors flex items-center justify-center"
+                                        className="w-6 h-6 sm:w-8 sm:h-8 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors flex items-center justify-center"
                                         title="Edit slot"
                                       >
-                                        <FaEdit className="w-3 h-3" />
+                                        <FaEdit className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                                       </button>
                                       {slot.status !== 'booked' && (
                                         <button
                                           type="button"
                                           onClick={() => deleteSlot(slot.id)}
-                                          className="w-8 h-8 rounded bg-red-50 text-red-500 hover:bg-red-100 transition-colors flex items-center justify-center"
+                                          className="w-6 h-6 sm:w-8 sm:h-8 rounded bg-red-50 text-red-500 hover:bg-red-100 transition-colors flex items-center justify-center"
                                           title="Delete slot"
                                         >
-                                          <FaTrash className="w-3 h-3" />
+                                          <FaTrash className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                                         </button>
                                       )}
                                     </div>
@@ -1392,38 +1437,40 @@ const Appointments = () => {
                     </div>
                   ) : (
                     // Clean Empty State
-                    <div className="text-center py-12">
-                      <div className="w-16 h-16 rounded bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                        <FaCalendarDay className="w-8 h-8 text-gray-400" />
+                    <div className="text-center py-8 sm:py-12">
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded bg-gray-100 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                        <FaCalendarDay className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
                       </div>
-                      <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                      <h4 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
                         No Appointments Scheduled
                       </h4>
-                      <p className="text-gray-600 mb-6 max-w-sm mx-auto">
-                        {selectedDoctor.name} hasn't scheduled any time slots for this day yet. Add the first slot to start managing availability.
+                      <p className="text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6 max-w-sm mx-auto">
+                        {selectedDoctor.name.split(' ')[0]} hasn't scheduled any time slots for this day yet. Add the first slot to start managing availability.
                       </p>
-                      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
                         <button
                           type="button"
                           onClick={() => openSlotModal(selectedDate)}
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded text-sm font-medium text-white shadow-sm transition"
+                          className="inline-flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-medium text-white shadow-sm transition"
                           style={{
                             background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
                           }}
                         >
-                          <FaPlus className="w-4 h-4" />
-                          Add Single Slot
+                          <FaPlus className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">Add Single Slot</span>
+                          <span className="sm:hidden">Add Slot</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => openBulkAddForDay(selectedDate)}
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded text-sm font-medium text-white shadow-sm transition"
+                          className="inline-flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-medium text-white shadow-sm transition"
                           style={{
                             background: `linear-gradient(135deg, ${COLORS.success}, #059669)`,
                           }}
                         >
-                          <FaCalendarPlus className="w-4 h-4" />
-                          Bulk Add Slots
+                          <FaCalendarPlus className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">Bulk Add Slots</span>
+                          <span className="sm:hidden">Bulk Add</span>
                         </button>
                       </div>
                     </div>
@@ -1444,7 +1491,7 @@ const Appointments = () => {
               onClick={() => setShowSlotModal(false)}
             >
               <div
-                className="w-full max-w-md rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+                className="w-full max-w-md rounded-lg sm:rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
                 style={{
                   background: COLORS.surface,
                   border: `1px solid ${COLORS.border}`,
@@ -1452,26 +1499,26 @@ const Appointments = () => {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div
-                  className="px-6 py-4 border-b"
+                  className="px-4 sm:px-6 py-3 sm:py-4 border-b"
                   style={{
                     background: COLORS.white,
                     borderColor: COLORS.border,
                   }}
                 >
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {editingSlot ? (slotForm.isReschedule ? 'Reschedule Appointment' : `Edit ${selectedDoctor.name}'s Slot`) : `Add New Slot for ${selectedDoctor.name}`}
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                    {editingSlot ? (slotForm.isReschedule ? 'Reschedule Appointment' : `Edit ${selectedDoctor.name.split(' ')[0]}'s Slot`) : `Add New Slot for ${selectedDoctor.name.split(' ')[0]}`}
                   </h3>
                   {slotForm.isReschedule && editingSlot?.patient && (
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1">
                       Rescheduling appointment for {editingSlot.patient.name}
                     </p>
                   )}
                 </div>
 
-                <form onSubmit={handleSlotSubmit} className="p-6 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <form onSubmit={handleSlotSubmit} className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                         Date
                       </label>
                       <input
@@ -1484,11 +1531,11 @@ const Appointments = () => {
                             date: e.target.value,
                           }))
                         }
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                         Time
                       </label>
                       <input
@@ -1501,13 +1548,13 @@ const Appointments = () => {
                             time: e.target.value,
                           }))
                         }
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       Duration (minutes)
                     </label>
                     <select
@@ -1518,7 +1565,7 @@ const Appointments = () => {
                           duration: parseInt(e.target.value),
                         }))
                       }
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value={15}>15 minutes</option>
                       <option value={30}>30 minutes</option>
@@ -1530,7 +1577,7 @@ const Appointments = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       Notes (Optional)
                     </label>
                     <textarea
@@ -1543,25 +1590,30 @@ const Appointments = () => {
                           notes: e.target.value,
                         }))
                       }
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      className="w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                     />
                   </div>
 
-                  <div className="flex gap-3 pt-4">
+                  <div className="flex gap-2 sm:gap-3 pt-3 sm:pt-4">
                     <button
                       type="submit"
-                      className="flex-1 py-2.5 rounded-lg font-medium text-white shadow-sm transition"
+                      className="flex-1 py-2 sm:py-2.5 rounded-lg font-medium text-white shadow-sm transition text-xs sm:text-sm"
                       style={{
                         background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
                       }}
                     >
-                      <FaSave className="w-4 h-4 inline mr-2" />
-                      {editingSlot ? (slotForm.isReschedule ? 'Reschedule Appointment' : `Update ${selectedDoctor.name}'s Slot`) : `Create Slot for ${selectedDoctor.name}`}
+                      <FaSave className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
+                      <span className="hidden sm:inline">
+                        {editingSlot ? (slotForm.isReschedule ? 'Reschedule Appointment' : `Update ${selectedDoctor.name.split(' ')[0]}'s Slot`) : `Create Slot for ${selectedDoctor.name.split(' ')[0]}`}
+                      </span>
+                      <span className="sm:hidden">
+                        {editingSlot ? (slotForm.isReschedule ? 'Reschedule' : 'Update') : 'Create'}
+                      </span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowSlotModal(false)}
-                      className="flex-1 py-2.5 rounded-lg font-medium transition bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      className="flex-1 py-2 sm:py-2.5 rounded-lg font-medium transition bg-gray-100 text-gray-700 hover:bg-gray-200 text-xs sm:text-sm"
                     >
                       Cancel
                     </button>

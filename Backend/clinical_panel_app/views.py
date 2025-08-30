@@ -118,6 +118,7 @@ class PatientUserDeleteAPI(APIView):
     def delete(self, request, pk, *args, **kwargs):
         print('----------',pk)
         # find the user by primary key (id)
+<<<<<<< HEAD
         # user = ProfileUser.objects.get(id=pk)
         # get_object_or_404(ProfileUser, pk=pk)    
 
@@ -128,6 +129,15 @@ class PatientUserDeleteAPI(APIView):
         except:
             return custom_404('This patient profile not found.')
 
+=======
+        try:
+            user=get_object_or_404(ProfileUser, pk=pk)   
+            user.delete()
+            return custom_200('User and related profile deleted successfully.')
+        except:
+            return custom_404('This patient profile not found.')
+
+>>>>>>> 620a810655482c9bf8944b5641fa746ad5989dab
 
 # get login clinic profile
 class ClinicProfileAPIView(APIView):
