@@ -118,10 +118,6 @@ class PatientUserDeleteAPI(APIView):
     def delete(self, request, pk, *args, **kwargs):
         print('----------',pk)
         # find the user by primary key (id)
-<<<<<<< HEAD
-        # user = ProfileUser.objects.get(id=pk)
-        # get_object_or_404(ProfileUser, pk=pk)    
-
         try:
             user=get_object_or_404(ProfileUser, pk=pk)   
             user.delete()
