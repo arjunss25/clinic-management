@@ -20,5 +20,5 @@ urlpatterns = [
     path("patients/edit/<int:patient_id>/", PatientRegisterAPI.as_view(), name="patient-edit"),
     path("patients/get/<int:patient_id>/", PatientRegisterAPI.as_view(), name="patient-detail"),
 
-    path("delete_users/<int:pk>/", UserDeleteAPI.as_view(), name="user-delete"),
+    path("delete_users/<int:pk>/", PatientUserDeleteAPI.as_view(), name="user-delete"),
 ]
