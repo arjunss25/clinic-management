@@ -47,13 +47,67 @@ def send_doctor_credentials_email(email, password, clinic_name):
 
 
 
-import re
+# appointment send email to patient and doctor
+def send_appointment_email(appointment):
+    subject = f"Appointment Confirmation - {appointment.appointment_date} {appointment.start_time}"
+    
+    patient_message = f"""
+    Dear {appointment.patient.full_name},
 
-def extract_minutes(value):
+    Your appointment with Dr. {appointment.doctor.doctor_name} has been scheduled.
+    
+    📅 Date: {appointment.appointment_date}
+    ⏰ Time: {appointment.start_time} - {appointment.end_time}
+    🏥 Doctor: {appointment.doctor.doctor_name}
+
+    Please arrive 10 minutes early.
+
+    Regards,
+    Clinic Team
     """
-    Extract integer minutes from strings like '30 minutes' or '5 mins'
+
+    doctor_message = f"""
+    Dear Dr. {appointment.doctor.doctor_name},
+
+    You have a new appointment scheduled.
+
+    🧑 Patient: {appointment.patient.full_name}
+    📅 Date: {appointment.appointment_date}
+    ⏰ Time: {appointment.start_time} - {appointment.end_time}
+    Reason: {appointment.reason_for_visit or "Not specified"}
+
+    Regards,
+    Clinic Team
     """
-    if not value:
-        return None
-    match = re.search(r'\d+', str(value))
-    return int(match.group()) if match else None
+
+    # Send email to patient
+    send_mail(
+        subject,
+        patient_message,
+        settings.DEFAULT_FROM_EMAIL,
+        [appointment.patient.user.email],
+        fail_silently=False,
+    )
+
+    # Send email to doctor
+    send_mail(
+        subject,
+        doctor_message,
+        settings.DEFAULT_FROM_EMAIL,
+        [appointment.doctor.user.email],
+        fail_silently=False,
+    )
+
+
+
+# import stripe
+# from django.conf import settings
+
+# def create_stripe_payment_intent(amount, currency, metadata=None):
+#     stripe.api_key = settings.STRIPE_SECRET_KEY
+#     intent = stripe.PaymentIntent.create(
+#         amount=int(amount * 100),  # Stripe uses cents/paise
+#         currency=currency,
+#         metadata=metadata or {}
+#     )
+#     return intent.client_secret

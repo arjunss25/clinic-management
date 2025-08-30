@@ -3,6 +3,8 @@ from . views import *
 urlpatterns = [
     path('get-clinic-profile/', ClinicProfileAPIView.as_view(), name='get-clinic-profile'),
     path('register-doctor/', DoctorRegisterAPIView.as_view(), name='register-doctor'),
+    path('list-clinic-specializations/', ClinicSpecialtiesListAPIView.as_view(), name='list-clinic-specializations'),
+    path('list-doctor-by-specialization/<str:specialty_name>/', ClinicDoctorsBySpecialtyAPIView.as_view(), name='list-doctor-by-specialization'),
     path('list-all-doctors/', ClinicDoctorsListAPIView.as_view(), name='list-all-doctors'),
     path('search-doctors/', DoctorSearchAPIView.as_view(), name='search-doctors'),
     path('doctor-details/<int:doctor_id>/', DoctorDetailAPIView.as_view(), name='doctor-details'),
@@ -11,4 +13,15 @@ urlpatterns = [
     path('list-doctor-availability/<int:doctor_id>/<str:date>/', DoctorAvailabilityListAPIView.as_view(), name='list-doctor-availability'),
     path('list-doctor-availability/<str:date>/', DoctorAvailabilityListAPIView.as_view(), name='list-doctor-availability'),
     path('slots-block-unblock/', DoctorSlotBlockUnblockAPIView.as_view(), name='slots-block-unblock'),
+    path('appointment-booking/', AppointmentBookingAPI.as_view(), name='appointment-booking'),
+    path('list-all-appointments-clinic/', ClinicAppointmentsListAPIView.as_view(), name='list-all-appointments-clinic'),
+    path('list-appointments-by-specialization/<str:specialization>/', AppointmentFilterBySpecializationAPI.as_view(), name='list-appointments-by-specialization'),
+
+
+      # patient section
+    path("patients/register/", PatientRegisterAPI.as_view(), name="patient-register"),
+    path("patients/edit/<int:patient_id>/", PatientRegisterAPI.as_view(), name="patient-edit"),
+    path("patients/get/<int:patient_id>/", PatientRegisterAPI.as_view(), name="patient-detail"),
+
+    path("delete_users/<int:pk>/", UserDeleteAPI.as_view(), name="user-delete"),
 ]

@@ -44,6 +44,8 @@ class AppointmentBooking(models.Model):
         ("Scheduled", "Scheduled"),
         ("Confirmed", "Confirmed"),
         ("Completed", "Completed"),
+        ("Upcoming", "Upcoming"),
+        ("Waiting List", "Waiting List"),
         ("Cancelled", "Cancelled"),
         ("No-Show", "No-Show")
     ], default="Scheduled")
@@ -53,3 +55,30 @@ class AppointmentBooking(models.Model):
 
     def __str__(self):
         return f"Appointment: {self.patient.full_name} with Dr. {self.doctor.doctor_name} on {self.appointment_date} at {self.start_time}"
+    
+
+# Payment model
+class Payment(models.Model):
+    appointment = models.OneToOneField(AppointmentBooking, on_delete=models.CASCADE, related_name="payment")
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_date = models.DateTimeField(auto_now_add=True)
+    payment_time = models.TimeField(auto_now_add=True)
+    payment_method = models.CharField(max_length=50, choices=[
+        ("Credit Card", "Credit Card"),
+        ("Debit Card", "Debit Card"),
+        ("Net Banking", "Net Banking"),
+        ("UPI", "UPI"),
+        ("Cash", "Cash"),
+        ("Wallet", "Wallet"),
+    ])
+    transaction_id = models.CharField(max_length=100, unique=True)
+    status = models.CharField(max_length=50, choices=[
+        ("Pending", "Pending"),
+        ("Completed", "Completed"),
+        ("Failed", "Failed"),
+        ("Refunded", "Refunded"),
+    ], default="Pending")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Payment: {self.amount} for Appointment ID {self.appointment.id} - {self.status}"
