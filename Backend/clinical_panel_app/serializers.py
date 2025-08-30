@@ -50,7 +50,11 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
         if not value.isdigit():
             raise serializers.ValidationError("Phone number must contain digits only.")
         return value
-
+    def validate_email(self, value):
+        if ProfileUser.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with this email already exists.")
+        return value
+    
     # ✅ Object-level validation (cross-checks + unknown fields)
     def validate(self, data):
         # Reject wrong field names

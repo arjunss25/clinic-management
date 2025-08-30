@@ -1,3 +1,4 @@
+from pyexpat import expat_CAPI
 from django.shortcuts import render
 from superadmin_app.models import *
 from rest_framework.views import APIView
@@ -32,11 +33,10 @@ class PatientRegisterAPI(APIView):
         try:
             patient = Patient.objects.get(id=patient_id)
         except Patient.DoesNotExist:
-            return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
+            return custom_404("Patient not found")
 
         serializer = PatientRegisterSerializer(patient)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
+        return custom_200('Here is the patient details',serializer.data)
 
     def post(self, request, *args, **kwargs):
         serializer = PatientRegisterSerializer(data=request.data)
@@ -85,19 +85,15 @@ class PatientRegisterAPI(APIView):
                 fail_silently=False,
             )
 
-            return Response(
-                {"message": "Patient registered successfully, login credentials sent to email."},
-                status=status.HTTP_201_CREATED
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return  custom_200("Patient registered successfully, login credentials sent to email.")
+        return custom_404(serializer.errors)
     
     def patch(self, request, patient_id, *args, **kwargs):
         
         try:
             patient = Patient.objects.get(id=patient_id)
         except Patient.DoesNotExist:
-            return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
-
+            return custom_404( "Patient not found")
         serializer = PatientRegisterSerializer(patient, data=request.data, partial=True)
         if serializer.is_valid():
             # Update ProfileUser (if phone/email given)
@@ -114,21 +110,20 @@ class PatientRegisterAPI(APIView):
                 setattr(patient, field, value)
             patient.save()
 
-            return Response({"message": "Patient profile updated successfully"}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return custom_200('Patient profile updated successfully')
+        return custom_404(serializer.errors)
 
 
-class UserDeleteAPI(APIView):
+class PatientUserDeleteAPI(APIView):
     def delete(self, request, pk, *args, **kwargs):
         print('----------',pk)
         # find the user by primary key (id)
-        user = get_object_or_404(ProfileUser, pk=pk)        
-        user.delete()
-
-        return Response(
-            {"message": "User and related profile deleted successfully."},
-            status=status.HTTP_204_NO_CONTENT,
-        )
+        try:
+            user=get_object_or_404(ProfileUser, pk=pk)   
+            user.delete()
+            return custom_200('User and related profile deleted successfully.')
+        except:
+            return custom_404('This patient profile not found.')
 
 
 # get login clinic profile
