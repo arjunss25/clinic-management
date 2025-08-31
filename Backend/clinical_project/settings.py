@@ -49,10 +49,19 @@ INSTALLED_APPS = [
     'doctor_app',
     'patient_app',
     'superadmin_app',
+     'corsheaders',
 
 ]
 
+
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    # "https://myfrontend.com",
+]
+
 MIDDLEWARE = [
+      'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -61,6 +70,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+
+CORS_ALLOW_ALL_ORIGINS = True
+
 
 ROOT_URLCONF = 'clinical_project.urls'
 
@@ -95,7 +108,8 @@ DATABASES = {
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES':(
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
+            "authentication_app.authentication.CookieJWTAuthentication",
     )
 }
 

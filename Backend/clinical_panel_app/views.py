@@ -13,12 +13,14 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from datetime import datetime, timedelta
 import calendar
+from authentication_app.authentication import CookieJWTAuthentication
 # Create your views here.
 
 
 
 # get login clinic profile
 class ClinicProfileAPIView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -36,6 +38,7 @@ class ClinicProfileAPIView(APIView):
 
 #register doctor by clinic
 class DoctorRegisterAPIView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
