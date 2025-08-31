@@ -50,10 +50,19 @@ INSTALLED_APPS = [
     'doctor_app',
     'patient_app',
     'superadmin_app',
+     'corsheaders',
 
 ]
 
+
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    # "https://myfrontend.com",
+]
+
 MIDDLEWARE = [
+      'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -62,6 +71,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+
+CORS_ALLOW_ALL_ORIGINS = True
+
 
 ROOT_URLCONF = 'clinical_project.urls'
 
@@ -96,27 +109,12 @@ DATABASES = {
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES':(
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
+            "authentication_app.authentication.CookieJWTAuthentication",
     )
 }
 
-# # Create a Patient profile and Send an email with credentials.
-# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-# EMAIL_HOST = "smtp.gmail.com"       # or smtp.office365.com, etc.
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = "kiranraveendran74@gmail.com"   # sender email
-# EMAIL_HOST_PASSWORD = "lyjy rbcs bsgv gkub" # Gmail/Outlook app password
-# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-
-EMAIL_BACKEND = config('EMAIL_BACKEND')
-EMAIL_HOST = config('EMAIL_HOST')
-EMAIL_PORT = config('EMAIL_PORT', cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
 
 # Password validation
