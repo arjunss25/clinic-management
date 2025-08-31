@@ -50,12 +50,62 @@ class Clinic(models.Model):
     email = models.EmailField()
     specialties = models.ManyToManyField(Specialty, related_name="clinics_specialties")
     documents = models.FileField(upload_to='clinic_documents/', null=True, blank=True)
+    about_clinic = models.TextField(blank=True)
+    profile_picture = models.ImageField(upload_to='clinic_profiles/', null=True, blank=True)
+    website = models.URLField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.clinic_name
     
+# clinic Accreditations
+class ClinicAccreditation(models.Model):
+    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='accreditations')
+    name = models.CharField(max_length=255)
+    issued_by = models.CharField(max_length=255,null=True, blank=True)
+    issue_date = models.DateField(null=True, blank=True)
+    expiry_date = models.DateField(null=True, blank=True)
+    document = models.FileField(upload_to='accreditation_documents/', null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.clinic.clinic_name}"
+
+# clinic medical facility
+class ClinicMedicalFacility(models.Model):
+    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='medical_facilities')
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.clinic.clinic_name}"
+    
+# clinic patient Amenities
+class ClinicPatientAmenity(models.Model):
+    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='patient_amenities')
+    patient_amenities = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.patient_amenities} - {self.clinic.clinic_name}"    
+
+# clinic working hours
+class ClinicWorkingHours(models.Model):
+    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='working_hours')
+    day_of_week = models.CharField(max_length=10, choices=[
+        ('Monday', 'Monday'),
+        ('Tuesday', 'Tuesday'),
+        ('Wednesday', 'Wednesday'),
+        ('Thursday', 'Thursday'),
+        ('Friday', 'Friday'),
+        ('Saturday', 'Saturday'),
+        ('Sunday', 'Sunday'),
+    ])
+    opening_time = models.TimeField()
+    closing_time = models.TimeField()
+
+    def __str__(self):
+        return f"{self.clinic.clinic_name} - {self.day_of_week}: {self.opening_time} to {self.closing_time}"
 
 # doctor model
 class Doctor(models.Model):

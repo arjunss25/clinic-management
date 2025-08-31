@@ -1,6 +1,7 @@
 from django.urls import path 
 from . views import *
 urlpatterns = [
+    path('dashboard-counts/', ClinicDashboardStatsCountAPIView.as_view(), name='dashboard-counts'),
     path('get-clinic-profile/', ClinicProfileAPIView.as_view(), name='get-clinic-profile'),
     path('register-doctor/', DoctorRegisterAPIView.as_view(), name='register-doctor'),
     path('list-clinic-specializations/', ClinicSpecialtiesListAPIView.as_view(), name='list-clinic-specializations'),
@@ -24,4 +25,20 @@ urlpatterns = [
     path("patients/get/<int:patient_id>/", PatientRegisterAPI.as_view(), name="patient-detail"),
 
     path("delete_users/<int:pk>/", UserDeleteAPI.as_view(), name="user-delete"),
+
+
+
+    # clinic profile section
+    # accreditation crud
+    path('add-accreditation/', ClinicAccreditationAPIView.as_view(), name='add-accreditation'),
+    path('list-accreditations/', ClinicAccreditationAPIView.as_view(), name='list-accreditations'),
+    path('delete-accreditation/<int:accreditation_id>/', ClinicAccreditationDeleteAPIView.as_view(), name='delete-accreditation'),
+    # medical facility crud
+    path('add-facility/', ClinicMedicalFacilityAPIView.as_view(), name='add-facility'),
+    path('list-facilities/', ClinicMedicalFacilityAPIView.as_view(), name='list-facilities'),
+    path('delete-facility/<int:facility_id>/', ClinicMedicalFacilitiesDeleteAPIView.as_view(), name='delete-facility'),
+    # patients amenity crud
+    path('add-patient-amenity/',ClinicPatientAmenitiesAPIView.as_view(),name='add-patient-amenity'),
+    path('list-patient-amenity/',ClinicPatientAmenitiesAPIView.as_view(),name='list-patient-amenity'),
+    path('delete-patient-amenity/<int:amenity_id>/',ClinicPatientAmenityDeleteAPIView.as_view(),name='delete-patient-amenity'),
 ]

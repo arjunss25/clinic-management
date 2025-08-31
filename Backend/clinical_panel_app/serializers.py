@@ -150,3 +150,42 @@ class AppointmentBookingSerializer(serializers.ModelSerializer):
         model = AppointmentBooking
         fields = '__all__'
         read_only_fields = ['id','created_at','doctor_name','patient_name']    
+
+
+
+# clinic profile serlaizers
+class ClinicProfileEditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Clinic
+        fields = [
+            "clinic_name", "license_number", "location",
+            "address", "phone", "specialties","about_clinic","website",
+        ]
+
+
+# accreditation serializer
+class ClinicAccreditationSerializer(serializers.ModelSerializer):
+    clinic_name = serializers.CharField(source='clinic.clinic_name', read_only=True)
+    class Meta:
+        model = ClinicAccreditation
+        fields = ["id","clinic_name","name", "issued_by", "issue_date", "expiry_date", "document"]
+        read_only_fields = ["id"]
+        extra_kwargs = {'document': {'required': False},'issued_by' :{'required':False} , 'issue_date' : {'required':False} , 'expiry_date':{'required':False}}  # Make document optional        
+
+
+# medical facility serializer
+class ClinicMedicalFacilitySerializer(serializers.ModelSerializer):
+    clinic_name = serializers.CharField(source='clinic.clinic_name', read_only=True)
+    class Meta:
+        model = ClinicMedicalFacility
+        fields = ["id","clinic_name","name","description"]
+        read_only_fields = ["id"]        
+
+
+# clinic patients amenties 
+class ClinicPatientsAmenitySerializer(serializers.ModelSerializer):
+    clinic_name = serializers.CharField(source='clinic.clinic_name', read_only=True)
+    class Meta:
+        model = ClinicPatientAmenity
+        fields = ["id","clinic_name","patient_amenities","description"]
+        read_only_fields = ["id"]  
