@@ -5,7 +5,15 @@ import DoctorLayout from '../layouts/DoctorLayout';
 import ClinicLayout from '../layouts/ClinicLayout';
 import SuperAdminLayout from '../layouts/SuperAdminLayout';
 import Login from '../panels/Auth/Login';
-import OtpVerification from '../panels/Auth/OtpVerification';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import { useAppSelector } from '../store/hooks';
+import { selectLoading } from '../store/slices/authSlice';
+import { 
+  SuperAdminRoute, 
+  ClinicRoute, 
+  DoctorRoute, 
+  PatientRoute 
+} from './ProtectedRoutes';
 
 // Patient Panel Imports
 import PatientDashboard from '../panels/Patient/Dashboard';
@@ -47,14 +55,27 @@ import ClinicView from '../panels/SuperAdmin/ClinicView';
 
 
 const AppRoutes = () => {
+  const loading = useAppSelector(selectLoading);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <LoadingSpinner size="xl" />
+      </div>
+    );
+  }
+
   return (
     <Routes>
       {/* Auth Routes */}
       <Route path="/login" element={<Login />} />
-      <Route path="/verify-otp" element={<OtpVerification />} />
 
       {/* Patient Routes */}
-      <Route path="/patient" element={<PatientLayout />}>
+      <Route path="/patient" element={
+        <PatientRoute>
+          <PatientLayout />
+        </PatientRoute>
+      }>
         <Route index element={<PatientDashboard />} />
         <Route path="appointments" element={<PatientAppointments />} />
         <Route
@@ -68,7 +89,11 @@ const AppRoutes = () => {
       </Route>
 
       {/* Doctor Routes */}
-      <Route path="/doctor" element={<DoctorLayout />}>
+      <Route path="/doctor" element={
+        <DoctorRoute>
+          <DoctorLayout />
+        </DoctorRoute>
+      }>
         <Route index element={<DoctorDashboard />} />
         <Route path="appointments" element={<DoctorAppointments />} />
         <Route path="appointments-history" element={<AppointmentHistory />} />
@@ -79,7 +104,11 @@ const AppRoutes = () => {
       </Route>
 
       {/* Clinic Routes */}
-      <Route path="/clinic" element={<ClinicLayout />}>
+      <Route path="/clinic" element={
+        <ClinicRoute>
+          <ClinicLayout />
+        </ClinicRoute>
+      }>
         <Route index element={<ClinicDashboard />} />
         <Route path="appointments" element={<ClinicAppointments />} />
         <Route
@@ -93,13 +122,16 @@ const AppRoutes = () => {
         <Route path="patients" element={<ClinicPatients />} />
         <Route path="doctors" element={<Doctors />} />
         <Route path="profile" element={<ClinicProfile />} />
-        // Example route setup
         <Route path="doctors/:doctorId" element={<DoctorProfile />} />
         <Route path="patients/:patientId" element={<ClinicPatientProfile />} />
       </Route>
 
       {/* SuperAdmin Routes */}
-      <Route path="/superadmin" element={<SuperAdminLayout />}>
+      <Route path="/superadmin" element={
+        <SuperAdminRoute>
+          <SuperAdminLayout />
+        </SuperAdminRoute>
+      }>
         <Route index element={<SuperAdminDashboard />} />
         <Route path="clinics" element={<SuperAdminClinics />} />
         <Route path="clinics/:clinicId" element={<ClinicView />} />
