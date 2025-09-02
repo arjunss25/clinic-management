@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404
 from superadmin_app.serializers import *
 from . serializers import *
 from superadmin_app.utils import *
+from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from .models import *
@@ -672,6 +673,35 @@ class AppointmentBookingAPI(APIView):
             return custom_201( "Appointment booked successfully", serializer.data )
         return custom_404(serializer.errors)
 
+
+# list all todays appointments of doctors in the clinic 
+class TodaysAppointmentFilterBySpecializationAPI(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, specialization):
+        if not specialization:
+            return custom_404("specialization query param is required")
+
+        # Find all doctors with given specialization
+        doctors = Doctor.objects.filter(specialization__iexact=specialization)
+
+        if not doctors.exists():
+            return custom_404(f"No doctors found for specialization '{specialization}'")
+
+        # Get today's date
+        today = timezone.now().date()
+
+        # Fetch today's appointments for those doctors
+        appointments = AppointmentBooking.objects.filter(
+            doctor__in=doctors,
+            appointment_date=today
+        ).order_by("appointment_date", "start_time")
+
+        if not appointments.exists():
+            return custom_404(f"No appointments found for specialization '{specialization}' today")
+
+        serializer = AppointmentBookingSerializer(appointments, many=True)
+        return custom_200("Today's appointments listed successfully", serializer.data)
 # list all appointments of doctors in the clinic
 class ClinicAppointmentsListAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -760,3 +790,321 @@ class ClinicDoctorsBySpecialtyAPIView(APIView):
 
         serializer = DoctorRegisterSerializer(doctors, many=True)
         return custom_200("Doctors fetched successfully", serializer.data)   
+    
+
+# total patients , todays appointments , todays appointments completed , total wiating list and total no shows appointments count for clinic dashboard
+class ClinicDashboardStatsCountAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can access this endpoint")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        # Total patients associated with this clinic's doctors
+        doctors = Doctor.objects.filter(clinic=clinic)
+        total_patients = Patient.objects.filter(appointments__doctor__in=doctors).distinct().count()
+
+        # Today's date
+        today = datetime.now().date()
+
+        # Today's appointments for this clinic's doctors
+        todays_appointments = AppointmentBooking.objects.filter(
+            doctor__in=doctors,
+            appointment_date=today
+        )
+
+        total_todays_appointments = todays_appointments.count()
+        total_completed_appointments = todays_appointments.filter(status="Completed").count()
+        total_waiting_list = AppointmentBooking.objects.filter(
+            doctor__in=doctors,
+            status="Waiting List"
+        ).count()
+        total_no_shows = AppointmentBooking.objects.filter(
+            doctor__in=doctors,
+            status="No-Show"
+        ).count()
+
+        stats = {
+            "total_patients": total_patients,
+            "total_todays_appointments": total_todays_appointments,
+            "total_completed_appointments": total_completed_appointments,
+            "total_waiting_list": total_waiting_list,
+            "total_no_shows": total_no_shows
+        }
+
+        return custom_200("Dashboard stats fetched successfully", stats)    
+    
+
+
+# clinic profile section api s
+class ClinicProfileEditAPIView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+        # ✅ Ensure only clinic users can edit their profile
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can edit clinic profile")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        serializer = ClinicProfileEditSerializer(clinic, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return custom_201("Clinic profile updated successfully", serializer.data)
+
+        return custom_404(serializer.errors)
+
+# add and list clinic accreditations
+class ClinicAccreditationAPIView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # ✅ Only Clinic users can list their accreditations
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can view accreditations")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        accreditations = clinic.accreditations.all()
+        serializer = ClinicAccreditationSerializer(accreditations, many=True)
+        return custom_201("Clinic accreditations fetched successfully", serializer.data)
+
+    def post(self, request):
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can add accreditations")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+        name = request.data.get("name")
+        if ClinicAccreditation.objects.filter(clinic=clinic, name__iexact=name).exists():
+         return custom_404(f"Accreditation with name '{name}' already exists for this clinic")
+        serializer = ClinicAccreditationSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(clinic=clinic)
+            return custom_201("Accreditation added successfully", serializer.data)
+        return custom_404(serializer.errors)
+
+
+# delete clinic accreditations
+class ClinicAccreditationDeleteAPIView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, accreditation_id):
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can delete accreditations")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        try:
+            accreditation = ClinicAccreditation.objects.get(id=accreditation_id, clinic=clinic)
+        except ClinicAccreditation.DoesNotExist:
+            return custom_404("Accreditation not found")
+
+        accreditation.delete()
+        return custom_201("Accreditation deleted successfully", None)
+
+
+# add list delete clinic medical patient facilities
+class ClinicMedicalFacilityAPIView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # ✅ Only Clinic users can list their facilities
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can view medical patient facilities")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        facilities = clinic.medical_facilities.all()
+        serializer = ClinicMedicalFacilitySerializer(facilities, many=True)
+        return custom_201("Medical facilities fetched successfully", serializer.data)
+
+    def post(self, request):
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can add medical patient facilities")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        name = request.data.get("name")
+        if ClinicMedicalFacility.objects.filter(clinic=clinic, name__iexact=name).exists():
+            return custom_404(f"Facility with name '{name}' already exists for this clinic")
+
+        serializer = ClinicMedicalFacilitySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(clinic=clinic)
+            return custom_201("Medical  facility added successfully", serializer.data)
+        return custom_404(serializer.errors)
+    
+
+
+
+# delete clinic accreditations
+class ClinicMedicalFacilitiesDeleteAPIView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, facility_id):
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can delete accreditations")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        try:
+            accreditation = ClinicMedicalFacility.objects.get(id=facility_id, clinic=clinic)
+        except ClinicMedicalFacility.DoesNotExist:
+            return custom_404("Facility not found")
+
+        accreditation.delete()
+        return custom_201("Facility deleted successfully", None)    
+    
+
+# add , list , delete patient amenities    
+class ClinicPatientAmenitiesAPIView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # ✅ Only Clinic users can list their facilities
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can view medical patient facilities")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        facilities = clinic.patient_amenities.all()
+        serializer = ClinicPatientsAmenitySerializer(facilities, many=True)
+        return custom_201("Medical facilities fetched successfully", serializer.data)
+
+    def post(self, request):
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can add medical patient facilities")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        patient_amenities = request.data.get("patient_amenities")
+        if ClinicPatientAmenity.objects.filter(clinic=clinic, patient_amenities__iexact=patient_amenities).exists():
+            return custom_404(f"Amenity with name '{patient_amenities}' already exists for this clinic")
+
+        serializer = ClinicPatientsAmenitySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(clinic=clinic)
+            return custom_201("Patient Amenity added successfully", serializer.data)
+        return custom_404(serializer.errors)
+    
+# delete clinic patient amenity
+class ClinicPatientAmenityDeleteAPIView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, amenity_id):
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can delete accreditations")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        try:
+            amenity = ClinicPatientAmenity.objects.get(id=amenity_id, clinic=clinic)
+        except ClinicPatientAmenity.DoesNotExist:
+            return custom_404("Amenity not found")
+
+        amenity.delete()
+        return custom_201("Amenity deleted successfully", None) 
+
+
+# working hours add , list , update , delete
+class ClinicWorkingHoursAPIView(APIView):
+    """
+    API for a logged-in clinic to GET and PATCH its working hours
+    """
+
+    def get(self, request):
+        """List working hours for the logged-in clinic"""
+        try:
+            clinic = request.user.clinic_profile  # because of OneToOneField in Clinic model
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic not found for this user")
+
+        hours = clinic.working_hours.all()
+        serializer = ClinicWorkingHoursSerializer(hours, many=True)
+        return custom_200("Working hours listed successfully", serializer.data)
+
+    def patch(self, request):
+        """
+        Add or update working hours for multiple days (for the logged-in clinic).
+        Payload: {
+            "working_hours": [
+                {"day_of_week": "Monday", "opening_time": "08:00", "closing_time": "20:00", "is_available": true},
+                {"day_of_week": "Sunday", "is_available": false}
+            ]
+        }
+        """
+        try:
+            clinic = request.user.clinic_profile
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic not found for this user")
+
+        data = request.data.get("working_hours", [])
+        response_data = []
+
+        for wh in data:
+            day = wh.get("day_of_week")
+            opening = wh.get("opening_time")
+            closing = wh.get("closing_time")
+            available = wh.get("is_available", True)
+
+            obj, created = ClinicWorkingHours.objects.update_or_create(
+                clinic=clinic,
+                day_of_week=day,
+                defaults={
+                    "opening_time": opening if available else None,
+                    "closing_time": closing if available else None,
+                    "is_available": available
+                }
+            )
+            response_data.append({
+                "day_of_week": obj.day_of_week,
+                "opening_time": obj.opening_time,
+                "closing_time": obj.closing_time,
+                "is_available": obj.is_available,
+                "created": created
+            })
+
+        return custom_201("Working hours created or updated successfully", response_data)
