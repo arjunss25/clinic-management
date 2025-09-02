@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from superadmin_app.serializers import *
 from . serializers import *
 from superadmin_app.utils import *
+from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from datetime import datetime, timedelta
@@ -562,6 +563,35 @@ class AppointmentBookingAPI(APIView):
             return custom_201( "Appointment booked successfully", serializer.data )
         return custom_404(serializer.errors)
 
+
+# list all todays appointments of doctors in the clinic 
+class TodaysAppointmentFilterBySpecializationAPI(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, specialization):
+        if not specialization:
+            return custom_404("specialization query param is required")
+
+        # Find all doctors with given specialization
+        doctors = Doctor.objects.filter(specialization__iexact=specialization)
+
+        if not doctors.exists():
+            return custom_404(f"No doctors found for specialization '{specialization}'")
+
+        # Get today's date
+        today = timezone.now().date()
+
+        # Fetch today's appointments for those doctors
+        appointments = AppointmentBooking.objects.filter(
+            doctor__in=doctors,
+            appointment_date=today
+        ).order_by("appointment_date", "start_time")
+
+        if not appointments.exists():
+            return custom_404(f"No appointments found for specialization '{specialization}' today")
+
+        serializer = AppointmentBookingSerializer(appointments, many=True)
+        return custom_200("Today's appointments listed successfully", serializer.data)
 # list all appointments of doctors in the clinic
 class ClinicAppointmentsListAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -907,3 +937,64 @@ class ClinicPatientAmenityDeleteAPIView(APIView):
 
         amenity.delete()
         return custom_201("Amenity deleted successfully", None) 
+
+
+# working hours add , list , update , delete
+class ClinicWorkingHoursAPIView(APIView):
+    """
+    API for a logged-in clinic to GET and PATCH its working hours
+    """
+
+    def get(self, request):
+        """List working hours for the logged-in clinic"""
+        try:
+            clinic = request.user.clinic_profile  # because of OneToOneField in Clinic model
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic not found for this user")
+
+        hours = clinic.working_hours.all()
+        serializer = ClinicWorkingHoursSerializer(hours, many=True)
+        return custom_200("Working hours listed successfully", serializer.data)
+
+    def patch(self, request):
+        """
+        Add or update working hours for multiple days (for the logged-in clinic).
+        Payload: {
+            "working_hours": [
+                {"day_of_week": "Monday", "opening_time": "08:00", "closing_time": "20:00", "is_available": true},
+                {"day_of_week": "Sunday", "is_available": false}
+            ]
+        }
+        """
+        try:
+            clinic = request.user.clinic_profile
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic not found for this user")
+
+        data = request.data.get("working_hours", [])
+        response_data = []
+
+        for wh in data:
+            day = wh.get("day_of_week")
+            opening = wh.get("opening_time")
+            closing = wh.get("closing_time")
+            available = wh.get("is_available", True)
+
+            obj, created = ClinicWorkingHours.objects.update_or_create(
+                clinic=clinic,
+                day_of_week=day,
+                defaults={
+                    "opening_time": opening if available else None,
+                    "closing_time": closing if available else None,
+                    "is_available": available
+                }
+            )
+            response_data.append({
+                "day_of_week": obj.day_of_week,
+                "opening_time": obj.opening_time,
+                "closing_time": obj.closing_time,
+                "is_available": obj.is_available,
+                "created": created
+            })
+
+        return custom_201("Working hours created or updated successfully", response_data)

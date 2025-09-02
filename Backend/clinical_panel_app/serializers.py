@@ -17,7 +17,7 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
         fields = [
             "id","doctor_name", "specialization", "phone", "email",
             "bio", "profile_picture", "experince_years",
-            "education", "additional_qualification","created_at"
+            "education", "additional_qualification","appointment_amount","created_at"
         ]
         read_only_fields = ["id", "created_at"]
 
@@ -189,3 +189,14 @@ class ClinicPatientsAmenitySerializer(serializers.ModelSerializer):
         model = ClinicPatientAmenity
         fields = ["id","clinic_name","patient_amenities","description"]
         read_only_fields = ["id"]  
+
+
+# working hours serializer
+class ClinicWorkingHoursSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClinicWorkingHours
+        fields = ['id', 'clinic', 'day_of_week', 'opening_time', 'closing_time', 'is_available']
+        extra_kwargs = {
+            'clinic': {'read_only': True}
+        }
+        read_only_fields = ['id']

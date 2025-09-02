@@ -103,6 +103,7 @@ class ClinicWorkingHours(models.Model):
     ])
     opening_time = models.TimeField()
     closing_time = models.TimeField()
+    is_available = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.clinic.clinic_name} - {self.day_of_week}: {self.opening_time} to {self.closing_time}"

@@ -17,6 +17,7 @@ urlpatterns = [
     path('appointment-booking/', AppointmentBookingAPI.as_view(), name='appointment-booking'),
     path('list-all-appointments-clinic/', ClinicAppointmentsListAPIView.as_view(), name='list-all-appointments-clinic'),
     path('list-appointments-by-specialization/<str:specialization>/', AppointmentFilterBySpecializationAPI.as_view(), name='list-appointments-by-specialization'),
+    path('list-todays-appointments/<str:specialization>/', TodaysAppointmentFilterBySpecializationAPI.as_view(), name='list-todays-appointments'),
 
 
       # patient section
@@ -29,6 +30,7 @@ urlpatterns = [
 
 
     # clinic profile section
+    path('update-clinic-profile/', ClinicProfileEditAPIView.as_view(), name='update-clinic-profile'),
     # accreditation crud
     path('add-accreditation/', ClinicAccreditationAPIView.as_view(), name='add-accreditation'),
     path('list-accreditations/', ClinicAccreditationAPIView.as_view(), name='list-accreditations'),
@@ -41,4 +43,8 @@ urlpatterns = [
     path('add-patient-amenity/',ClinicPatientAmenitiesAPIView.as_view(),name='add-patient-amenity'),
     path('list-patient-amenity/',ClinicPatientAmenitiesAPIView.as_view(),name='list-patient-amenity'),
     path('delete-patient-amenity/<int:amenity_id>/',ClinicPatientAmenityDeleteAPIView.as_view(),name='delete-patient-amenity'),
+
+    # working hours crud
+    path('clinic-working-hours/', ClinicWorkingHoursAPIView.as_view(), name='clinic-working-hours'),
+    path('list-clinic-working-hours/', ClinicWorkingHoursAPIView.as_view(), name='list-clinic-working-hours'),
 ]
