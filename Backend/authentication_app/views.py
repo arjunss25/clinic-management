@@ -99,7 +99,7 @@ class OTPVerifyAPIView(APIView):
                     key="access_token",
                     value=access_token,
                     httponly=True,   # JS cannot read
-                    secure=True,     # only over HTTPS
+                    secure=False,     # only over HTTPS
                     samesite="Lax",
                     max_age=60 * 5   # 5 min (match access expiry)
                 )
@@ -107,7 +107,7 @@ class OTPVerifyAPIView(APIView):
                     key="refresh_token",
                     value=refresh_token,
                     httponly=True,
-                    secure=True,
+                    secure=False,
                     samesite="Lax",
                     max_age=60 * 60 * 24 * 7   # 7 days
                 )
@@ -140,7 +140,7 @@ class RefreshAccessTokenAPIView(APIView):
                 key="access_token",
                 value=new_access,
                 httponly=True,
-                secure=True,
+                secure=False,
                 samesite="Lax",
                 max_age=60 * 5  # 5 min expiry
             )
