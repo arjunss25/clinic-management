@@ -107,7 +107,7 @@ class OTPVerifyAPIView(APIView):
                     key="refresh_token",
                     value=refresh_token,
                     httponly=True,
-                    secure=True,
+                    secure=False, # Set to True in production with HTTPS
                     samesite="Lax",
                     max_age=60 * 60 * 24 * 7   # 7 days
                 )
@@ -140,7 +140,7 @@ class RefreshAccessTokenAPIView(APIView):
                 key="access_token",
                 value=new_access,
                 httponly=True,
-                secure=True,
+                secure=False, # Set to True in production with HTTPS
                 samesite="Lax",
                 max_age=60 * 5  # 5 min expiry
             )
