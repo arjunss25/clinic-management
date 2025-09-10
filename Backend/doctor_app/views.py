@@ -110,3 +110,82 @@ class DoctorAppointmentsByDateAPIView(APIView):
             return custom_200(f"Appointments for {date} retrieved successfully.", serializer.data)
         except Exception as e:
             return custom_404(str(e))    
+        
+
+# list all patients of logged in doctor
+class DoctorPatientsListAPIView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = request.user
+            if user.role != "Doctor":
+                return custom_404("You are not authorized to view these patients.")
+
+            doctor = get_object_or_404(Doctor, user=user)
+            appointments = AppointmentBooking.objects.filter(doctor=doctor).select_related('patient').distinct('patient')
+            patients = [appointment.patient for appointment in appointments]
+            serializer = PatientRegisterSerializer(patients, many=True)
+            return custom_200("Patients retrieved successfully.", serializer.data)
+        except Exception as e:
+            return custom_404(str(e))        
+        
+
+# patient search by name or email or phone number
+class DoctorPatientSearchAPIView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = request.user
+            if user.role != "Doctor":
+                return custom_404("You are not authorized to search patients.")
+
+            doctor = get_object_or_404(Doctor, user=user)
+            query = request.query_params.get('query', '')
+
+            appointments = AppointmentBooking.objects.filter(
+                doctor=doctor,
+                patient__isnull=False
+            ).select_related('patient').distinct('patient')
+
+            patients = [appointment.patient for appointment in appointments]
+
+            filtered_patients = [
+                patient for patient in patients
+                if query.lower() in patient.full_name.lower() or
+                   query.lower() in patient.user.email.lower() or
+                   query in patient.phone_number
+            ]
+
+            serializer = PatientRegisterSerializer(filtered_patients, many=True)
+            return custom_200("Search results retrieved successfully.", serializer.data)
+        except Exception as e:
+            return custom_404(str(e))        
+        
+
+# consultation with prescription and medications
+class ConsultationCreateAPIView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        serializer = ConsultationSerializer(data=request.data)
+        if serializer.is_valid():
+            consultation = serializer.save()
+            return custom_201("Consultation with prescription and medications created successfully", ConsultationSerializer(consultation).data
+             )
+        return custom_404(serializer.errors)        
+    
+# follow-up appointment creation
+class FollowUpAppointmentAPIView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        serializer = FollowUpAppointmentSerializer(data=request.data)
+        if serializer.is_valid():
+            follow_up = serializer.save()
+            return custom_201("Follow-up appointment created successfully", FollowUpAppointmentSerializer(follow_up).data
+              )
+        return custom_404(serializer.errors)    

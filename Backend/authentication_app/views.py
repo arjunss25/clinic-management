@@ -99,7 +99,7 @@ class OTPVerifyAPIView(APIView):
                     key="access_token",
                     value=access_token,
                     httponly=True,   # JS cannot read
-                    secure=True,     # only over HTTPS
+                    secure=False,     # only over HTTPS
                     samesite="Lax",
                     max_age=60 * 5   # 5 min (match access expiry)
                 )
