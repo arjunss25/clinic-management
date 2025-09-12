@@ -124,10 +124,10 @@ class OTPVerifyAPIView(APIView):
 # refresh token view
 class RefreshAccessTokenAPIView(APIView):
     def post(self, request):
-        refresh_token = request.COOKIES.get("refresh_token")
+        refresh_token = request.data.get("refresh_token")
 
         if not refresh_token:
-            return custom_404("Refresh token missing")
+            return Response({"error": "Refresh token missing"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             refresh = RefreshToken(refresh_token)
@@ -135,17 +135,48 @@ class RefreshAccessTokenAPIView(APIView):
             # ✅ Generate new access token
             new_access = str(refresh.access_token)
 
-            response = custom_200("Access token refreshed")
-            response.set_cookie(
-                key="access_token",
-                value=new_access,
-                httponly=True,
-                secure=False, # Set to True in production with HTTPS
-                samesite="Lax",
-                max_age=60 * 5  # 5 min expiry
+            # ✅ Extract user details from token
+            user_id = refresh.get("user_id")
+            role = refresh.get("role")
+
+            # (Optional) double-check that user still exists
+            user = get_object_or_404(ProfileUser, id=user_id)
+
+            return custom_200("Access token refreshed successfully",{
+                    "access_token": new_access,
+                    "refresh_token": str(refresh),
+                    "user_id": user.id,
+                    "role": user.role,
+                    "email": user.email,
+                }
             )
-            return response
 
         except TokenError:
-            return Response({"error": "Invalid or expired refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
+            return custom_404("Invalid or expired refresh token" )
+# class RefreshAccessTokenAPIView(APIView):
+#     def post(self, request):
+#         refresh_token = request.COOKIES.get("refresh_token")
+
+#         if not refresh_token:
+#             return custom_404("Refresh token missing")
+
+#         try:
+#             refresh = RefreshToken(refresh_token)
+
+#             # ✅ Generate new access token
+#             new_access = str(refresh.access_token)
+
+#             response = custom_200("Access token refreshed")
+#             response.set_cookie(
+#                 key="access_token",
+#                 value=new_access,
+#                 httponly=True,
+#                 secure=False, # Set to True in production with HTTPS
+#                 samesite="Lax",
+#                 max_age=60 * 5  # 5 min expiry
+#             )
+#             return response
+
+#         except TokenError:
+#             return Response({"error": "Invalid or expired refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
     
