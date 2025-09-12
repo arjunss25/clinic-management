@@ -4,6 +4,7 @@ import { FcGoogle } from "react-icons/fc";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { login, verifyOtp, selectUser, selectLoginLoading, selectOtpLoading, selectError } from '../../store/slices/authSlice';
+import CookieDebugger from '../../components/common/CookieDebugger';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -210,7 +211,7 @@ const Login = () => {
                 </div>
               </div>
               
-              <style jsx>{`
+              <style>{`
                 @keyframes growWidth {
                   from { transform: scaleX(0.5); }
                   to { transform: scaleX(1); }
@@ -286,7 +287,13 @@ const Login = () => {
 
             {error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-600 text-sm">{error}</p>
+                <p className="text-red-600 text-sm">
+                  {typeof error === 'string' ? error : 
+                   typeof error === 'object' && error.message ? error.message :
+                   typeof error === 'object' && error.non_field_errors ? 
+                     (Array.isArray(error.non_field_errors) ? error.non_field_errors.join(', ') : error.non_field_errors) :
+                   'An error occurred. Please try again.'}
+                </p>
               </div>
             )}
             
@@ -383,6 +390,11 @@ const Login = () => {
         </div>
       </div>
 
+      {/* Cookie Debugger - Temporary for debugging */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <CookieDebugger />
+      </div>
+
       {/* OTP Verification Modal */}
       {showOtpModal && (
         <div
@@ -454,7 +466,13 @@ const Login = () => {
             >
               {otpError && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-600 text-sm">{otpError}</p>
+                  <p className="text-red-600 text-sm">
+                    {typeof otpError === 'string' ? otpError : 
+                     typeof otpError === 'object' && otpError.message ? otpError.message :
+                     typeof otpError === 'object' && otpError.non_field_errors ? 
+                       (Array.isArray(otpError.non_field_errors) ? otpError.non_field_errors.join(', ') : otpError.non_field_errors) :
+                     'OTP verification failed. Please try again.'}
+                  </p>
                 </div>
               )}
 

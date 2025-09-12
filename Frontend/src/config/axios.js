@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { removeTokens } from '../services/tokenService';
+import AuthFallback from '../services/authFallback';
 import { ENDPOINTS } from './endpoints';
 
 // Create axios instance
@@ -28,10 +29,16 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// Request interceptor - no need to manually add Authorization header since cookies are sent automatically
+// Request interceptor - add Authorization header as fallback if cookies don't work
 api.interceptors.request.use(
   (config) => {
-    // Cookies are automatically sent with requests when withCredentials is true
+    // Try to get access token from localStorage as fallback
+    const { accessToken } = AuthFallback.getTokens();
+    
+    if (accessToken && !config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+    
     return config;
   },
   (error) => Promise.reject(error)
@@ -60,17 +67,73 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Call refresh token endpoint
-        const response = await api.post(ENDPOINTS.AUTH.REFRESH);
+        console.log('🔄 401 detected, attempting token refresh...');
+        
+        // Try axios first, then fallback to fetch
+        let response;
+        try {
+          // Call refresh token endpoint - HTTP-only cookies are automatically sent
+          response = await api.post(ENDPOINTS.AUTH.REFRESH, {}, {
+            withCredentials: true
+          });
+          console.log('✅ Token refresh successful (axios), retrying original request');
+        } catch (axiosError) {
+          console.warn('⚠️ Axios refresh failed in interceptor, trying fetch fallback:', axiosError.message);
+          
+          // Fallback to fetch (like Postman)
+          const fetchResponse = await fetch(ENDPOINTS.AUTH.REFRESH, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json, text/plain, */*',
+            },
+            body: JSON.stringify({})
+          });
+          
+          if (!fetchResponse.ok) {
+            throw new Error(`Fetch refresh failed: ${fetchResponse.status} ${fetchResponse.statusText}`);
+          }
+          
+          const fetchData = await fetchResponse.json();
+          console.log('✅ Token refresh successful (fetch), retrying original request');
+          
+          response = {
+            data: fetchData,
+            status: fetchResponse.status
+          };
+        }
+        
+        console.log('🍪 New cookies after refresh:', document.cookie);
         
         // If refresh successful, retry the original request
         processQueue(null, response.data);
         return api(originalRequest);
+        
       } catch (refreshError) {
-        // If refresh fails, clear tokens and redirect to login
-        processQueue(refreshError, null);
-        removeTokens();
-        window.location.href = '/login';
+        console.error('❌ Token refresh failed in interceptor:', refreshError);
+        
+        // Handle refresh failures
+        if (refreshError.response?.status === 401 || 
+            refreshError.response?.data?.message?.includes('Refresh token missing')) {
+          
+          console.log('🔒 Refresh token expired/missing, redirecting to login');
+          processQueue(refreshError, null);
+          
+          // Clear any local storage
+          localStorage.removeItem('clinic_access_token');
+          sessionStorage.removeItem('clinic_refresh_token');
+          AuthFallback.clearTokens();
+          
+          // Only redirect if not already on login page
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+        } else {
+          // For other errors, just reject the request
+          processQueue(refreshError, null);
+        }
+        
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
