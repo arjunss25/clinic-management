@@ -8,7 +8,8 @@ from .serializers import *
 from rest_framework.permissions import IsAuthenticated
 # Create your views here.
 
-# clinical registration by superadmin
+
+#clinical registration by superadmin
 class ClinicRegisterAPIView(APIView):
     permission_classes = [IsAuthenticated]  
 
@@ -34,4 +35,3 @@ class ClinicRegisterAPIView(APIView):
             })
 
         return custom_404(serializer.errors)
-
