@@ -28,40 +28,6 @@ class LoginAPIView(APIView):
         return custom_404(serializer.errors)
 
 
-# class OTPVerifyAPIView(APIView):
-#     def post(self, request):
-#         serializer = OTPVerifySerializer(data=request.data)
-#         if serializer.is_valid():
-#             email = serializer.validated_data["email"]
-#             otp = serializer.validated_data["otp"]
-
-#             user = get_object_or_404(ProfileUser, email=email)
-
-#             if not user.otp_secret:
-#                 return custom_404("OTP not generated")
-
-#             totp = pyotp.TOTP(user.otp_secret, interval=600)  # 10 min
-#             if totp.verify(otp):
-#                 user.is_active = True
-#                 user.save()
-
-#                 refresh = RefreshToken.for_user(user)
-#                 refresh["user_id"] = user.id
-#                 refresh["role"] = user.role
-#                 return custom_200("OTP verified successfully", {
-                   
-#                     "access": str(refresh.access_token),
-#                     "refresh": str(refresh),
-#                     "role": user.role,
-#                     "user_id": user.id,
-#                     "email": user.email
-#                 })
-#             else:
-#                 return custom_404("Invalid or expired OTP")
-
-#         return custom_404(serializer.errors)
-
-
 class OTPVerifyAPIView(APIView):
     def post(self, request):
         serializer = OTPVerifySerializer(data=request.data)
@@ -76,48 +42,82 @@ class OTPVerifyAPIView(APIView):
 
             totp = pyotp.TOTP(user.otp_secret, interval=600)  # 10 min
             if totp.verify(otp):
-                user.is_verified = True
+                user.is_active = True
                 user.save()
 
-                # ✅ Generate tokens with extra claims
                 refresh = RefreshToken.for_user(user)
                 refresh["user_id"] = user.id
                 refresh["role"] = user.role
-                refresh["email"] = user.email
-
-                access_token = str(refresh.access_token)
-                refresh_token = str(refresh)
-
-                response = custom_200("OTP verified successfully", {
+                return custom_200("OTP verified successfully", {
+                   
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
                     "role": user.role,
                     "user_id": user.id,
                     "email": user.email
                 })
-
-                # ✅ Store tokens in HttpOnly cookies
-                response.set_cookie(
-                    key="access_token",
-                    value=access_token,
-                    httponly=True,   # JS cannot read
-                    secure=False,     # only over HTTPS
-                    samesite="Lax",
-                    max_age=60 * 5   # 5 min (match access expiry)
-                )
-                response.set_cookie(
-                    key="refresh_token",
-                    value=refresh_token,
-                    httponly=True,
-                    secure=False, # Set to True in production with HTTPS
-                    samesite="Lax",
-                    max_age=60 * 60 * 24 * 7   # 7 days
-                )
-
-                return response
-
             else:
                 return custom_404("Invalid or expired OTP")
 
         return custom_404(serializer.errors)
+
+
+# class OTPVerifyAPIView(APIView):
+#     def post(self, request):
+#         serializer = OTPVerifySerializer(data=request.data)
+#         if serializer.is_valid():
+#             email = serializer.validated_data["email"]
+#             otp = serializer.validated_data["otp"]
+
+#             user = get_object_or_404(ProfileUser, email=email)
+
+#             if not user.otp_secret:
+#                 return custom_404("OTP not generated")
+
+#             totp = pyotp.TOTP(user.otp_secret, interval=600)  # 10 min
+#             if totp.verify(otp):
+#                 user.is_verified = True
+#                 user.save()
+
+#                 # ✅ Generate tokens with extra claims
+#                 refresh = RefreshToken.for_user(user)
+#                 refresh["user_id"] = user.id
+#                 refresh["role"] = user.role
+#                 refresh["email"] = user.email
+
+#                 access_token = str(refresh.access_token)
+#                 refresh_token = str(refresh)
+
+#                 response = custom_200("OTP verified successfully", {
+#                     "role": user.role,
+#                     "user_id": user.id,
+#                     "email": user.email
+#                 })
+
+#                 # ✅ Store tokens in HttpOnly cookies
+#                 response.set_cookie(
+#                     key="access_token",
+#                     value=access_token,
+#                     httponly=True,   # JS cannot read
+#                     secure=False,     # only over HTTPS
+#                     samesite="Lax",
+#                     max_age=60 * 5   # 5 min (match access expiry)
+#                 )
+#                 response.set_cookie(
+#                     key="refresh_token",
+#                     value=refresh_token,
+#                     httponly=True,
+#                     secure=False, # Set to True in production with HTTPS
+#                     samesite="Lax",
+#                     max_age=60 * 60 * 24 * 7   # 7 days
+#                 )
+
+#                 return response
+
+#             else:
+#                 return custom_404("Invalid or expired OTP")
+
+#         return custom_404(serializer.errors)
     
 
 

@@ -73,8 +73,7 @@ class ConsultationSerializer(serializers.ModelSerializer):
 
         return consultation
 
-
-# follow up appointment serializer
+# follow-up appointment serializer
 class FollowUpAppointmentSerializer(serializers.ModelSerializer):
     original_appointment_id = serializers.IntegerField(write_only=True)
 
@@ -92,12 +91,15 @@ class FollowUpAppointmentSerializer(serializers.ModelSerializer):
         try:
             original_appointment = AppointmentBooking.objects.get(id=original_appointment_id)
         except AppointmentBooking.DoesNotExist:
-            raise serializers.ValidationError({"original_appointment_id": "Appointment not found."})
+            raise serializers.ValidationError(
+                {"original_appointment_id": "Appointment not found."}
+            )
 
         follow_up = AppointmentBooking.objects.create(
             patient=original_appointment.patient,
             doctor=original_appointment.doctor,
             status="Follow-up",
+            parent_appointment=original_appointment,   # 👈 link to parent
             **validated_data
         )
         return follow_up

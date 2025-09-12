@@ -1,5 +1,9 @@
 from django.urls import path 
-
+from . views import *
 urlpatterns = [
+    path('get-patient-profile/', PatientProfileAPIView.as_view(), name='get-patient-profile'),
+    path('list-patient-appointments/', PatientAppointmentsListAPIView.as_view(), name='list-patient-appointments'),
+    path('patient-appointments-by-date/<str:date>/', PatientAppointmentsByDateAPIView.as_view(), name='patient-appointments-by-date'),
+    path('patient-appointment-details/<int:appointment_id>/', PatientAppointmentDetailAPIView.as_view(), name='patient-appointment-details'),
     
 ]

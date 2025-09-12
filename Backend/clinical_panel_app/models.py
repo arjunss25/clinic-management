@@ -54,6 +54,13 @@ class AppointmentBooking(models.Model):
     reason_for_cancellation = models.TextField(blank=True, null=True)
     follow_up_notes = models.TextField(blank=True, null=True)
     follow_up_priority = models.CharField(max_length=50, choices=[("Routine", "Routine"), ("Urgent", "Urgent"), ("ASAP", "ASAP")], blank=True, null=True)
+    parent_appointment = models.ForeignKey(
+        "self", 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name="follow_ups"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

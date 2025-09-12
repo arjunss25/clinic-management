@@ -174,10 +174,15 @@ class ConsultationCreateAPIView(APIView):
         serializer = ConsultationSerializer(data=request.data)
         if serializer.is_valid():
             consultation = serializer.save()
+            # ✅ Update appointment status to Completed
+            if consultation.appointment:  
+                consultation.appointment.status = "Completed"
+                consultation.appointment.save()
             return custom_201("Consultation with prescription and medications created successfully", ConsultationSerializer(consultation).data
              )
         return custom_404(serializer.errors)        
     
+
 # follow-up appointment creation
 class FollowUpAppointmentAPIView(APIView):
     authentication_classes = [CookieJWTAuthentication]
@@ -189,3 +194,36 @@ class FollowUpAppointmentAPIView(APIView):
             return custom_201("Follow-up appointment created successfully", FollowUpAppointmentSerializer(follow_up).data
               )
         return custom_404(serializer.errors)    
+    
+    
+#count of total patients of logged in doctor, today's appointments, todays completed appointments,waiting list appointments, today's no-show appointments
+class DoctorDashboardStatsAPIView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = request.user
+            if user.role != "Doctor":
+                return custom_404("You are not authorized to view these stats.")
+
+            doctor = get_object_or_404(Doctor, user=user)
+            today = timezone.now().date()
+
+            total_patients = AppointmentBooking.objects.filter(doctor=doctor).values('patient').distinct().count()
+            todays_appointments = AppointmentBooking.objects.filter(doctor=doctor, appointment_date=today).count()
+            todays_completed_appointments = AppointmentBooking.objects.filter(doctor=doctor, appointment_date=today, status="Completed").count()
+            waiting_list_appointments = AppointmentBooking.objects.filter(doctor=doctor, appointment_date=today, status="Waiting List").count()
+            todays_no_show_appointments = AppointmentBooking.objects.filter(doctor=doctor, appointment_date=today, status="No-Show").count()
+
+            data = {
+                "total_patients": total_patients,
+                "todays_appointments": todays_appointments,
+                "todays_completed_appointments": todays_completed_appointments,
+                "waiting_list_appointments": waiting_list_appointments,
+                "todays_no_show_appointments": todays_no_show_appointments
+            }
+
+            return custom_200("Dashboard stats retrieved successfully.", data)
+        except Exception as e:
+            return custom_404(str(e))
