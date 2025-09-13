@@ -9,3 +9,5 @@ clinical_panel_app/migrations
 authentication_app/migrations
 doctor_app/migrations
 patient_app/migrations
+virtual_env
+db.sqlite3

@@ -19,9 +19,7 @@ class ProfileUser(AbstractUser):
     is_verified = models.BooleanField(default=False)
     USERNAME_FIELD = 'email'  # Important
     REQUIRED_FIELDS = []  # Since email is the only required field
-
     objects = CustomUserManager()
-
 
     def get_full_name(self):
         """
@@ -36,7 +34,6 @@ class ProfileUser(AbstractUser):
 # clinic model
 class Specialty(models.Model):
     name = models.CharField(max_length=100, unique=True)
-
     def __str__(self):
         return self.name
 

@@ -1,3 +1,4 @@
+from pyexpat import expat_CAPI
 from django.shortcuts import render
 from superadmin_app.models import *
 from rest_framework.views import APIView
@@ -12,10 +13,119 @@ from superadmin_app.utils import *
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
+from .models import *
 from datetime import datetime, timedelta
 import calendar
 from authentication_app.authentication import CookieJWTAuthentication
 # Create your views here.
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.core.mail import send_mail
+from django.conf import settings
+from superadmin_app.models import Patient, ProfileUser
+from .serializers import PatientRegisterSerializer
+from .utils import generate_random_password
+from django.shortcuts import get_object_or_404
+
+
+class PatientRegisterAPI(APIView):
+    def get(self, request, patient_id, *args, **kwargs):
+        """Fetch a patient's details by ID"""
+        try:
+            patient = Patient.objects.get(id=patient_id)
+        except Patient.DoesNotExist:
+            return custom_404("Patient not found")
+
+        serializer = PatientRegisterSerializer(patient)
+        return custom_200('Here is the patient details',serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        serializer = PatientRegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            # Generate random password
+            password = generate_random_password()
+
+            # Create user (ProfileUser)
+            email = serializer.validated_data['email']
+            user = ProfileUser.objects.create_user(
+                email=email,
+                password=password,
+                role='Patient',
+                phone=serializer.validated_data.get("phone_number", "")
+            )
+
+            # Create patient profile
+            patient = Patient.objects.create(
+                user=user,
+                full_name=serializer.validated_data["full_name"],
+                age=serializer.validated_data["age"],
+                gender=serializer.validated_data["gender"],
+                phone_number=serializer.validated_data["phone_number"],
+                blood_group=serializer.validated_data["blood_group"],
+                emergency_contact_name=serializer.validated_data["emergency_contact_name"],
+                emergency_contact_phone=serializer.validated_data["emergency_contact_phone"],
+                address=serializer.validated_data["address"],
+                known_allergies=serializer.validated_data.get("known_allergies", "")
+            )
+
+            # Send email
+            subject = "Your Patient Profile has been created"
+            message = (
+                f"Hello {patient.full_name},\n\n"
+                f"Your patient account has been created successfully.\n\n"
+                f"Login Credentials:\n"
+                f"Username (Email): {user.email}\n"
+                f"Password: {password}\n\n"
+                f"Please log in and change your password after first login."
+            )
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
+
+            return  custom_200("Patient registered successfully, login credentials sent to email.")
+        return custom_404(serializer.errors)
+    
+    def patch(self, request, patient_id, *args, **kwargs):
+        
+        try:
+            patient = Patient.objects.get(id=patient_id)
+        except Patient.DoesNotExist:
+            return custom_404( "Patient not found")
+        serializer = PatientRegisterSerializer(patient, data=request.data, partial=True)
+        if serializer.is_valid():
+            # Update ProfileUser (if phone/email given)
+            if "phone_number" in serializer.validated_data:
+                patient.user.phone = serializer.validated_data["phone_number"]
+                patient.user.save()
+
+            if "email" in serializer.validated_data:
+                patient.user.email = serializer.validated_data["email"]
+                patient.user.save()
+
+            # Update Patient fields (only those provided)
+            for field, value in serializer.validated_data.items():
+                setattr(patient, field, value)
+            patient.save()
+
+            return custom_200('Patient profile updated successfully')
+        return custom_404(serializer.errors)
+
+
+class PatientUserDeleteAPI(APIView):
+    def delete(self, request, pk, *args, **kwargs):
+        print('----------',pk)
+        # find the user by primary key (id)
+        try:
+            user=get_object_or_404(ProfileUser, pk=pk)   
+            user.delete()
+            return custom_200('User and related profile deleted successfully.')
+        except:
+            return custom_404('This patient profile not found.')
 
 
 
@@ -87,6 +197,7 @@ class ClinicDoctorsListAPIView(APIView):
         serializer = DoctorRegisterSerializer(doctors, many=True)
         return custom_200("Doctors fetched successfully", serializer.data)    
     
+
 
 # search doctors by name or specialization
 class DoctorSearchAPIView(APIView):
@@ -210,7 +321,7 @@ class DoctorAvailabilityListAPIView(APIView):
     def get(self, request, doctor_id=None, date=None):
         user = request.user
 
-        # ✅ validate date
+       
         if not date:
             return custom_404("date is required (format: YYYY-MM-DD)")
 
@@ -219,14 +330,14 @@ class DoctorAvailabilityListAPIView(APIView):
         except ValueError:
             return custom_404("Invalid date format, expected YYYY-MM-DD")
 
-        # ✅ Case 1: Logged-in Doctor (no doctor_id required)
+        # Logged-in Doctor (no doctor_id required)
         if user.role == "Doctor" and doctor_id is None:
             try:
                 doctor = Doctor.objects.get(user=user)
             except Doctor.DoesNotExist:
                 return custom_404("Doctor profile not found")
 
-        # ✅ Case 2: Clinic or Patient providing doctor_id
+        #  Clinic or Patient providing doctor_id
         else:
             if not doctor_id:
                 return custom_404("doctor_id is required for this request")
@@ -235,10 +346,10 @@ class DoctorAvailabilityListAPIView(APIView):
             except Doctor.DoesNotExist:
                 return custom_404("Doctor not found")
 
-        # ✅ Get weekday name (e.g., "Monday")
+        
         day_of_week = calendar.day_name[selected_date.weekday()]
 
-        # ✅ Query doctor availability
+        #  Query doctor availability
         availabilities_qs = DoctorAvailability.objects.filter(
             doctor=doctor,
             start_date__lte=selected_date
@@ -246,7 +357,7 @@ class DoctorAvailabilityListAPIView(APIView):
             models.Q(end_date__isnull=True) | models.Q(end_date__gte=selected_date)
         )
 
-        # ✅ Filter by weekday in Python
+        #  Filter by weekday in Python
         availabilities = [
             a for a in availabilities_qs
             if day_of_week in a.day_of_week
@@ -261,23 +372,22 @@ class DoctorAvailabilityListAPIView(APIView):
             start_time = datetime.combine(selected_date, availability.start_time)
             end_time = datetime.combine(selected_date, availability.end_time)
 
-            # ✅ Parse slot_duration like "30 minutes" → 30
             try:
                 slot_minutes = int("".join([c for c in availability.slot_duration if c.isdigit()]))
                 duration = timedelta(minutes=slot_minutes)
             except (ValueError, TypeError):
                 return custom_404("Invalid slot_duration format, must contain integer minutes")
 
-            # ✅ Handle breaks
+           
             break_periods = []
             if availability.break_duration:
-                # If multiple breaks are stored, assume list, else single string
+             
                 breaks = availability.break_duration if isinstance(availability.break_duration, list) else [availability.break_duration]
 
                 for b in breaks:
                     try:
                         break_minutes = int("".join([c for c in str(b) if c.isdigit()]))
-                        # Example: take mid-shift break at the middle of availability window
+                       
                         mid_point = start_time + (end_time - start_time) / 2
                         break_start = mid_point
                         break_end = break_start + timedelta(minutes=break_minutes)
@@ -333,13 +443,13 @@ class DoctorSlotBlockUnblockAPIView(APIView):
         if not all([date, slot_start, slot_end]):
             return custom_404("date, slot_start, slot_end are required")
 
-        # Case 1: If Doctor is logged in → get their profile
+       
         if user.role == "Doctor":
             try:
                 doctor = Doctor.objects.get(user=user)
             except Doctor.DoesNotExist:
                 return custom_404("Doctor profile not found")
-        # Case 2: Clinic/Staff must provide doctor_id
+     
         else:
             if not doctor_id:
                 return custom_404("doctor_id is required for clinic/staff request")

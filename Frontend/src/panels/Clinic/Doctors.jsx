@@ -14,6 +14,7 @@ import {
   FaTimes,
   FaGraduationCap,
 } from 'react-icons/fa';
+import { doctorsAPI } from '../../services/apiService';
 
 // Theme colors (matching Appointments.jsx)
 const COLORS = {
@@ -141,54 +142,82 @@ const FILTER_OPTIONS = [
 
 // Initial form state
 const INITIAL_DOCTOR_STATE = {
-  name: '',
+  doctor_name: '',
   specialization: '',
-  qualification: '',
-  experience: '',
   phone: '',
   email: '',
-
-  licenseNumber: '',
-  address: '',
+  bio: '',
+  experince_years: '',
   education: '',
+  additional_qualification: {
+    fellowships: [],
+    certifications: []
+  }
 };
 
 // Custom hooks for form management
 const useDoctorForm = () => {
   const [newDoctor, setNewDoctor] = useState(INITIAL_DOCTOR_STATE);
-  const [qualifications, setQualifications] = useState([]);
-  const [newQualification, setNewQualification] = useState('');
+  const [fellowships, setFellowships] = useState([]);
+  const [certifications, setCertifications] = useState([]);
+  const [newFellowship, setNewFellowship] = useState('');
+  const [newCertification, setNewCertification] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
     setNewDoctor((prev) => ({ ...prev, [name]: value }));
   }, []);
 
-  const handleAddQualification = useCallback(() => {
-    if (newQualification.trim()) {
-      setQualifications((prev) => [...prev, newQualification.trim()]);
-      setNewQualification('');
+  const handleAddFellowship = useCallback(() => {
+    if (newFellowship.trim()) {
+      setFellowships((prev) => [...prev, newFellowship.trim()]);
+      setNewFellowship('');
     }
-  }, [newQualification]);
+  }, [newFellowship]);
 
-  const handleRemoveQualification = useCallback((index) => {
-    setQualifications((prev) => prev.filter((_, i) => i !== index));
+  const handleRemoveFellowship = useCallback((index) => {
+    setFellowships((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleAddCertification = useCallback(() => {
+    if (newCertification.trim()) {
+      setCertifications((prev) => [...prev, newCertification.trim()]);
+      setNewCertification('');
+    }
+  }, [newCertification]);
+
+  const handleRemoveCertification = useCallback((index) => {
+    setCertifications((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   const resetForm = useCallback(() => {
     setNewDoctor(INITIAL_DOCTOR_STATE);
-    setQualifications([]);
-    setNewQualification('');
+    setFellowships([]);
+    setCertifications([]);
+    setNewFellowship('');
+    setNewCertification('');
+    setError(null);
   }, []);
 
   return {
     newDoctor,
-    qualifications,
-    newQualification,
-    setNewQualification,
+    fellowships,
+    certifications,
+    newFellowship,
+    newCertification,
+    setNewFellowship,
+    setNewCertification,
+    isLoading,
+    setLoading: setIsLoading,
+    error,
+    setError,
     handleInputChange,
-    handleAddQualification,
-    handleRemoveQualification,
+    handleAddFellowship,
+    handleRemoveFellowship,
+    handleAddCertification,
+    handleRemoveCertification,
     resetForm,
   };
 };
@@ -343,37 +372,56 @@ const FormSelect = React.memo(
   )
 );
 
-const QualificationTag = React.memo(({ qualification, onRemove, index }) => (
-  <div
-    className="inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium shadow-sm"
-    style={{
+const QualificationTag = React.memo(({ qualification, onRemove, index, type = 'default' }) => {
+  const getTagStyle = () => {
+    if (type === 'fellowship') {
+      return {
+        background: `${COLORS.primary}10`,
+        color: COLORS.primary,
+        border: `1px solid ${COLORS.primary}30`,
+      };
+    } else if (type === 'certification') {
+      return {
+        background: `${COLORS.secondary}10`,
+        color: COLORS.secondary,
+        border: `1px solid ${COLORS.secondary}30`,
+      };
+    }
+    return {
       background: `${COLORS.primary}10`,
       color: COLORS.primary,
       border: `1px solid ${COLORS.primary}30`,
-    }}
-  >
-    <span>{qualification}</span>
-    <button
-      type="button"
-      onClick={() => onRemove(index)}
-      className="w-5 h-5 rounded-full flex items-center justify-center transition-all hover:scale-110"
-      style={{
-        background: COLORS.white,
-        color: COLORS.textMuted,
-      }}
-      onMouseEnter={(e) => {
-        e.target.style.background = '#EF4444';
-        e.target.style.color = COLORS.white;
-      }}
-      onMouseLeave={(e) => {
-        e.target.style.background = COLORS.white;
-        e.target.style.color = COLORS.textMuted;
-      }}
+    };
+  };
+
+  return (
+    <div
+      className="inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium shadow-sm"
+      style={getTagStyle()}
     >
-      <FaTimes className="w-2.5 h-2.5" />
-    </button>
-  </div>
-));
+      <span>{qualification}</span>
+      <button
+        type="button"
+        onClick={() => onRemove(index)}
+        className="w-5 h-5 rounded-full flex items-center justify-center transition-all hover:scale-110"
+        style={{
+          background: COLORS.white,
+          color: COLORS.textMuted,
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.background = '#EF4444';
+          e.target.style.color = COLORS.white;
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.background = COLORS.white;
+          e.target.style.color = COLORS.textMuted;
+        }}
+      >
+        <FaTimes className="w-2.5 h-2.5" />
+      </button>
+    </div>
+  );
+});
 
 const DoctorRow = React.memo(({ doctor, onViewDoctor }) => (
   <tr
@@ -501,12 +549,21 @@ const Doctors = () => {
 
   const {
     newDoctor,
-    qualifications,
-    newQualification,
-    setNewQualification,
+    fellowships,
+    certifications,
+    newFellowship,
+    newCertification,
+    setNewFellowship,
+    setNewCertification,
+    isLoading,
+    setLoading,
+    error,
+    setError,
     handleInputChange,
-    handleAddQualification,
-    handleRemoveQualification,
+    handleAddFellowship,
+    handleRemoveFellowship,
+    handleAddCertification,
+    handleRemoveCertification,
     resetForm,
   } = useDoctorForm();
 
@@ -543,13 +600,49 @@ const Doctors = () => {
   );
 
   const handleAddDoctor = useCallback(
-    (e) => {
+    async (e) => {
       e.preventDefault();
-      console.log('Adding new doctor:', { ...newDoctor, qualifications });
-      resetForm();
-      setShowAddModal(false);
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Prepare the payload according to the API specification
+        const doctorPayload = {
+          doctor_name: newDoctor.doctor_name,
+          specialization: newDoctor.specialization,
+          phone: newDoctor.phone,
+          email: newDoctor.email,
+          bio: newDoctor.bio,
+          experince_years: parseInt(newDoctor.experince_years),
+          education: newDoctor.education,
+          additional_qualification: {
+            fellowships: fellowships,
+            certifications: certifications
+          }
+        };
+
+        console.log('Registering doctor with payload:', doctorPayload);
+        
+        const response = await doctorsAPI.register(doctorPayload);
+        console.log('Doctor registered successfully:', response);
+        
+        // Show success message (you can add a toast notification here)
+        alert('Doctor registered successfully!');
+        
+        resetForm();
+        setShowAddModal(false);
+        
+        // Optionally refresh the doctors list
+        // You might want to call a function to refresh the doctors list here
+        
+      } catch (error) {
+        console.error('Error registering doctor:', error);
+        setError(error.response?.data?.message || 'Failed to register doctor. Please try again.');
+      } finally {
+        setLoading(false);
+      }
     },
-    [newDoctor, qualifications, resetForm]
+    [newDoctor, fellowships, certifications, setLoading, setError, resetForm]
   );
 
   const handleCloseModal = useCallback(() => {
@@ -557,15 +650,7 @@ const Doctors = () => {
     resetForm();
   }, [resetForm]);
 
-  const handleQualificationKeyPress = useCallback(
-    (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        handleAddQualification();
-      }
-    },
-    [handleAddQualification]
-  );
+
 
   return (
     <div className="min-h-screen">
@@ -807,12 +892,23 @@ const Doctors = () => {
 
             {/* Modal Form */}
             <form onSubmit={handleAddDoctor} className="p-6 space-y-6">
+              {/* Error Message */}
+              {error && (
+                <div className="lg:col-span-2 p-4 rounded-lg border-2" style={{ 
+                  background: '#FEF2F2', 
+                  borderColor: '#FECACA', 
+                  color: '#DC2626' 
+                }}>
+                  <p className="text-sm font-medium">{error}</p>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="lg:col-span-2">
                   <FormInput
-                    label="Full Name"
-                    name="name"
-                    value={newDoctor.name}
+                    label="Doctor Name"
+                    name="doctor_name"
+                    value={newDoctor.doctor_name}
                     onChange={handleInputChange}
                     required
                     placeholder="Dr. John Smith"
@@ -831,9 +927,9 @@ const Doctors = () => {
 
                 <FormInput
                   label="Years of Experience"
-                  name="experience"
+                  name="experince_years"
                   type="number"
-                  value={newDoctor.experience}
+                  value={newDoctor.experince_years}
                   onChange={handleInputChange}
                   required
                   min="0"
@@ -848,7 +944,7 @@ const Doctors = () => {
                   value={newDoctor.phone}
                   onChange={handleInputChange}
                   required
-                  placeholder="+1 (555) 123-4567"
+                  placeholder="+91-9876543210"
                 />
 
                 <FormInput
@@ -862,20 +958,12 @@ const Doctors = () => {
                 />
 
                 <FormInput
-                  label="License Number"
-                  name="licenseNumber"
-                  value={newDoctor.licenseNumber}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="MD123456"
-                />
-
-                <FormInput
                   label="Education"
                   name="education"
                   value={newDoctor.education}
                   onChange={handleInputChange}
-                  placeholder="Harvard Medical School"
+                  required
+                  placeholder="MBBS, MD (Cardiology)"
                 />
 
                 <div className="lg:col-span-2">
@@ -883,11 +971,11 @@ const Doctors = () => {
                     className="block text-sm font-semibold mb-2"
                     style={{ color: COLORS.text }}
                   >
-                    Address
+                    Bio
                   </label>
                   <textarea
-                    name="address"
-                    value={newDoctor.address}
+                    name="bio"
+                    value={newDoctor.bio}
                     onChange={handleInputChange}
                     rows="3"
                     className="w-full px-4 py-3 rounded-lg transition-all text-sm resize-none border-2"
@@ -905,25 +993,31 @@ const Doctors = () => {
                       e.target.style.borderColor = COLORS.border;
                       e.target.style.boxShadow = 'none';
                     }}
-                    placeholder="Enter doctor's address"
+                    placeholder="Experienced cardiologist specializing in heart diseases."
+                    required
                   />
                 </div>
 
-                {/* Qualifications Section */}
+                {/* Fellowships Section */}
                 <div className="lg:col-span-2">
                   <label
                     className="block text-sm font-semibold mb-3"
                     style={{ color: COLORS.text }}
                   >
-                    Additional Qualifications
+                    Fellowships
                   </label>
                   <div className="space-y-4">
                     <div className="flex gap-3">
                       <input
                         type="text"
-                        value={newQualification}
-                        onChange={(e) => setNewQualification(e.target.value)}
-                        onKeyPress={handleQualificationKeyPress}
+                        value={newFellowship}
+                        onChange={(e) => setNewFellowship(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddFellowship();
+                          }
+                        }}
                         className="flex-1 px-4 py-3 rounded-lg transition-all text-sm border-2"
                         style={{
                           background: COLORS.white,
@@ -939,42 +1033,123 @@ const Doctors = () => {
                           e.target.style.borderColor = COLORS.border;
                           e.target.style.boxShadow = 'none';
                         }}
-                        placeholder="Enter qualification (e.g., FACC, FRCS, etc.)"
+                        placeholder="Enter fellowship (e.g., FACC, FESC, etc.)"
                       />
                       <button
                         type="button"
-                        onClick={handleAddQualification}
-                        disabled={!newQualification.trim()}
+                        onClick={handleAddFellowship}
+                        disabled={!newFellowship.trim()}
                         className="px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                        style={{ background: '#10B981', color: COLORS.white }}
+                        style={{ background: COLORS.primary, color: COLORS.white }}
                         onMouseEnter={(e) =>
                           !e.target.disabled &&
-                          (e.target.style.background = '#059669')
+                          (e.target.style.background = '#0D1BC4')
                         }
                         onMouseLeave={(e) =>
                           !e.target.disabled &&
-                          (e.target.style.background = '#10B981')
+                          (e.target.style.background = COLORS.primary)
                         }
                       >
                         Add
                       </button>
                     </div>
 
-                    {qualifications.length > 0 && (
+                    {fellowships.length > 0 && (
                       <div className="space-y-2">
                         <p
                           className="text-xs font-medium"
                           style={{ color: COLORS.textMuted }}
                         >
-                          Added Qualifications:
+                          Added Fellowships:
                         </p>
                         <div className="flex flex-wrap gap-2">
-                          {qualifications.map((qualification, index) => (
+                          {fellowships.map((fellowship, index) => (
                             <QualificationTag
-                              key={`${qualification}-${index}`}
-                              qualification={qualification}
+                              key={`fellowship-${fellowship}-${index}`}
+                              qualification={fellowship}
                               index={index}
-                              onRemove={handleRemoveQualification}
+                              onRemove={handleRemoveFellowship}
+                              type="fellowship"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Certifications Section */}
+                <div className="lg:col-span-2">
+                  <label
+                    className="block text-sm font-semibold mb-3"
+                    style={{ color: COLORS.text }}
+                  >
+                    Certifications
+                  </label>
+                  <div className="space-y-4">
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        value={newCertification}
+                        onChange={(e) => setNewCertification(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddCertification();
+                          }
+                        }}
+                        className="flex-1 px-4 py-3 rounded-lg transition-all text-sm border-2"
+                        style={{
+                          background: COLORS.white,
+                          border: `2px solid ${COLORS.border}`,
+                          color: COLORS.text,
+                          outline: 'none',
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = COLORS.secondary;
+                          e.target.style.boxShadow = `0 0 0 4px ${COLORS.secondary}15`;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = COLORS.border;
+                          e.target.style.boxShadow = 'none';
+                        }}
+                        placeholder="Enter certification (e.g., Advanced Cardiac Life Support, etc.)"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddCertification}
+                        disabled={!newCertification.trim()}
+                        className="px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{ background: COLORS.secondary, color: COLORS.white }}
+                        onMouseEnter={(e) =>
+                          !e.target.disabled &&
+                          (e.target.style.background = '#0A4AE8')
+                        }
+                        onMouseLeave={(e) =>
+                          !e.target.disabled &&
+                          (e.target.style.background = COLORS.secondary)
+                        }
+                      >
+                        Add
+                      </button>
+                    </div>
+
+                    {certifications.length > 0 && (
+                      <div className="space-y-2">
+                        <p
+                          className="text-xs font-medium"
+                          style={{ color: COLORS.textMuted }}
+                        >
+                          Added Certifications:
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {certifications.map((certification, index) => (
+                            <QualificationTag
+                              key={`certification-${certification}-${index}`}
+                              qualification={certification}
+                              index={index}
+                              onRemove={handleRemoveCertification}
+                              type="certification"
                             />
                           ))}
                         </div>
@@ -1011,24 +1186,29 @@ const Doctors = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl"
+                  disabled={isLoading}
+                  className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{
                     background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
                     color: COLORS.white,
                     border: 'none',
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.transform = 'translateY(-1px)';
-                    e.target.style.boxShadow =
-                      '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                    if (!e.target.disabled) {
+                      e.target.style.transform = 'translateY(-1px)';
+                      e.target.style.boxShadow =
+                        '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                    }
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow =
-                      '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                    if (!e.target.disabled) {
+                      e.target.style.transform = 'translateY(0)';
+                      e.target.style.boxShadow =
+                        '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                    }
                   }}
                 >
-                  Add Doctor
+                  {isLoading ? 'Registering...' : 'Add Doctor'}
                 </button>
               </div>
             </form>
