@@ -21,7 +21,7 @@ from django.utils import timezone
 # Create your views here.
 # get login patient profile
 class PatientProfileAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -34,7 +34,7 @@ class PatientProfileAPIView(APIView):
         
 # list all appointments of a patient
 class PatientAppointmentsListAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -49,7 +49,7 @@ class PatientAppointmentsListAPIView(APIView):
 
 # list appointments by date
 class PatientAppointmentsByDateAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, date):
@@ -65,7 +65,7 @@ class PatientAppointmentsByDateAPIView(APIView):
 
 # list patients appointments by appointment id 
 class PatientAppointmentDetailAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, appointment_id):

@@ -21,7 +21,7 @@ from authentication_app.authentication import CookieJWTAuthentication
 
 # get login clinic profile
 class ClinicProfileAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -39,7 +39,7 @@ class ClinicProfileAPIView(APIView):
 
 #register doctor by clinic
 class DoctorRegisterAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -733,7 +733,7 @@ class ClinicDashboardStatsCountAPIView(APIView):
 
 # clinic profile section api s
 class ClinicProfileEditAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def patch(self, request):
@@ -756,7 +756,7 @@ class ClinicProfileEditAPIView(APIView):
 
 # add and list clinic accreditations
 class ClinicAccreditationAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -793,7 +793,7 @@ class ClinicAccreditationAPIView(APIView):
 
 # delete clinic accreditations
 class ClinicAccreditationDeleteAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, accreditation_id):
@@ -816,7 +816,7 @@ class ClinicAccreditationDeleteAPIView(APIView):
 
 # add list delete clinic medical patient facilities
 class ClinicMedicalFacilityAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -857,7 +857,7 @@ class ClinicMedicalFacilityAPIView(APIView):
 
 # delete clinic accreditations
 class ClinicMedicalFacilitiesDeleteAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, facility_id):
@@ -880,7 +880,7 @@ class ClinicMedicalFacilitiesDeleteAPIView(APIView):
 
 # add , list , delete patient amenities    
 class ClinicPatientAmenitiesAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -918,7 +918,7 @@ class ClinicPatientAmenitiesAPIView(APIView):
     
 # delete clinic patient amenity
 class ClinicPatientAmenityDeleteAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, amenity_id):

@@ -224,3 +224,20 @@ class ChangePasswordAPIView(APIView):
         user.save()
 
         return custom_200("Password updated successfully")
+    
+# logout api
+class LogoutAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data.get("refresh")
+            if not refresh_token:
+                return custom_404("Refresh token required")
+
+            token = RefreshToken(refresh_token)
+            token.blacklist()   # ✅ Blacklist token
+
+            return custom_200("Successfully logged out")
+        except TokenError:
+            return custom_404("Invalid or expired token")    

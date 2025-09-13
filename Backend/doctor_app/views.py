@@ -23,7 +23,7 @@ from django.utils import timezone
 
 # get login doctor profile
 class DoctorProfileAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -40,7 +40,7 @@ class DoctorProfileAPIView(APIView):
         
 # list appointments of logged in doctor
 class DoctorAppointmentsListAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -58,7 +58,7 @@ class DoctorAppointmentsListAPIView(APIView):
 
 # list today's appointments of logged in doctor
 class TodaysDoctorAppointmentsListAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -78,7 +78,7 @@ class TodaysDoctorAppointmentsListAPIView(APIView):
 
 # get details of a specific patient by patient id
 class PatientDetailAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, patient_id):
@@ -95,7 +95,7 @@ class PatientDetailAPIView(APIView):
         
 # list appointments of doctor by date    
 class DoctorAppointmentsByDateAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, date):
@@ -114,7 +114,7 @@ class DoctorAppointmentsByDateAPIView(APIView):
 
 # list all patients of logged in doctor
 class DoctorPatientsListAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -134,7 +134,7 @@ class DoctorPatientsListAPIView(APIView):
 
 # patient search by name or email or phone number
 class DoctorPatientSearchAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -168,7 +168,7 @@ class DoctorPatientSearchAPIView(APIView):
 
 # consultation with prescription and medications
 class ConsultationCreateAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
     def post(self, request):
         serializer = ConsultationSerializer(data=request.data)
@@ -185,7 +185,7 @@ class ConsultationCreateAPIView(APIView):
 
 # follow-up appointment creation
 class FollowUpAppointmentAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
     def post(self, request):
         serializer = FollowUpAppointmentSerializer(data=request.data)
@@ -198,7 +198,7 @@ class FollowUpAppointmentAPIView(APIView):
     
 #count of total patients of logged in doctor, today's appointments, todays completed appointments,waiting list appointments, today's no-show appointments
 class DoctorDashboardStatsAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
