@@ -192,23 +192,46 @@ const Dashboard = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically send the data to your API
-    console.log('Clinic registration data:', clinicForm);
-    // Reset form and close modal
-    setClinicForm({
-      name: '',
-      license: '',
-      location: '',
-      address: '',
-      phone: '',
-      email: '',
-      contactPerson: '',
-      specialties: [],
-    });
-    setShowClinicModal(false);
-    // You could add a success notification here
+    
+    try {
+      // Import the clinic API service
+      const { clinicAPI } = await import('../../services/apiService');
+      
+      console.log('Clinic registration data:', clinicForm);
+      
+      // Send data to API
+      const response = await clinicAPI.register(clinicForm);
+      
+      if (response.success) {
+        console.log('Clinic registered successfully:', response);
+        // Show success message
+        alert('Clinic registered successfully!');
+        
+        // Reset form and close modal
+        setClinicForm({
+          name: '',
+          license: '',
+          location: '',
+          address: '',
+          phone: '',
+          email: '',
+          contactPerson: '',
+          specialties: [],
+        });
+        setShowClinicModal(false);
+        
+        // Refresh clinic data if needed
+        // You might want to call a function to refresh the clinic list here
+      } else {
+        console.error('Clinic registration failed:', response.message);
+        alert(`Registration failed: ${response.message}`);
+      }
+    } catch (error) {
+      console.error('Error registering clinic:', error);
+      alert(`Registration failed: ${error.message || 'An error occurred'}`);
+    }
   };
 
   const openClinicModal = () => {

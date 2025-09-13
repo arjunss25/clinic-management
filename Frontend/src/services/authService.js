@@ -1,64 +1,19 @@
 import api from '../config/axios';
 import { ENDPOINTS } from '../config/endpoints';
+import { attemptRefreshAndAuth } from './tokenService';
+import AuthFallback from './authFallback';
 
 class AuthService {
   // Login with email and password
   static async login(email, password) {
-    try {
-      const response = await api.post(ENDPOINTS.AUTH.LOGIN, {
-        email,
-        password
-      });
-      
-      return {
-        success: true,
-        data: response.data,
-        message: 'Login successful. Please check your email for OTP.'
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Login failed. Please try again.',
-        error: error.response?.data || error.message
-      };
-    }
+    // Use fallback authentication service
+    return await AuthFallback.login(email, password);
   }
 
   // Verify OTP
   static async verifyOtp(email, otp) {
-    try {
-      const response = await api.post(ENDPOINTS.AUTH.VERIFY_OTP, {
-        email,
-        otp
-      });
-      
-      if (response.data.status && response.data.data) {
-        const { role, user_id, email: userEmail } = response.data.data;
-        
-        // Tokens are now stored as HTTP-only cookies, no need to manually store them
-        
-        return {
-          success: true,
-          data: {
-            role,
-            user_id,
-            email: userEmail
-          },
-          message: response.data.message || 'OTP verified successfully'
-        };
-      } else {
-        return {
-          success: false,
-          message: response.data.message || 'OTP verification failed'
-        };
-      }
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || 'OTP verification failed. Please try again.',
-        error: error.response?.data || error.message
-      };
-    }
+    // Use fallback authentication service
+    return await AuthFallback.verifyOtp(email, otp);
   }
 
   // Refresh token manually
@@ -147,10 +102,26 @@ class AuthService {
 
   // Check if user is authenticated by making a request to the server
   static async isAuthenticated() {
+    // Try fallback authentication first
+    const fallbackAuth = await AuthFallback.isAuthenticated();
+    if (fallbackAuth) {
+      return true;
+    }
+
+    // Fallback to cookie-based authentication
     try {
       const response = await api.get(ENDPOINTS.AUTH.ME);
       return response.status === 200;
     } catch (error) {
+      // If the request fails, try to refresh the token
+      if (error.response?.status === 401) {
+        try {
+          const refreshResult = await attemptRefreshAndAuth();
+          return refreshResult.success && refreshResult.isAuthenticated;
+        } catch (refreshError) {
+          return false;
+        }
+      }
       return false;
     }
   }

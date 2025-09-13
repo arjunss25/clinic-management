@@ -14,7 +14,6 @@ import {
   FaTimes,
   FaGraduationCap,
 } from 'react-icons/fa';
-import { doctorsAPI } from '../../services/apiService';
 
 // Theme colors (matching Appointments.jsx)
 const COLORS = {

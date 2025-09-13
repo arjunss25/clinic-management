@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AuthService from '../../services/authService';
+import { initializeAuth as tokenServiceInitializeAuth } from '../../services/tokenService';
 
 // Async thunks
 export const login = createAsyncThunk(
@@ -50,17 +51,20 @@ export const initializeAuth = createAsyncThunk(
   'auth/initialize',
   async (_, { rejectWithValue }) => {
     try {
-      const isAuth = await AuthService.isAuthenticated();
-      if (isAuth) {
-        const userRole = await AuthService.getUserRole();
-        const userId = await AuthService.getUserId();
+      // Use TokenService to initialize auth with automatic token refresh
+      const authResult = await tokenServiceInitializeAuth();
+      
+      if (authResult.success && authResult.isAuthenticated) {
+        // User is authenticated, extract user info
+        const { role, user_id } = authResult.userInfo;
         
         return {
-          role: userRole,
-          id: userId,
+          role: role,
+          id: user_id,
           isAuthenticated: true
         };
       } else {
+        // User not authenticated, return null
         return null;
       }
     } catch (error) {
@@ -87,6 +91,15 @@ const authSlice = createSlice({
     },
     setLoading: (state, action) => {
       state.loading = action.payload;
+    },
+    setUser: (state, action) => {
+      state.user = action.payload;
+      state.isAuthenticated = !!action.payload;
+    },
+    clearUser: (state) => {
+      state.user = null;
+      state.isAuthenticated = false;
+      state.error = null;
     },
   },
   extraReducers: (builder) => {
@@ -155,7 +168,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError, setLoading } = authSlice.actions;
+export const { clearError, setLoading, setUser, clearUser } = authSlice.actions;
 
 // Selectors
 export const selectUser = (state) => state.auth.user;
@@ -164,5 +177,14 @@ export const selectLoading = (state) => state.auth.loading;
 export const selectError = (state) => state.auth.error;
 export const selectLoginLoading = (state) => state.auth.loginLoading;
 export const selectOtpLoading = (state) => state.auth.otpLoading;
+
+// Additional selectors for user properties
+export const selectUserRole = (state) => state.auth.user?.role;
+export const selectUserId = (state) => state.auth.user?.id;
+export const selectUserEmail = (state) => state.auth.user?.email;
+export const selectIsSuperAdmin = (state) => state.auth.user?.role === 'super_admin';
+export const selectIsDoctor = (state) => state.auth.user?.role === 'doctor';
+export const selectIsPatient = (state) => state.auth.user?.role === 'patient';
+export const selectIsStaff = (state) => state.auth.user?.role === 'staff';
 
 export default authSlice.reducer;
