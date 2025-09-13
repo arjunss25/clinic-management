@@ -19,3 +19,8 @@ class LoginSerializer(serializers.Serializer):
 class OTPVerifySerializer(serializers.Serializer):
     email = serializers.EmailField()
     otp = serializers.CharField()
+
+
+
+class ResendOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField()

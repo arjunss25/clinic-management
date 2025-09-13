@@ -39,16 +39,24 @@ class ClinicRegisterSerializer(serializers.ModelSerializer):
 
         # ✅ Create or get specialties (deduplicate again at DB level just in case)
         specialty_instances = []
-        seen = set()
         for spec in specialties_data:
             name = spec["name"].strip()
-            if name.lower() in seen:
-                continue
-            seen.add(name.lower())
-
-            specialty_obj, _ = Specialty.objects.get_or_create(name=name)
+            specialty_obj, _ = Specialty.objects.get_or_create(name__iexact=name, defaults={"name": name})
             specialty_instances.append(specialty_obj)
 
         clinic.specialties.set(specialty_instances)
         return clinic
+        # specialty_instances = []
+        # seen = set()
+        # for spec in specialties_data:
+        #     name = spec["name"].strip()
+        #     if name.lower() in seen:
+        #         continue
+        #     seen.add(name.lower())
+
+        #     specialty_obj, _ = Specialty.objects.get_or_create(name=name)
+        #     specialty_instances.append(specialty_obj)
+
+        # clinic.specialties.set(specialty_instances)
+        # return clinic
     
