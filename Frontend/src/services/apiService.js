@@ -1,12 +1,11 @@
 import api from '../config/axios';
-import { removeTokens } from './tokenService';
+import TokenService from './tokenService';
 
 // Authentication API calls
 export const authAPI = {
   // Login user
   login: async (credentials) => {
     const response = await api.post('/login/', credentials);
-    // Tokens are now stored as HTTP-only cookies, no need to manually store them
     return response.data;
   },
 
@@ -23,8 +22,8 @@ export const authAPI = {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Always remove any local tokens as fallback
-      removeTokens();
+      // Always remove any local tokens
+      TokenService.clearTokens();
     }
   },
 

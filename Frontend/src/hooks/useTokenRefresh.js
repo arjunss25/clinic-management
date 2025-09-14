@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { refreshToken } from '../services/tokenService';
+import AuthService from '../services/authService';
 
 // Hook for automatic token refresh
 export const useTokenRefresh = (isAuthenticated, refreshInterval = 14 * 60 * 1000) => { // 14 minutes default
@@ -13,14 +13,7 @@ export const useTokenRefresh = (isAuthenticated, refreshInterval = 14 * 60 * 100
       // Set up periodic token refresh
       const refreshTokens = async () => {
         try {
-          // Check if we have cookies before attempting refresh
-          const hasAnyCookies = document.cookie && document.cookie.length > 0;
-          if (!hasAnyCookies) {
-            console.log('🔍 No cookies found, skipping automatic refresh');
-            return;
-          }
-          
-          const result = await refreshToken();
+          const result = await AuthService.refreshToken();
           if (!result.success) {
             console.warn('Automatic token refresh failed:', result.message);
           }
@@ -80,7 +73,7 @@ export const useTokenRefresh = (isAuthenticated, refreshInterval = 14 * 60 * 100
   // Return function to manually trigger refresh
   const manualRefresh = async () => {
     try {
-      const result = await refreshToken();
+      const result = await AuthService.refreshToken();
       return result;
     } catch (error) {
       console.error('Manual token refresh failed:', error);

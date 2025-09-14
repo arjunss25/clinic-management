@@ -32,6 +32,7 @@ import DoctorPatients from '../panels/Doctor/Patients';
 import DoctorPatientProfile from '../panels/Doctor/PatientProfile';
 import DoctorPatientBooking from '../panels/Doctor/PatientBooking';
 import Consultation from '../panels/Doctor/Consultation';
+import DoctorProfile from '../panels/Doctor/DoctorProfile';
 
 // Clinic Panel Imports
 import ClinicDashboard from '../panels/Clinic/Dashboard';
@@ -40,7 +41,7 @@ import ClinicPatients from '../panels/Clinic/Patients';
 import Doctors from '../panels/Clinic/Doctors';
 import ClinicPatientProfile from '../panels/Clinic/PatientProfile';
 import ClinicPatientBooking from '../panels/Clinic/PatientBooking';
-import DoctorProfile from '../panels/Clinic/DoctorProfile';
+import ClinicDoctorProfile from '../panels/Clinic/DoctorProfile';
 import ClinicProfile from '../panels/Clinic/ClinicProfile';
 
 // SuperAdmin Panel Imports
@@ -101,6 +102,7 @@ const AppRoutes = () => {
         <Route path="patients/:patientId" element={<DoctorPatientProfile />} />
         <Route path="patient-booking/:patientId" element={<DoctorPatientBooking />} />
         <Route path="consultation" element={<Consultation />} />
+        <Route path="profile" element={<DoctorProfile />} />
       </Route>
 
       {/* Clinic Routes */}
@@ -122,7 +124,7 @@ const AppRoutes = () => {
         <Route path="patients" element={<ClinicPatients />} />
         <Route path="doctors" element={<Doctors />} />
         <Route path="profile" element={<ClinicProfile />} />
-        <Route path="doctors/:doctorId" element={<DoctorProfile />} />
+        <Route path="doctors/:doctorId" element={<ClinicDoctorProfile />} />
         <Route path="patients/:patientId" element={<ClinicPatientProfile />} />
       </Route>
 

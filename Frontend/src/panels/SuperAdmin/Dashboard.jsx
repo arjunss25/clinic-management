@@ -196,13 +196,13 @@ const Dashboard = () => {
     e.preventDefault();
     
     try {
-      // Import the clinic API service
-      const { clinicAPI } = await import('../../services/apiService');
+      // Import the superadmin API service
+      const superadminAPI = await import('../../services/superadminApiService');
       
       console.log('Clinic registration data:', clinicForm);
       
       // Send data to API
-      const response = await clinicAPI.register(clinicForm);
+      const response = await superadminAPI.default.registerClinic(clinicForm);
       
       if (response.success) {
         console.log('Clinic registered successfully:', response);

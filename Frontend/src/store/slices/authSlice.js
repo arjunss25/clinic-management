@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AuthService from '../../services/authService';
-import { initializeAuth as tokenServiceInitializeAuth } from '../../services/tokenService';
+import TokenService from '../../services/tokenService';
 
 // Async thunks
 export const login = createAsyncThunk(
@@ -51,22 +51,25 @@ export const initializeAuth = createAsyncThunk(
   'auth/initialize',
   async (_, { rejectWithValue }) => {
     try {
-      // Use TokenService to initialize auth with automatic token refresh
-      const authResult = await tokenServiceInitializeAuth();
+      // Check if user is authenticated using TokenService
+      const isAuthenticated = TokenService.isAuthenticated();
       
-      if (authResult.success && authResult.isAuthenticated) {
-        // User is authenticated, extract user info
-        const { role, user_id } = authResult.userInfo;
+      if (isAuthenticated) {
+        // Get user info from localStorage
+        const userInfo = TokenService.getUserInfo();
         
-        return {
-          role: role,
-          id: user_id,
-          isAuthenticated: true
-        };
-      } else {
-        // User not authenticated, return null
-        return null;
+        if (userInfo) {
+          return {
+            role: userInfo.role,
+            id: userInfo.user_id,
+            email: userInfo.email,
+            isAuthenticated: true
+          };
+        }
       }
+      
+      // User not authenticated
+      return null;
     } catch (error) {
       return rejectWithValue(error.message || 'Auth initialization failed');
     }
@@ -148,6 +151,7 @@ const authSlice = createSlice({
         state.user = {
           role: action.payload.data.role,
           id: action.payload.data.user_id,
+          email: action.payload.data.email,
           isAuthenticated: true
         };
         state.isAuthenticated = true;
@@ -182,9 +186,9 @@ export const selectOtpLoading = (state) => state.auth.otpLoading;
 export const selectUserRole = (state) => state.auth.user?.role;
 export const selectUserId = (state) => state.auth.user?.id;
 export const selectUserEmail = (state) => state.auth.user?.email;
-export const selectIsSuperAdmin = (state) => state.auth.user?.role === 'super_admin';
-export const selectIsDoctor = (state) => state.auth.user?.role === 'doctor';
-export const selectIsPatient = (state) => state.auth.user?.role === 'patient';
-export const selectIsStaff = (state) => state.auth.user?.role === 'staff';
+export const selectIsSuperAdmin = (state) => state.auth.user?.role === 'SuperAdmin';
+export const selectIsDoctor = (state) => state.auth.user?.role === 'Doctor';
+export const selectIsPatient = (state) => state.auth.user?.role === 'Patient';
+export const selectIsStaff = (state) => state.auth.user?.role === 'Staff';
 
 export default authSlice.reducer;

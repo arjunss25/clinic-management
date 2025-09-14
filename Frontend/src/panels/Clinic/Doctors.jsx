@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FaSearch,
@@ -14,6 +14,10 @@ import {
   FaTimes,
   FaGraduationCap,
 } from 'react-icons/fa';
+import clinicAPI from '../../services/clinicApiService';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import LoadingOverlay from '../../components/common/LoadingOverlay';
+import ResultModal from '../../components/common/ResultModal';
 
 // Theme colors (matching Appointments.jsx)
 const COLORS = {
@@ -28,74 +32,25 @@ const COLORS = {
   gray50: '#F9FAFB',
 };
 
-// Sample doctor data
-const SAMPLE_DOCTORS = [
-  {
-    id: 'DOC-2024-001',
-    name: 'Dr. Sarah Johnson',
-    specialization: 'Cardiology',
-    qualification: 'MD, FACC',
-    experience: 15,
-    phone: '+1 (555) 123-4567',
-    email: 'sarah.johnson@clinic.com',
-    joinedDate: '15 Jan 2020',
-    status: 'Active',
+// Fallback empty array for when API fails
+const EMPTY_DOCTORS = [];
 
-    licenseNumber: 'MD123456',
-  },
-  {
-    id: 'DOC-2024-002',
-    name: 'Dr. Michael Chen',
-    specialization: 'Neurology',
-    qualification: 'MD, PhD',
-    experience: 12,
-    phone: '+1 (555) 234-5678',
-    email: 'michael.chen@clinic.com',
-    joinedDate: '22 Mar 2021',
-    status: 'Active',
+// Custom debounce hook
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
 
-    licenseNumber: 'MD234567',
-  },
-  {
-    id: 'DOC-2024-003',
-    name: 'Dr. Emily Rodriguez',
-    specialization: 'Pediatrics',
-    qualification: 'MD, FAAP',
-    experience: 8,
-    phone: '+1 (555) 345-6789',
-    email: 'emily.rodriguez@clinic.com',
-    joinedDate: '10 May 2022',
-    status: 'Active',
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
 
-    licenseNumber: 'MD345678',
-  },
-  {
-    id: 'DOC-2024-004',
-    name: 'Dr. James Wilson',
-    specialization: 'Orthopedics',
-    qualification: 'MD, MS Ortho',
-    experience: 20,
-    phone: '+1 (555) 456-7890',
-    email: 'james.wilson@clinic.com',
-    joinedDate: '05 Aug 2019',
-    status: 'Active',
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
 
-    licenseNumber: 'MD456789',
-  },
-  {
-    id: 'DOC-2024-005',
-    name: 'Dr. Lisa Thompson',
-    specialization: 'Dermatology',
-    qualification: 'MD, FAAD',
-    experience: 10,
-    phone: '+1 (555) 567-8901',
-    email: 'lisa.thompson@clinic.com',
-    joinedDate: '18 Nov 2021',
-    status: 'Active',
-
-    licenseNumber: 'MD567890',
-  },
-];
+  return debouncedValue;
+};
 
 const SPECIALIZATIONS = [
   'Cardiology',
@@ -129,13 +84,9 @@ const QUALIFICATIONS = [
   'FAAD',
 ];
 
-const FILTER_OPTIONS = [
+// Base filter options (non-specialization filters)
+const BASE_FILTER_OPTIONS = [
   { value: 'all', label: 'All Doctors' },
-  { value: 'cardiology', label: 'Cardiology' },
-  { value: 'neurology', label: 'Neurology' },
-  { value: 'pediatrics', label: 'Pediatrics' },
-  { value: 'orthopedics', label: 'Orthopedics' },
-  { value: 'dermatology', label: 'Dermatology' },
   { value: 'recent', label: 'Recently Joined' },
 ];
 
@@ -163,6 +114,8 @@ const useDoctorForm = () => {
   const [newCertification, setNewCertification] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [resultModal, setResultModal] = useState({ type: '', title: '', message: '' });
 
   const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -200,6 +153,21 @@ const useDoctorForm = () => {
     setError(null);
   }, []);
 
+  const showSuccessModal = useCallback((title, message) => {
+    setResultModal({ type: 'success', title, message });
+    setShowResultModal(true);
+  }, []);
+
+  const showErrorModal = useCallback((title, message) => {
+    setResultModal({ type: 'error', title, message });
+    setShowResultModal(true);
+  }, []);
+
+  const closeResultModal = useCallback(() => {
+    setShowResultModal(false);
+    setResultModal({ type: '', title: '', message: '' });
+  }, []);
+
   return {
     newDoctor,
     fellowships,
@@ -218,6 +186,11 @@ const useDoctorForm = () => {
     handleAddCertification,
     handleRemoveCertification,
     resetForm,
+    showResultModal,
+    resultModal,
+    showSuccessModal,
+    showErrorModal,
+    closeResultModal,
   };
 };
 
@@ -265,6 +238,7 @@ const FormInput = React.memo(
     type = 'text',
     required = false,
     placeholder,
+    disabled = false,
     ...props
   }) => (
     <div>
@@ -280,7 +254,8 @@ const FormInput = React.memo(
         value={value}
         onChange={onChange}
         required={required}
-        className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
+        disabled={disabled}
+        className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2 disabled:opacity-50 disabled:cursor-not-allowed"
         style={{
           background: COLORS.white,
           border: `2px solid ${COLORS.border}`,
@@ -288,8 +263,10 @@ const FormInput = React.memo(
           outline: 'none',
         }}
         onFocus={(e) => {
-          e.target.style.borderColor = COLORS.primary;
-          e.target.style.boxShadow = `0 0 0 4px ${COLORS.primary}15`;
+          if (!disabled) {
+            e.target.style.borderColor = COLORS.primary;
+            e.target.style.boxShadow = `0 0 0 4px ${COLORS.primary}15`;
+          }
         }}
         onBlur={(e) => {
           e.target.style.borderColor = COLORS.border;
@@ -544,7 +521,17 @@ const Doctors = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [specializations, setSpecializations] = useState([]);
+  const [loadingSpecializations, setLoadingSpecializations] = useState(false);
+  const [doctors, setDoctors] = useState([]);
+  const [loadingDoctors, setLoadingDoctors] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const [filterOptions, setFilterOptions] = useState(BASE_FILTER_OPTIONS);
+  const [filtering, setFiltering] = useState(false);
   const navigate = useNavigate();
+
+  // Debounce search term with 500ms delay
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const {
     newDoctor,
@@ -564,31 +551,181 @@ const Doctors = () => {
     handleAddCertification,
     handleRemoveCertification,
     resetForm,
+    showResultModal,
+    resultModal,
+    showSuccessModal,
+    showErrorModal,
+    closeResultModal,
   } = useDoctorForm();
 
-  // Memoized filtered doctors
-  const filteredDoctors = useMemo(() => {
-    return SAMPLE_DOCTORS.filter((doctor) => {
-      const matchesSearch =
-        doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doctor.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doctor.specialization
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        doctor.email.toLowerCase().includes(searchTerm.toLowerCase());
+  // Fetch specializations from API
+  const fetchSpecializations = useCallback(async () => {
+    setLoadingSpecializations(true);
+    try {
+      const result = await clinicAPI.getClinicSpecializations();
+      if (result.success) {
+        // Transform the data to match the expected format
+        const transformedSpecializations = result.data.map(spec => 
+          typeof spec === 'string' ? spec : (spec.name || spec)
+        );
+        setSpecializations(transformedSpecializations);
+        
+        // Update filter options to include specializations
+        const specializationFilters = transformedSpecializations.map(spec => ({
+          value: spec.toLowerCase(),
+          label: spec
+        }));
+        setFilterOptions([...BASE_FILTER_OPTIONS, ...specializationFilters]);
+      } else {
+        console.error('Failed to fetch specializations:', result.message);
+        // Fallback to hardcoded specializations if API fails
+        setSpecializations(SPECIALIZATIONS);
+        const specializationFilters = SPECIALIZATIONS.map(spec => ({
+          value: spec.toLowerCase(),
+          label: spec
+        }));
+        setFilterOptions([...BASE_FILTER_OPTIONS, ...specializationFilters]);
+      }
+    } catch (error) {
+      console.error('Error fetching specializations:', error);
+      // Fallback to hardcoded specializations if API fails
+      setSpecializations(SPECIALIZATIONS);
+      const specializationFilters = SPECIALIZATIONS.map(spec => ({
+        value: spec.toLowerCase(),
+        label: spec
+      }));
+      setFilterOptions([...BASE_FILTER_OPTIONS, ...specializationFilters]);
+    } finally {
+      setLoadingSpecializations(false);
+    }
+  }, []);
 
-      if (selectedFilter === 'all') return matchesSearch;
-      if (selectedFilter === 'recent') {
+  // Transform doctor data from API
+  const transformDoctorData = useCallback((doctorData) => {
+    return doctorData.map((doctor, index) => ({
+      id: `DOC-${doctor.email.split('@')[0].toUpperCase()}-${index + 1}`,
+      name: doctor.doctor_name,
+      specialization: doctor.specialization,
+      qualification: doctor.education,
+      experience: doctor.experince_years,
+      phone: doctor.phone,
+      email: doctor.email,
+      joinedDate: new Date(doctor.created_at).toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      }),
+      status: 'Active',
+      bio: doctor.bio,
+      profilePicture: doctor.profile_picture,
+      appointmentAmount: doctor.appointment_amount,
+      additionalQualification: doctor.additional_qualification,
+      licenseNumber: `MD${doctor.phone.slice(-6)}`, // Generate license number from phone
+    }));
+  }, []);
+
+  // Fetch doctors from API
+  const fetchDoctors = useCallback(async () => {
+    setLoadingDoctors(true);
+    try {
+      const result = await clinicAPI.listAllDoctors();
+      if (result.success) {
+        const transformedDoctors = transformDoctorData(result.data);
+        setDoctors(transformedDoctors);
+      } else {
+        console.error('Failed to fetch doctors:', result.message);
+        setDoctors(EMPTY_DOCTORS);
+      }
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+      setDoctors(EMPTY_DOCTORS);
+    } finally {
+      setLoadingDoctors(false);
+    }
+  }, [transformDoctorData]);
+
+  // Search doctors from API
+  const searchDoctors = useCallback(async (query) => {
+    if (!query.trim()) {
+      // If search is empty, fetch all doctors
+      fetchDoctors();
+      return;
+    }
+
+    setSearching(true);
+    try {
+      const result = await clinicAPI.searchDoctors(query);
+      if (result.success) {
+        const transformedDoctors = transformDoctorData(result.data);
+        setDoctors(transformedDoctors);
+      } else {
+        console.error('Failed to search doctors:', result.message);
+        setDoctors(EMPTY_DOCTORS);
+      }
+    } catch (error) {
+      console.error('Error searching doctors:', error);
+      setDoctors(EMPTY_DOCTORS);
+    } finally {
+      setSearching(false);
+    }
+  }, [fetchDoctors, transformDoctorData]);
+
+  // Fetch doctors by specialization
+  const fetchDoctorsBySpecialization = useCallback(async (specialization) => {
+    setFiltering(true);
+    try {
+      const result = await clinicAPI.listDoctorsBySpecialization(specialization);
+      if (result.success) {
+        const transformedDoctors = transformDoctorData(result.data);
+        setDoctors(transformedDoctors);
+      } else {
+        console.error('Failed to fetch doctors by specialization:', result.message);
+        setDoctors(EMPTY_DOCTORS);
+      }
+    } catch (error) {
+      console.error('Error fetching doctors by specialization:', error);
+      setDoctors(EMPTY_DOCTORS);
+    } finally {
+      setFiltering(false);
+    }
+  }, [transformDoctorData]);
+
+  // Fetch specializations and doctors when component mounts
+  useEffect(() => {
+    fetchSpecializations();
+    fetchDoctors();
+  }, [fetchSpecializations, fetchDoctors]);
+
+  // Handle debounced search
+  useEffect(() => {
+    searchDoctors(debouncedSearchTerm);
+  }, [debouncedSearchTerm, searchDoctors]);
+
+  // Handle filter changes
+  useEffect(() => {
+    if (selectedFilter === 'all') {
+      fetchDoctors();
+    } else if (selectedFilter === 'recent') {
+      // For recent filter, we'll handle it client-side after fetching all doctors
+      fetchDoctors();
+    } else {
+      // For specialization filters, fetch from API
+      fetchDoctorsBySpecialization(selectedFilter);
+    }
+  }, [selectedFilter, fetchDoctors, fetchDoctorsBySpecialization]);
+
+  // Memoized filtered doctors (now only for recent filter, since others are handled by API)
+  const filteredDoctors = useMemo(() => {
+    if (selectedFilter === 'recent') {
+      return doctors.filter((doctor) => {
         const joinedDate = new Date(doctor.joinedDate);
         const sixMonthsAgo = new Date();
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-        return matchesSearch && joinedDate >= sixMonthsAgo;
-      }
-      return (
-        matchesSearch && doctor.specialization.toLowerCase() === selectedFilter
-      );
-    });
-  }, [searchTerm, selectedFilter]);
+        return joinedDate >= sixMonthsAgo;
+      });
+    }
+    return doctors; // For 'all' and specialization filters, return doctors as-is since they're already filtered by API
+  }, [doctors, selectedFilter]);
 
   // Event handlers
   const handleViewDoctor = useCallback(
@@ -622,26 +759,52 @@ const Doctors = () => {
 
         console.log('Registering doctor with payload:', doctorPayload);
         
-        const response = await doctorsAPI.register(doctorPayload);
-        console.log('Doctor registered successfully:', response);
+        const response = await clinicAPI.registerDoctor(doctorPayload);
         
-        // Show success message (you can add a toast notification here)
-        alert('Doctor registered successfully!');
-        
-        resetForm();
-        setShowAddModal(false);
-        
-        // Optionally refresh the doctors list
-        // You might want to call a function to refresh the doctors list here
+        if (response.success) {
+          console.log('Doctor registered successfully:', response);
+          
+          // Close add doctor modal first
+          setShowAddModal(false);
+          resetForm();
+          
+          // Show success modal
+          showSuccessModal(
+            'Doctor Registered Successfully!',
+            `Dr. ${newDoctor.doctor_name} has been successfully added to your medical staff. They can now start accepting appointments.`
+          );
+          
+          // Refresh the doctors list to show the newly added doctor
+          fetchDoctors();
+        } else {
+          console.error('Failed to register doctor:', response.message);
+          
+          // Close add doctor modal first
+          setShowAddModal(false);
+          
+          // Show error modal
+          showErrorModal(
+            'Registration Failed',
+            response.message || 'Failed to register doctor. Please try again.'
+          );
+        }
         
       } catch (error) {
         console.error('Error registering doctor:', error);
-        setError(error.response?.data?.message || 'Failed to register doctor. Please try again.');
+        
+        // Close add doctor modal first
+        setShowAddModal(false);
+        
+        // Show error modal
+        showErrorModal(
+          'Registration Error',
+          'An unexpected error occurred. Please try again.'
+        );
       } finally {
         setLoading(false);
       }
     },
-    [newDoctor, fellowships, certifications, setLoading, setError, resetForm]
+    [newDoctor, fellowships, certifications, setLoading, setError, resetForm, showSuccessModal, showErrorModal]
   );
 
   const handleCloseModal = useCallback(() => {
@@ -749,7 +912,7 @@ const Doctors = () => {
                     outline: 'none',
                   }}
                 >
-                  {FILTER_OPTIONS.map((option) => (
+                  {filterOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
@@ -823,7 +986,20 @@ const Doctors = () => {
             </table>
           </div>
 
-          {filteredDoctors.length === 0 && <EmptyState />}
+          {(loadingDoctors || searching || filtering) ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <LoadingSpinner size="lg" />
+                <p className="mt-4 text-sm" style={{ color: COLORS.textMuted }}>
+                  {searching ? 'Searching doctors...' : 
+                   filtering ? 'Filtering doctors...' : 
+                   'Loading doctors...'}
+                </p>
+              </div>
+            </div>
+          ) : filteredDoctors.length === 0 ? (
+            <EmptyState />
+          ) : null}
         </div>
       </div>
 
@@ -838,7 +1014,7 @@ const Doctors = () => {
           onClick={handleCloseModal}
         >
           <div
-            className="w-full max-w-4xl rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-4xl rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto relative"
             style={{
               background: COLORS.surface,
               border: `1px solid ${COLORS.border}`,
@@ -846,6 +1022,14 @@ const Doctors = () => {
             }}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Loading Overlay */}
+            <LoadingOverlay 
+              isLoading={isLoading}
+              title="Registering Doctor..."
+              message="Please wait while we process your request"
+              spinnerSize="xl"
+            />
+
             {/* Modal Header */}
             <div
               className="px-6 py-5 border-b flex items-center justify-between sticky top-0 z-10"
@@ -891,6 +1075,7 @@ const Doctors = () => {
 
             {/* Modal Form */}
             <form onSubmit={handleAddDoctor} className="p-6 space-y-6">
+
               {/* Error Message */}
               {error && (
                 <div className="lg:col-span-2 p-4 rounded-lg border-2" style={{ 
@@ -911,6 +1096,7 @@ const Doctors = () => {
                     onChange={handleInputChange}
                     required
                     placeholder="Dr. John Smith"
+                    disabled={isLoading}
                   />
                 </div>
 
@@ -919,9 +1105,10 @@ const Doctors = () => {
                   name="specialization"
                   value={newDoctor.specialization}
                   onChange={handleInputChange}
-                  options={SPECIALIZATIONS}
+                  options={specializations}
                   required
-                  placeholder="Select Specialization"
+                  placeholder={loadingSpecializations ? "Loading specializations..." : "Select Specialization"}
+                  disabled={loadingSpecializations || isLoading}
                 />
 
                 <FormInput
@@ -934,6 +1121,7 @@ const Doctors = () => {
                   min="0"
                   max="50"
                   placeholder="10"
+                  disabled={isLoading}
                 />
 
                 <FormInput
@@ -944,6 +1132,7 @@ const Doctors = () => {
                   onChange={handleInputChange}
                   required
                   placeholder="+91-9876543210"
+                  disabled={isLoading}
                 />
 
                 <FormInput
@@ -954,6 +1143,7 @@ const Doctors = () => {
                   onChange={handleInputChange}
                   required
                   placeholder="doctor@clinic.com"
+                  disabled={isLoading}
                 />
 
                 <FormInput
@@ -963,6 +1153,7 @@ const Doctors = () => {
                   onChange={handleInputChange}
                   required
                   placeholder="MBBS, MD (Cardiology)"
+                  disabled={isLoading}
                 />
 
                 <div className="lg:col-span-2">
@@ -977,7 +1168,8 @@ const Doctors = () => {
                     value={newDoctor.bio}
                     onChange={handleInputChange}
                     rows="3"
-                    className="w-full px-4 py-3 rounded-lg transition-all text-sm resize-none border-2"
+                    disabled={isLoading}
+                    className="w-full px-4 py-3 rounded-lg transition-all text-sm resize-none border-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{
                       background: COLORS.white,
                       border: `2px solid ${COLORS.border}`,
@@ -985,8 +1177,10 @@ const Doctors = () => {
                       outline: 'none',
                     }}
                     onFocus={(e) => {
-                      e.target.style.borderColor = COLORS.primary;
-                      e.target.style.boxShadow = `0 0 0 4px ${COLORS.primary}15`;
+                      if (!isLoading) {
+                        e.target.style.borderColor = COLORS.primary;
+                        e.target.style.boxShadow = `0 0 0 4px ${COLORS.primary}15`;
+                      }
                     }}
                     onBlur={(e) => {
                       e.target.style.borderColor = COLORS.border;
@@ -1017,7 +1211,8 @@ const Doctors = () => {
                             handleAddFellowship();
                           }
                         }}
-                        className="flex-1 px-4 py-3 rounded-lg transition-all text-sm border-2"
+                        disabled={isLoading}
+                        className="flex-1 px-4 py-3 rounded-lg transition-all text-sm border-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{
                           background: COLORS.white,
                           border: `2px solid ${COLORS.border}`,
@@ -1025,8 +1220,10 @@ const Doctors = () => {
                           outline: 'none',
                         }}
                         onFocus={(e) => {
-                          e.target.style.borderColor = COLORS.primary;
-                          e.target.style.boxShadow = `0 0 0 4px ${COLORS.primary}15`;
+                          if (!isLoading) {
+                            e.target.style.borderColor = COLORS.primary;
+                            e.target.style.boxShadow = `0 0 0 4px ${COLORS.primary}15`;
+                          }
                         }}
                         onBlur={(e) => {
                           e.target.style.borderColor = COLORS.border;
@@ -1037,7 +1234,7 @@ const Doctors = () => {
                       <button
                         type="button"
                         onClick={handleAddFellowship}
-                        disabled={!newFellowship.trim()}
+                        disabled={!newFellowship.trim() || isLoading}
                         className="px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{ background: COLORS.primary, color: COLORS.white }}
                         onMouseEnter={(e) =>
@@ -1097,7 +1294,8 @@ const Doctors = () => {
                             handleAddCertification();
                           }
                         }}
-                        className="flex-1 px-4 py-3 rounded-lg transition-all text-sm border-2"
+                        disabled={isLoading}
+                        className="flex-1 px-4 py-3 rounded-lg transition-all text-sm border-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{
                           background: COLORS.white,
                           border: `2px solid ${COLORS.border}`,
@@ -1105,8 +1303,10 @@ const Doctors = () => {
                           outline: 'none',
                         }}
                         onFocus={(e) => {
-                          e.target.style.borderColor = COLORS.secondary;
-                          e.target.style.boxShadow = `0 0 0 4px ${COLORS.secondary}15`;
+                          if (!isLoading) {
+                            e.target.style.borderColor = COLORS.secondary;
+                            e.target.style.boxShadow = `0 0 0 4px ${COLORS.secondary}15`;
+                          }
                         }}
                         onBlur={(e) => {
                           e.target.style.borderColor = COLORS.border;
@@ -1117,7 +1317,7 @@ const Doctors = () => {
                       <button
                         type="button"
                         onClick={handleAddCertification}
-                        disabled={!newCertification.trim()}
+                        disabled={!newCertification.trim() || isLoading}
                         className="px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{ background: COLORS.secondary, color: COLORS.white }}
                         onMouseEnter={(e) =>
@@ -1166,19 +1366,24 @@ const Doctors = () => {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all"
+                  disabled={isLoading}
+                  className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{
                     background: COLORS.white,
                     color: COLORS.textMuted,
                     border: `2px solid ${COLORS.border}`,
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.background = `${COLORS.textMuted}10`;
-                    e.target.style.borderColor = COLORS.textMuted;
+                    if (!e.target.disabled) {
+                      e.target.style.background = `${COLORS.textMuted}10`;
+                      e.target.style.borderColor = COLORS.textMuted;
+                    }
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.background = COLORS.white;
-                    e.target.style.borderColor = COLORS.border;
+                    if (!e.target.disabled) {
+                      e.target.style.background = COLORS.white;
+                      e.target.style.borderColor = COLORS.border;
+                    }
                   }}
                 >
                   Cancel
@@ -1186,7 +1391,7 @@ const Doctors = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   style={{
                     background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`,
                     color: COLORS.white,
@@ -1207,13 +1412,32 @@ const Doctors = () => {
                     }
                   }}
                 >
-                  {isLoading ? 'Registering...' : 'Add Doctor'}
+                  {isLoading ? (
+                    <>
+                      <LoadingSpinner size="sm" className="text-white" />
+                      <span>Registering Doctor...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaPlus className="w-4 h-4" />
+                      <span>Add Doctor</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* Result Modal */}
+      <ResultModal
+        isOpen={showResultModal}
+        type={resultModal.type}
+        title={resultModal.title}
+        message={resultModal.message}
+        onClose={closeResultModal}
+      />
     </div>
   );
 };

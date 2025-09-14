@@ -1,5 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import clinicAPI from '../../services/clinicApiService';
+import LoadingOverlay from '../../components/common/LoadingOverlay';
+import ResultModal from '../../components/common/ResultModal';
 import {
   FaSearch,
   FaFilter,
@@ -102,17 +105,18 @@ const FILTER_OPTIONS = [
   { value: 'recent', label: 'Recent Visits' },
 ];
 
-// Initial form state
+// Initial form state (matching API structure)
 const INITIAL_PATIENT_STATE = {
-  name: '',
+  full_name: '',
   age: '',
   gender: '',
-  phone: '',
+  phone_number: '',
   email: '',
-  bloodGroup: '',
-  emergencyContact: '',
-  emergencyContactPhone: '',
+  blood_group: '',
+  emergency_contact_name: '',
+  emergency_contact_phone: '',
   address: '',
+  known_allergies: '',
 };
 
 // Custom hooks for form management
@@ -120,6 +124,10 @@ const usePatientForm = () => {
   const [newPatient, setNewPatient] = useState(INITIAL_PATIENT_STATE);
   const [allergies, setAllergies] = useState([]);
   const [newAllergy, setNewAllergy] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [resultModal, setResultModal] = useState({ type: '', title: '', message: '' });
 
   const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -141,6 +149,22 @@ const usePatientForm = () => {
     setNewPatient(INITIAL_PATIENT_STATE);
     setAllergies([]);
     setNewAllergy('');
+    setError(null);
+  }, []);
+
+  const showSuccessModal = useCallback((title, message) => {
+    setResultModal({ type: 'success', title, message });
+    setShowResultModal(true);
+  }, []);
+
+  const showErrorModal = useCallback((title, message) => {
+    setResultModal({ type: 'error', title, message });
+    setShowResultModal(true);
+  }, []);
+
+  const closeResultModal = useCallback(() => {
+    setShowResultModal(false);
+    setResultModal({ type: '', title: '', message: '' });
   }, []);
 
   return {
@@ -148,10 +172,19 @@ const usePatientForm = () => {
     allergies,
     newAllergy,
     setNewAllergy,
+    isLoading,
+    setLoading: setIsLoading,
+    error,
+    setError,
     handleInputChange,
     handleAddAllergy,
     handleRemoveAllergy,
     resetForm,
+    showResultModal,
+    resultModal,
+    showSuccessModal,
+    showErrorModal,
+    closeResultModal,
   };
 };
 
@@ -478,10 +511,19 @@ const Patients = () => {
     allergies,
     newAllergy,
     setNewAllergy,
+    isLoading,
+    setLoading,
+    error,
+    setError,
     handleInputChange,
     handleAddAllergy,
     handleRemoveAllergy,
     resetForm,
+    showResultModal,
+    resultModal,
+    showSuccessModal,
+    showErrorModal,
+    closeResultModal,
   } = usePatientForm();
 
   // Memoized filtered patients
@@ -509,12 +551,69 @@ const Patients = () => {
     navigate(`/clinic/patients/${patient.id}`);
   }, [navigate]);
 
-  const handleAddPatient = useCallback((e) => {
+  const handleAddPatient = useCallback(async (e) => {
     e.preventDefault();
-    console.log('Adding new patient:', { ...newPatient, allergies });
-    resetForm();
-    setShowAddModal(false);
-  }, [newPatient, allergies, resetForm]);
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Prepare the payload according to the API specification
+      const patientPayload = {
+        full_name: newPatient.full_name,
+        age: newPatient.age,
+        gender: newPatient.gender,
+        phone_number: newPatient.phone_number,
+        blood_group: newPatient.blood_group,
+        emergency_contact_name: newPatient.emergency_contact_name,
+        emergency_contact_phone: newPatient.emergency_contact_phone,
+        address: newPatient.address,
+        known_allergies: allergies.join(', '), // Convert array to comma-separated string
+        email: newPatient.email,
+      };
+
+      console.log('Registering patient with payload:', patientPayload);
+      
+      const response = await clinicAPI.registerPatient(patientPayload);
+      
+      if (response.success) {
+        console.log('Patient registered successfully:', response);
+        
+        // Close add patient modal first
+        setShowAddModal(false);
+        resetForm();
+        
+        // Show success modal
+        showSuccessModal(
+          'Patient Registered Successfully!',
+          `${newPatient.full_name} has been successfully added to your patient directory. They can now book appointments.`
+        );
+      } else {
+        console.error('Failed to register patient:', response.message);
+        
+        // Close add patient modal first
+        setShowAddModal(false);
+        
+        // Show error modal
+        showErrorModal(
+          'Registration Failed',
+          response.message || 'Failed to register patient. Please try again.'
+        );
+      }
+    } catch (error) {
+      console.error('Error registering patient:', error);
+      
+      // Close add patient modal first
+      setShowAddModal(false);
+      
+      // Show error modal
+      showErrorModal(
+        'Registration Failed',
+        'An unexpected error occurred. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [newPatient, allergies, resetForm, setLoading, showSuccessModal, showErrorModal]);
 
   const handleCloseModal = useCallback(() => {
     setShowAddModal(false);
@@ -792,7 +891,7 @@ const Patients = () => {
           onClick={handleCloseModal}
         >
           <div
-            className="w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto relative"
             style={{
               background: COLORS.surface,
               border: `1px solid ${COLORS.border}`,
@@ -800,6 +899,13 @@ const Patients = () => {
             }}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Loading Overlay */}
+            <LoadingOverlay 
+              isLoading={isLoading}
+              title="Registering Patient..."
+              message="Please wait while we process your request"
+              spinnerSize="xl"
+            />
             {/* Modal Header */}
             <div
               className="px-4 sm:px-6 py-4 sm:py-5 border-b flex items-center justify-between sticky top-0 z-10"
@@ -846,8 +952,8 @@ const Patients = () => {
                 <div className="lg:col-span-2">
                   <FormInput
                     label="Full Name"
-                    name="name"
-                    value={newPatient.name}
+                    name="full_name"
+                    value={newPatient.full_name}
                     onChange={handleInputChange}
                     required
                     placeholder="Enter patient's full name"
@@ -878,9 +984,9 @@ const Patients = () => {
 
                 <FormInput
                   label="Phone Number"
-                  name="phone"
+                  name="phone_number"
                   type="tel"
-                  value={newPatient.phone}
+                  value={newPatient.phone_number}
                   onChange={handleInputChange}
                   required
                   placeholder="+1 (555) 123-4567"
@@ -897,8 +1003,8 @@ const Patients = () => {
 
                 <FormSelect
                   label="Blood Group"
-                  name="bloodGroup"
-                  value={newPatient.bloodGroup}
+                  name="blood_group"
+                  value={newPatient.blood_group}
                   onChange={handleInputChange}
                   options={BLOOD_GROUPS}
                   placeholder="Select Blood Group"
@@ -906,17 +1012,17 @@ const Patients = () => {
 
                 <FormInput
                   label="Emergency Contact Name"
-                  name="emergencyContact"
-                  value={newPatient.emergencyContact}
+                  name="emergency_contact_name"
+                  value={newPatient.emergency_contact_name}
                   onChange={handleInputChange}
                   placeholder="John Doe (Spouse)"
                 />
 
                 <FormInput
                   label="Emergency Contact Phone"
-                  name="emergencyContactPhone"
+                  name="emergency_contact_phone"
                   type="tel"
-                  value={newPatient.emergencyContactPhone}
+                  value={newPatient.emergency_contact_phone}
                   onChange={handleInputChange}
                   placeholder="+1 (555) 987-6543"
                 />
@@ -1058,6 +1164,15 @@ const Patients = () => {
           </div>
         </div>
       )}
+
+      {/* Result Modal */}
+      <ResultModal
+        isOpen={showResultModal}
+        type={resultModal.type}
+        title={resultModal.title}
+        message={resultModal.message}
+        onClose={closeResultModal}
+      />
     </div>
   );
 };

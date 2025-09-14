@@ -4,7 +4,6 @@ import { FcGoogle } from "react-icons/fc";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { login, verifyOtp, selectUser, selectLoginLoading, selectOtpLoading, selectError } from '../../store/slices/authSlice';
-import CookieDebugger from '../../components/common/CookieDebugger';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -390,10 +389,6 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Cookie Debugger - Temporary for debugging */}
-      <div className="fixed bottom-4 right-4 z-50">
-        <CookieDebugger />
-      </div>
 
       {/* OTP Verification Modal */}
       {showOtpModal && (

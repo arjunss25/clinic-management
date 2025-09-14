@@ -25,6 +25,7 @@ import {
   FaCheckCircle,
   FaDollarSign,
 } from 'react-icons/fa';
+import clinicAPI from '../../services/clinicApiService';
 
 // Theme colors (matching project theme)
 const COLORS = {
@@ -51,6 +52,8 @@ const DoctorProfile = () => {
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editForm, setEditForm] = useState({});
+  const [specializations, setSpecializations] = useState([]);
+  const [loadingSpecializations, setLoadingSpecializations] = useState(false);
 
   // Comprehensive doctor database
   const doctorsDatabase = {
@@ -218,8 +221,30 @@ const DoctorProfile = () => {
     },
   };
 
+  // Fetch specializations from API
+  const fetchSpecializations = async () => {
+    setLoadingSpecializations(true);
+    try {
+      const result = await clinicAPI.getClinicSpecializations();
+      if (result.success) {
+        setSpecializations(result.data || []);
+      } else {
+        console.error('Failed to fetch specializations:', result.message);
+        setSpecializations([]);
+      }
+    } catch (error) {
+      console.error('Error fetching specializations:', error);
+      setSpecializations([]);
+    } finally {
+      setLoadingSpecializations(false);
+    }
+  };
+
   useEffect(() => {
-    // Simulate API call
+    // Fetch specializations when component mounts
+    fetchSpecializations();
+
+    // Simulate API call for doctor data
     setTimeout(() => {
       const doctorData = doctorsDatabase[doctorId];
       if (doctorData) {
@@ -712,12 +737,22 @@ const DoctorProfile = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Specialization</label>
-                  <input
-                    type="text"
+                  <select
                     value={editForm.specialization || ''}
                     onChange={(e) => handleFormChange('specialization', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  />
+                    disabled={loadingSpecializations}
+                  >
+                    <option value="">Select Specialization</option>
+                    {specializations.map((specialization) => (
+                      <option key={specialization.id || specialization.pk || specialization} value={specialization.name || specialization}>
+                        {specialization.name || specialization}
+                      </option>
+                    ))}
+                  </select>
+                  {loadingSpecializations && (
+                    <p className="text-xs text-gray-500 mt-1">Loading specializations...</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Phone</label>

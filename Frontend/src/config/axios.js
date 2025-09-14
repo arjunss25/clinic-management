@@ -1,13 +1,11 @@
 import axios from 'axios';
-import { removeTokens } from '../services/tokenService';
-import AuthFallback from '../services/authFallback';
+import TokenService from '../services/tokenService';
 import { ENDPOINTS } from './endpoints';
 
 // Create axios instance
 const api = axios.create({
   baseURL: 'http://127.0.0.1:8000/api',
   timeout: 10000,
-  withCredentials: true, // Enable sending cookies with requests
   headers: {
     'Content-Type': 'application/json',
   },
@@ -29,11 +27,10 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// Request interceptor - add Authorization header as fallback if cookies don't work
+// Request interceptor - add Authorization header
 api.interceptors.request.use(
   (config) => {
-    // Try to get access token from localStorage as fallback
-    const { accessToken } = AuthFallback.getTokens();
+    const accessToken = TokenService.getAccessToken();
     
     if (accessToken && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${accessToken}`;
@@ -67,71 +64,35 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        console.log('🔄 401 detected, attempting token refresh...');
+        const refreshToken = TokenService.getRefreshToken();
         
-        // Try axios first, then fallback to fetch
-        let response;
-        try {
-          // Call refresh token endpoint - HTTP-only cookies are automatically sent
-          response = await api.post(ENDPOINTS.AUTH.REFRESH, {}, {
-            withCredentials: true
-          });
-          console.log('✅ Token refresh successful (axios), retrying original request');
-        } catch (axiosError) {
-          console.warn('⚠️ Axios refresh failed in interceptor, trying fetch fallback:', axiosError.message);
-          
-          // Fallback to fetch (like Postman)
-          const fetchResponse = await fetch(ENDPOINTS.AUTH.REFRESH, {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json, text/plain, */*',
-            },
-            body: JSON.stringify({})
-          });
-          
-          if (!fetchResponse.ok) {
-            throw new Error(`Fetch refresh failed: ${fetchResponse.status} ${fetchResponse.statusText}`);
-          }
-          
-          const fetchData = await fetchResponse.json();
-          console.log('✅ Token refresh successful (fetch), retrying original request');
-          
-          response = {
-            data: fetchData,
-            status: fetchResponse.status
-          };
+        if (!refreshToken) {
+          throw new Error('No refresh token available');
         }
+
+        const response = await axios.post(ENDPOINTS.AUTH.REFRESH, {
+          refresh_token: refreshToken
+        });
+
+        const { access, refresh } = response.data;
         
-        console.log('🍪 New cookies after refresh:', document.cookie);
+        // Update tokens
+        TokenService.setTokens(access, refresh);
         
-        // If refresh successful, retry the original request
-        processQueue(null, response.data);
+        // Update the original request with new token
+        originalRequest.headers.Authorization = `Bearer ${access}`;
+        
+        processQueue(null, access);
         return api(originalRequest);
         
       } catch (refreshError) {
-        console.error('❌ Token refresh failed in interceptor:', refreshError);
+        processQueue(refreshError, null);
         
-        // Handle refresh failures
-        if (refreshError.response?.status === 401 || 
-            refreshError.response?.data?.message?.includes('Refresh token missing')) {
-          
-          console.log('🔒 Refresh token expired/missing, redirecting to login');
-          processQueue(refreshError, null);
-          
-          // Clear any local storage
-          localStorage.removeItem('clinic_access_token');
-          sessionStorage.removeItem('clinic_refresh_token');
-          AuthFallback.clearTokens();
-          
-          // Only redirect if not already on login page
-          if (window.location.pathname !== '/login') {
-            window.location.href = '/login';
-          }
-        } else {
-          // For other errors, just reject the request
-          processQueue(refreshError, null);
+        // Clear tokens and redirect to login
+        TokenService.clearTokens();
+        
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
         }
         
         return Promise.reject(refreshError);
