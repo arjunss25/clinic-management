@@ -7,6 +7,7 @@ urlpatterns = [
     path('list-clinic-specializations/', ClinicSpecialtiesListAPIView.as_view(), name='list-clinic-specializations'),
     path('list-doctor-by-specialization/<str:specialty_name>/', ClinicDoctorsBySpecialtyAPIView.as_view(), name='list-doctor-by-specialization'),
     path('list-all-doctors/', ClinicDoctorsListAPIView.as_view(), name='list-all-doctors'),
+    path('list-all-patients/', ClinicPatientsListAPIView.as_view(), name='list-all-patients'),
     path('search-doctors/', DoctorSearchAPIView.as_view(), name='search-doctors'),
     path('doctor-details/<int:doctor_id>/', DoctorDetailAPIView.as_view(), name='doctor-details'),
     path('set-doctor-availability/', AddDoctorAvailabilityAPIView.as_view(), name='set-doctor-availability'),
@@ -51,4 +52,21 @@ urlpatterns = [
     # working hours crud
     path('clinic-working-hours/', ClinicWorkingHoursAPIView.as_view(), name='clinic-working-hours'),
     path('list-clinic-working-hours/', ClinicWorkingHoursAPIView.as_view(), name='list-clinic-working-hours'),
+
+    # edit clinic address
+    path('edit-clinic-address/', ClinicAddressEditAPIView.as_view(), name='edit-clinic-address'),
+    path('edit-clinic-contact/', ClinicContactInfoEditAPIView.as_view(), name='edit-clinic-contact'),
+
+    path('add-clinic-specialties/', ClinicSpecialtiesAddListAPIView.as_view(), name='add-clinic-specialties'),
+    path('list-clinic-specialties/', ClinicSpecialtiesAddListAPIView.as_view(), name='list-clinic-specialties'),
+    # path('edit-clinic-specialties/', ClinicSpecialtiesEditAPIView.as_view(), name='edit-clinic-specialties'),
+    path('delete-clinic-specialty/<int:specialty_id>/', ClinicSpecialtyDeleteAPIView.as_view(), name='delete-clinic-specialty'),
+
+
+    path('add-medical-reports/', MedicalReportAPIView.as_view(),name='add-medical-reports'),              # list & create
+    path("edit-delete-medical-reports/<int:report_id>/", MedicalReportAPIView.as_view(), name='edit-delete-medical-reports'),
+
+
+    path('list-patients-medical-records/<int:patient_id>/', PatientMedicalReportsAPIView.as_view(), name='list-patients-medical-records'),
+  
 ]

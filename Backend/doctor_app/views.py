@@ -37,7 +37,28 @@ class DoctorProfileAPIView(APIView):
             return custom_200("Doctor profile retrieved successfully.", serializer.data)
         except Exception as e:
             return custom_404(str(e))
-        
+
+# edit doctor profile patch
+class DoctorProfileEditAPIView(APIView):
+    # authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+        try:
+            user = request.user
+            if user.role != "Doctor":
+                return custom_404("You are not authorized to edit this profile.")
+
+            doctor = get_object_or_404(Doctor, user=user)
+            serializer = DoctorProfileSerializer(doctor, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return custom_200("Doctor profile updated successfully.", serializer.data)
+            return custom_404(serializer.errors)
+        except Exception as e:
+            return custom_404(str(e))
+
+
 # list appointments of logged in doctor
 class DoctorAppointmentsListAPIView(APIView):
     # authentication_classes = [CookieJWTAuthentication]
@@ -181,7 +202,23 @@ class ConsultationCreateAPIView(APIView):
             return custom_201("Consultation with prescription and medications created successfully", ConsultationSerializer(consultation).data
              )
         return custom_404(serializer.errors)        
-    
+
+# list of prescriptions of a patient
+class PatientPrescriptionsListAPIView(APIView):
+    # authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def get(self, request, patient_id):
+        try:
+            user = request.user
+            if user.role != "Doctor":
+                return custom_404("You are not authorized to view these prescriptions.")
+
+            patient = get_object_or_404(Patient, id=patient_id)
+            prescriptions = Prescription.objects.filter(patient=patient).order_by('-created_at')
+            serializer = PrescriptionSerializer(prescriptions, many=True)
+            return custom_200("Prescriptions retrieved successfully.", serializer.data)
+        except Exception as e:
+            return custom_404(str(e))    
 
 # follow-up appointment creation
 class FollowUpAppointmentAPIView(APIView):

@@ -81,15 +81,19 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
     specialization = serializers.CharField(required=True)
     phone = serializers.CharField(required=True)
     email = serializers.EmailField(required=True)
+    patients_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Doctor
         fields = [
             "id","clinic_name","doctor_name", "specialization", "phone", "email",
             "bio", "profile_picture", "experince_years",
-            "education", "additional_qualification","appointment_amount","created_at"
+            "education", "additional_qualification","appointment_amount","created_at","patients_count"
         ]
-        read_only_fields = ["id"]
+        read_only_fields = ["id","patients_count","created_at"]
+
+    def get_patients_count(self, obj):
+        return obj.appointments.values("patient").distinct().count()  # assumes Clinic has related_name="patients"    
 
     def create(self, validated_data):
         clinic = self.context.get("clinic")
@@ -211,6 +215,7 @@ class DoctorAvailabilitySerializer(serializers.ModelSerializer):
             end_time = (datetime.combine(datetime.today(), start_time) +
                         timedelta(minutes=slot_duration)).time()
             attrs["end_time"] = end_time
+            
 
         return attrs
     
@@ -272,3 +277,37 @@ class ClinicWorkingHoursSerializer(serializers.ModelSerializer):
             'clinic': {'read_only': True}
         }
         read_only_fields = ['id']
+
+# clinic address edit serializer
+class ClinicAddressEditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Clinic
+        fields = ["address"]
+
+# contact info update serializer
+class ClinicContactInfoEditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Clinic
+        fields = ["phone", "website"]
+
+# specialty edit serializer
+class SpecialtyEditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Specialty
+        fields = ["name"]
+
+
+# medical report serializer
+class MedicalReportSerializer(serializers.ModelSerializer):
+    patient_name = serializers.CharField(source="patient.full_name", read_only=True)
+    appointment_id = serializers.IntegerField(source="appointment.id", read_only=True)
+
+    class Meta:
+        model = MedicalReport
+        fields = [
+            "id", "appointment_id", "patient", "patient_name",
+            "report_title", "priority", "report_type", "description",
+            "document", "created_at"
+        ]
+        read_only_fields = ["id", "created_at", "appointment_id", "patient_name"]
+        

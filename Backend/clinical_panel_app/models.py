@@ -92,3 +92,35 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment: {self.amount} for Appointment ID {self.appointment.id} - {self.status}"
+
+
+class MedicalReport(models.Model):
+    appointment = models.ForeignKey(
+        AppointmentBooking,
+        on_delete=models.CASCADE,
+        related_name="medical_reports",
+        null=True, blank=True  # allow standalone reports if needed
+    )
+    patient = models.ForeignKey(
+        Patient,
+        on_delete=models.CASCADE,
+        related_name="medical_reports"
+    )
+    report_title = models.CharField(max_length=255)
+    priority = models.CharField(max_length=50, choices=[
+        ("Normal", "Normal"),
+        ("Urgent", "Urgent"),
+        ("High", "High")
+    ], default="Normal")
+    report_type = models.CharField(max_length=100)  # e.g. Lab, Radiology, Discharge
+    description = models.TextField()
+    document = models.FileField(upload_to="medical-reports/", null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        # auto-fill patient from appointment if not provided
+        if self.appointment and not self.patient:
+            self.patient = self.appointment.patient
+        super().save(*args, **kwargs)
+    def __str__(self):
+        return f"Report: {self.report_type} for {self.patient.full_name} - {self.created_at.date()}"

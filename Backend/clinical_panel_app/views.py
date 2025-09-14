@@ -202,6 +202,15 @@ class ClinicDoctorsListAPIView(APIView):
         return custom_200("Doctors fetched successfully", serializer.data)    
     
 
+# list all patients of a clinic
+class ClinicPatientsListAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        patients = Patient.objects.all()
+        serializer = PatientRegisterSerializer(patients, many=True)
+        return custom_200("Patients fetched successfully", serializer.data)
 
 # search doctors by name or specialization
 class DoctorSearchAPIView(APIView):
@@ -1269,3 +1278,204 @@ class ClinicWorkingHoursAPIView(APIView):
             })
 
         return custom_201("Working hours created or updated successfully", response_data)
+
+
+# edit clinic address
+class ClinicAddressEditAPIView(APIView):
+    # authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+        # ✅ Ensure only clinic users can edit their profile
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can edit clinic address")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        serializer = ClinicAddressEditSerializer(clinic, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return custom_201("Clinic address updated successfully", serializer.data)
+
+        return custom_404(serializer.errors)
+    
+# edit contact information
+class ClinicContactInfoEditAPIView(APIView):
+    # authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+        # ✅ Ensure only clinic users can edit their profile
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can edit clinic contact information")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        serializer = ClinicContactInfoEditSerializer(clinic, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return custom_201("Clinic contact information updated successfully", serializer.data)
+
+        return custom_404(serializer.errors)    
+    
+
+# add specialties as list and edit
+class ClinicSpecialtiesAddListAPIView(APIView):
+    # authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # ✅ Only Clinic users can list their specialties
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can view specialties")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        specialties = clinic.specialties.all()
+        serializer = SpecialtySerializer(specialties, many=True)
+        return custom_201("Specialties fetched successfully", serializer.data)
+
+    def post(self, request):
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can add specialties")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        # ✅ Handle both single and multiple specialties
+        data = request.data
+        if isinstance(data, dict):
+            data = [data]
+
+        serializer = SpecialtySerializer(data=data, many=True)
+        if serializer.is_valid():
+            for item in serializer.validated_data:
+                name = item.get("name")
+                if clinic.specialties.filter(name__iexact=name).exists():
+                    return custom_404(f"Specialty with name '{name}' already exists for this clinic")
+
+            # Add specialties to clinic
+            for specialty_data in serializer.validated_data:
+                specialty, created = Specialty.objects.get_or_create(name=specialty_data["name"])
+                clinic.specialties.add(specialty)
+
+            clinic.save()
+            return custom_201("Specialties added successfully", SpecialtySerializer(clinic.specialties.all(), many=True).data)
+
+        return custom_404(serializer.errors)
+
+
+
+# edit specialties
+    
+# delete clinic specialty
+class ClinicSpecialtyDeleteAPIView(APIView):
+    # authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, specialty_id):
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can delete specialties")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        try:
+            specialty = Specialty.objects.get(id=specialty_id)
+        except Specialty.DoesNotExist:
+            return custom_404("Specialty not found")
+
+        clinic.specialties.remove(specialty)
+        return custom_201("Specialty removed from clinic successfully", None)    
+    
+
+# medical reports upload and list
+class MedicalReportAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, report_id=None):
+        """List all reports or fetch a single report by ID"""
+        if report_id:
+            try:
+                report = MedicalReport.objects.get(id=report_id)
+            except MedicalReport.DoesNotExist:
+                return custom_404("Medical report not found")
+            serializer = MedicalReportSerializer(report)
+            return custom_200("Medical reports listed",serializer.data)
+
+        reports = MedicalReport.objects.all()
+        serializer = MedicalReportSerializer(reports, many=True)
+        return custom_200("Medical report listed",serializer.data)
+
+    def post(self, request):
+        """Add a new report"""
+        serializer = MedicalReportSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return custom_201("Medical report created successfully",  serializer.data)
+        return custom_404(serializer.errors)
+
+    def put(self, request, report_id):
+        """Update a report (full update)"""
+        try:
+            report = MedicalReport.objects.get(id=report_id)
+        except MedicalReport.DoesNotExist:
+            return Response({"error": "Medical report not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MedicalReportSerializer(report, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Medical report updated successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, report_id):
+        """Partial update"""
+        try:
+            report = MedicalReport.objects.get(id=report_id)
+        except MedicalReport.DoesNotExist:
+            return custom_404("Medical report not found")
+
+        serializer = MedicalReportSerializer(report, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return custom_200("Medical report updated successfully", serializer.data)
+        return custom_404(serializer.errors)
+
+    def delete(self, request, report_id):
+        """Delete a report"""
+        try:
+            report = MedicalReport.objects.get(id=report_id)
+        except MedicalReport.DoesNotExist:
+            return custom_404("Medical report not found")
+
+        report.delete()
+        return custom_200("Medical report deleted successfully") 
+    
+# list all medical reports of particular patient
+class PatientMedicalReportsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, patient_id):
+        try:
+            patient = Patient.objects.get(id=patient_id)
+        except Patient.DoesNotExist:
+            return custom_404("Patient not found")
+
+        reports = MedicalReport.objects.filter(patient=patient)
+        serializer = MedicalReportSerializer(reports, many=True)
+        return custom_200("Medical reports fetched successfully", serializer.data)    

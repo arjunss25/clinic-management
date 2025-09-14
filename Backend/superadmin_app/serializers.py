@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from  .models import *
+
 class SpecialtySerializer(serializers.ModelSerializer):
     class Meta:
         model = Specialty
@@ -9,11 +10,20 @@ class SpecialtySerializer(serializers.ModelSerializer):
 
 class ClinicRegisterSerializer(serializers.ModelSerializer):
     specialties = SpecialtySerializer(many=True)  # nested serializer
+    doctors_count = serializers.SerializerMethodField()
+    patients_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Clinic
-        fields = ["clinic_name", "license_number", "location", "address",
-                  "phone", "email", "specialties", "documents"]
+        fields = ["id","clinic_name", "license_number", "location", "address",
+                  "phone", "email", "specialties", "documents","doctors_count","patients_count"]
+        
+        read_only_fields = ['id', 'doctors_count','patients_count']
+    def get_doctors_count(self, obj):
+        return obj.doctors.count()  # assumes Clinic has related_name="doctors"
+
+    def get_patients_count(self, obj):
+        return Patient.objects.count()      
 
     def validate_specialties(self, value):
         """Prevent duplicate specialties in input payload"""
