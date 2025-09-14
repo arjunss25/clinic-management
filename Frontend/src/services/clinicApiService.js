@@ -838,6 +838,36 @@ const clinicAPI = {
     }
   },
 
+  // Get doctor details
+  getDoctorDetails: async (doctorId) => {
+    try {
+      const response = await axios.get(`/doctor-details/${doctorId}/`);
+      return {
+        success: true,
+        data: response.data.data || response.data,
+        message: response.data.message || 'Doctor details fetched successfully'
+      };
+    } catch (error) {
+      console.error('Get doctor details error:', error);
+      if (error.response) {
+        const status = error.response.status;
+        if (status === 404) {
+          return { success: false, message: 'Doctor details not found', data: null };
+        } else if (status === 401) {
+          return { success: false, message: 'Unauthorized access. Please login again.', data: null };
+        } else if (status === 403) {
+          return { success: false, message: 'Access denied. You do not have permission to view this doctor details.', data: null };
+        } else {
+          return { success: false, message: error.response.data?.message || error.response.data?.error || 'Failed to fetch doctor details', data: null };
+        }
+      } else if (error.request) {
+        return { success: false, message: 'Network error. Please check your connection and try again.', data: null };
+      } else {
+        return { success: false, message: error.message || 'An unexpected error occurred while fetching doctor details', data: null };
+      }
+    }
+  },
+
   // Update doctor profile
   updateDoctorProfile: async (doctorId, doctorData) => {
     try {
