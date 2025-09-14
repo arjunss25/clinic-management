@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FaUserMd,
   FaSearch,
@@ -14,6 +15,7 @@ import clinicAPI from '../../services/clinicApiService';
 
 
 const DoctorsList = ({ onDoctorSelect }) => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialization, setSelectedSpecialization] = useState('');
   const [sortBy, setSortBy] = useState('name');
@@ -87,7 +89,12 @@ const DoctorsList = ({ onDoctorSelect }) => {
     });
 
   const handleDoctorSelect = (doctor) => {
-    onDoctorSelect(doctor);
+    if (onDoctorSelect) {
+      onDoctorSelect(doctor);
+    } else {
+      // Navigate to doctor profile using the numeric ID from API response
+      navigate(`/clinic/doctors/${doctor.id}`);
+    }
   };
 
   // Loading state

@@ -85,7 +85,19 @@ const Dashboard = () => {
       const result = await clinicAPI.getDashboardCounts();
       if (result.success) {
         console.log('Dashboard counts fetched successfully:', result.data);
-        setDashboardCounts(result.data);
+        
+        // Map API response fields to dashboard state fields
+        const mappedCounts = {
+          totalPatients: result.data.total_patients || 0,
+          totalAppointments: result.data.total_todays_appointments || 0,
+          todayAppointments: result.data.total_todays_appointments || 0,
+          completedToday: result.data.total_completed_appointments || 0,
+          waitingList: result.data.total_waiting_list || 0,
+          noShows: result.data.total_no_shows || 0,
+          upcomingAppointments: result.data.total_todays_appointments || 0
+        };
+        
+        setDashboardCounts(mappedCounts);
       } else {
         console.error('Failed to fetch dashboard counts:', result.message);
         // Keep default values on error

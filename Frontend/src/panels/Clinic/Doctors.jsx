@@ -603,7 +603,7 @@ const Doctors = () => {
   // Transform doctor data from API
   const transformDoctorData = useCallback((doctorData) => {
     return doctorData.map((doctor, index) => ({
-      id: `DOC-${doctor.email.split('@')[0].toUpperCase()}-${index + 1}`,
+      id: doctor.id, // Use the original numeric ID from API
       name: doctor.doctor_name,
       specialization: doctor.specialization,
       qualification: doctor.education,
