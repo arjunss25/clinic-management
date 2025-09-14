@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'doctor_app',
     'patient_app',
     'superadmin_app',
-     'corsheaders',
+    'corsheaders',
+    'rest_framework_simplejwt.token_blacklist',
 
 ]
 
@@ -108,8 +109,8 @@ DATABASES = {
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES':(
-        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
-            "authentication_app.authentication.CookieJWTAuthentication",
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+            # "authentication_app.authentication.CookieJWTAuthentication",
     )
 }
 

@@ -85,10 +85,11 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Doctor
         fields = [
-            "clinic_name","doctor_name", "specialization", "phone", "email",
+            "id","clinic_name","doctor_name", "specialization", "phone", "email",
             "bio", "profile_picture", "experince_years",
             "education", "additional_qualification","appointment_amount","created_at"
         ]
+        read_only_fields = ["id"]
 
     def create(self, validated_data):
         clinic = self.context.get("clinic")
@@ -125,6 +126,7 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
         fields = [
+            "id",
             "full_name",
             "age",
             "gender",
@@ -138,6 +140,7 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
             "email",          # for POST/PATCH input
             "email_display",  # for GET response
         ]
+        read_only_fields = ["id"]
 
     # ✅ Field-level validation
     def validate_age(self, value):

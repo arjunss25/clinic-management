@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404
 from superadmin_app.serializers import *
 from . serializers import *
 from superadmin_app.utils import *
+from django.db import IntegrityError
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
@@ -131,7 +132,7 @@ class PatientUserDeleteAPI(APIView):
 
 # get login clinic profile
 class ClinicProfileAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -149,7 +150,7 @@ class ClinicProfileAPIView(APIView):
 
 #register doctor by clinic
 class DoctorRegisterAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -165,7 +166,10 @@ class DoctorRegisterAPIView(APIView):
         serializer = DoctorRegisterSerializer(data=request.data, context={"password": password, "clinic": clinic})
 
         if serializer.is_valid():
-            doctor = serializer.save()
+            try:
+                doctor = serializer.save()
+            except IntegrityError:
+                return custom_404("A user with this email already exists.")
 
             send_doctor_credentials_email(doctor.email, password , clinic.clinic_name)
 
@@ -642,6 +646,27 @@ class UserDeleteAPI(APIView):
         )
 
 
+# list all patients of the clinic
+class ClinicPatientsListAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can access this endpoint")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        # Get all doctors in this clinic
+        doctors = Doctor.objects.filter(clinic=clinic)
+
+        # Get all patients who have appointments with these doctors
+        patients = Patient.objects.filter(appointments__doctor__in=doctors).distinct()
+
+        serializer = PatientRegisterSerializer(patients, many=True)
+        return custom_200("Patients fetched successfully", serializer.data)
 
 #booking appointment by clinic or patient
 
@@ -807,7 +832,7 @@ class ClinicDashboardStatsCountAPIView(APIView):
 
         # Total patients associated with this clinic's doctors
         doctors = Doctor.objects.filter(clinic=clinic)
-        total_patients = Patient.objects.filter(appointments__doctor__in=doctors).distinct().count()
+        total_patients = Patient.objects.count()
 
         # Today's date
         today = datetime.now().date()
@@ -843,7 +868,7 @@ class ClinicDashboardStatsCountAPIView(APIView):
 
 # clinic profile section api s
 class ClinicProfileEditAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def patch(self, request):
@@ -866,7 +891,7 @@ class ClinicProfileEditAPIView(APIView):
 
 # add and list clinic accreditations
 class ClinicAccreditationAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -883,6 +908,22 @@ class ClinicAccreditationAPIView(APIView):
         serializer = ClinicAccreditationSerializer(accreditations, many=True)
         return custom_201("Clinic accreditations fetched successfully", serializer.data)
 
+    # def post(self, request):
+    #     if request.user.role != "Clinic":
+    #         return custom_404("Only Clinic users can add accreditations")
+
+    #     try:
+    #         clinic = Clinic.objects.get(user=request.user)
+    #     except Clinic.DoesNotExist:
+    #         return custom_404("Clinic profile not found")
+    #     name = request.data.get("name")
+    #     if ClinicAccreditation.objects.filter(clinic=clinic, name__iexact=name).exists():
+    #      return custom_404(f"Accreditation with name '{name}' already exists for this clinic")
+    #     serializer = ClinicAccreditationSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save(clinic=clinic)
+    #         return custom_201("Accreditation added successfully", serializer.data)
+    #     return custom_404(serializer.errors)
     def post(self, request):
         if request.user.role != "Clinic":
             return custom_404("Only Clinic users can add accreditations")
@@ -891,19 +932,49 @@ class ClinicAccreditationAPIView(APIView):
             clinic = Clinic.objects.get(user=request.user)
         except Clinic.DoesNotExist:
             return custom_404("Clinic profile not found")
-        name = request.data.get("name")
-        if ClinicAccreditation.objects.filter(clinic=clinic, name__iexact=name).exists():
-         return custom_404(f"Accreditation with name '{name}' already exists for this clinic")
-        serializer = ClinicAccreditationSerializer(data=request.data)
+
+        # ✅ Handle both single and multiple accreditations
+        data = request.data
+        if isinstance(data, dict):  
+            data = [data]  # wrap single object into a list
+
+        serializer = ClinicAccreditationSerializer(data=data, many=True)
         if serializer.is_valid():
+            # Check duplicates before saving
+            for item in serializer.validated_data:
+                name = item.get("name")
+                if ClinicAccreditation.objects.filter(clinic=clinic, name__iexact=name).exists():
+                    return custom_404(f"Accreditation with name '{name}' already exists for this clinic")
+
+            # Save with clinic reference
             serializer.save(clinic=clinic)
-            return custom_201("Accreditation added successfully", serializer.data)
+            return custom_201("Accreditation(s) added successfully", serializer.data)
+
+        return custom_404(serializer.errors)   
+    def patch(self, request, accreditation_id):
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can update accreditations")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        try:
+            accreditation = ClinicAccreditation.objects.get(id=accreditation_id, clinic=clinic)
+        except ClinicAccreditation.DoesNotExist:
+            return custom_404("Accreditation not found")
+
+        serializer = ClinicAccreditationSerializer(accreditation, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return custom_201("Accreditation updated successfully", serializer.data)
         return custom_404(serializer.errors)
 
 
 # delete clinic accreditations
 class ClinicAccreditationDeleteAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, accreditation_id):
@@ -926,7 +997,7 @@ class ClinicAccreditationDeleteAPIView(APIView):
 
 # add list delete clinic medical patient facilities
 class ClinicMedicalFacilityAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -943,6 +1014,26 @@ class ClinicMedicalFacilityAPIView(APIView):
         serializer = ClinicMedicalFacilitySerializer(facilities, many=True)
         return custom_201("Medical facilities fetched successfully", serializer.data)
 
+    # def post(self, request):
+    #     if request.user.role != "Clinic":
+    #         return custom_404("Only Clinic users can add medical patient facilities")
+
+    #     try:
+    #         clinic = Clinic.objects.get(user=request.user)
+    #     except Clinic.DoesNotExist:
+    #         return custom_404("Clinic profile not found")
+        
+
+    #     name = request.data.get("name")
+    #     if ClinicMedicalFacility.objects.filter(clinic=clinic, name__iexact=name).exists():
+    #         return custom_404(f"Facility with name '{name}' already exists for this clinic")
+
+    #     serializer = ClinicMedicalFacilitySerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save(clinic=clinic)
+    #         return custom_201("Medical  facility added successfully", serializer.data)
+    #     return custom_404(serializer.errors)
+    
     def post(self, request):
         if request.user.role != "Clinic":
             return custom_404("Only Clinic users can add medical patient facilities")
@@ -952,14 +1043,40 @@ class ClinicMedicalFacilityAPIView(APIView):
         except Clinic.DoesNotExist:
             return custom_404("Clinic profile not found")
 
-        name = request.data.get("name")
-        if ClinicMedicalFacility.objects.filter(clinic=clinic, name__iexact=name).exists():
-            return custom_404(f"Facility with name '{name}' already exists for this clinic")
+        # ✅ Handle both single and multiple objects
+        data = request.data
+        if isinstance(data, dict):
+            data = [data]
 
-        serializer = ClinicMedicalFacilitySerializer(data=request.data)
+        serializer = ClinicMedicalFacilitySerializer(data=data, many=True)
         if serializer.is_valid():
+            for item in serializer.validated_data:
+                name = item.get("name")
+                if ClinicMedicalFacility.objects.filter(clinic=clinic, name__iexact=name).exists():
+                    return custom_404(f"Facility with name '{name}' already exists for this clinic")
+
             serializer.save(clinic=clinic)
-            return custom_201("Medical  facility added successfully", serializer.data)
+            return custom_201("Medical facilities added successfully", serializer.data)
+
+        return custom_404(serializer.errors)
+    def patch(self, request, facility_id):
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can update accreditations")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        try:
+            facility = ClinicMedicalFacility.objects.get(id=facility_id, clinic=clinic)
+        except ClinicMedicalFacility.DoesNotExist:
+            return custom_404("Facility not found")
+
+        serializer = ClinicMedicalFacilitySerializer(facility, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return custom_201("Facility updated successfully", serializer.data)
         return custom_404(serializer.errors)
     
 
@@ -967,7 +1084,7 @@ class ClinicMedicalFacilityAPIView(APIView):
 
 # delete clinic accreditations
 class ClinicMedicalFacilitiesDeleteAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, facility_id):
@@ -990,7 +1107,7 @@ class ClinicMedicalFacilitiesDeleteAPIView(APIView):
 
 # add , list , delete patient amenities    
 class ClinicPatientAmenitiesAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -1007,28 +1124,72 @@ class ClinicPatientAmenitiesAPIView(APIView):
         serializer = ClinicPatientsAmenitySerializer(facilities, many=True)
         return custom_201("Medical facilities fetched successfully", serializer.data)
 
+    # def post(self, request):
+    #     if request.user.role != "Clinic":
+    #         return custom_404("Only Clinic users can add medical patient facilities")
+
+    #     try:
+    #         clinic = Clinic.objects.get(user=request.user)
+    #     except Clinic.DoesNotExist:
+    #         return custom_404("Clinic profile not found")
+
+    #     patient_amenities = request.data.get("patient_amenities")
+    #     if ClinicPatientAmenity.objects.filter(clinic=clinic, patient_amenities__iexact=patient_amenities).exists():
+    #         return custom_404(f"Amenity with name '{patient_amenities}' already exists for this clinic")
+
+    #     serializer = ClinicPatientsAmenitySerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save(clinic=clinic)
+    #         return custom_201("Patient Amenity added successfully", serializer.data)
+    #     return custom_404(serializer.errors)
     def post(self, request):
         if request.user.role != "Clinic":
-            return custom_404("Only Clinic users can add medical patient facilities")
+            return custom_404("Only Clinic users can add patient amenities")
 
         try:
             clinic = Clinic.objects.get(user=request.user)
         except Clinic.DoesNotExist:
             return custom_404("Clinic profile not found")
 
-        patient_amenities = request.data.get("patient_amenities")
-        if ClinicPatientAmenity.objects.filter(clinic=clinic, patient_amenities__iexact=patient_amenities).exists():
-            return custom_404(f"Amenity with name '{patient_amenities}' already exists for this clinic")
+        # ✅ Handle both single and multiple objects
+        data = request.data
+        if isinstance(data, dict):
+            data = [data]
 
-        serializer = ClinicPatientsAmenitySerializer(data=request.data)
+        serializer = ClinicPatientsAmenitySerializer(data=data, many=True)
         if serializer.is_valid():
+            for item in serializer.validated_data:
+                name = item.get("patient_amenities")
+                if ClinicPatientAmenity.objects.filter(clinic=clinic, patient_amenities__iexact=name).exists():
+                    return custom_404(f"Amenity with name '{name}' already exists for this clinic")
+
             serializer.save(clinic=clinic)
-            return custom_201("Patient Amenity added successfully", serializer.data)
+            return custom_201("Patient amenities added successfully", serializer.data)
+
+        return custom_404(serializer.errors)
+    def patch(self, request, amenity_id):
+        if request.user.role != "Clinic":
+            return custom_404("Only Clinic users can update accreditations")
+
+        try:
+            clinic = Clinic.objects.get(user=request.user)
+        except Clinic.DoesNotExist:
+            return custom_404("Clinic profile not found")
+
+        try:
+            amenity = ClinicPatientAmenity.objects.get(id=amenity_id, clinic=clinic)
+        except ClinicPatientAmenity.DoesNotExist:
+            return custom_404("Amenity not found")
+
+        serializer = ClinicPatientsAmenitySerializer(amenity, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return custom_201("Amenity updated successfully", serializer.data)
         return custom_404(serializer.errors)
     
 # delete clinic patient amenity
 class ClinicPatientAmenityDeleteAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
+    # authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, amenity_id):

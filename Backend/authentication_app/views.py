@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from . serializers import *
 from superadmin_app.utils import send_otp_via_email, generate_otp
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken, TokenError
+from rest_framework.permissions import IsAuthenticated
 # Create your views he
 
 
@@ -107,7 +108,7 @@ class OTPVerifyAPIView(APIView):
 #                     key="refresh_token",
 #                     value=refresh_token,
 #                     httponly=True,
-#                     secure=False,
+#                     secure=False, # Set to True in production with HTTPS
 #                     samesite="Lax",
 #                     max_age=60 * 60 * 24 * 7   # 7 days
 #                 )
@@ -142,16 +143,17 @@ class RefreshAccessTokenAPIView(APIView):
             # (Optional) double-check that user still exists
             user = get_object_or_404(ProfileUser, id=user_id)
 
-            return custom_200( "Access token refreshed successfully",{
+            return custom_200("Access token refreshed successfully",{
                     "access_token": new_access,
                     "refresh_token": str(refresh),
                     "user_id": user.id,
                     "role": user.role,
                     "email": user.email,
-                } )
+                }
+            )
 
         except TokenError:
-            return custom_404("Invalid or expired refresh token")
+            return custom_404("Invalid or expired refresh token" )
 # class RefreshAccessTokenAPIView(APIView):
 #     def post(self, request):
 #         refresh_token = request.COOKIES.get("refresh_token")
@@ -170,7 +172,7 @@ class RefreshAccessTokenAPIView(APIView):
 #                 key="access_token",
 #                 value=new_access,
 #                 httponly=True,
-#                 secure=False,
+#                 secure=False, # Set to True in production with HTTPS
 #                 samesite="Lax",
 #                 max_age=60 * 5  # 5 min expiry
 #             )
@@ -179,3 +181,63 @@ class RefreshAccessTokenAPIView(APIView):
 #         except TokenError:
 #             return Response({"error": "Invalid or expired refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
     
+
+# resend otp 
+class ResendOTPAPIView(APIView):
+    def post(self, request):
+        serializer = ResendOTPSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data["email"]
+
+            user = get_object_or_404(ProfileUser, email=email)
+
+            otp = generate_otp(user)
+            send_otp_via_email(user.email, otp)
+
+            return custom_200("OTP resent to email")
+        return custom_404(serializer.errors)
+    
+
+# user change password view
+class ChangePasswordAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        old_password = request.data.get("old_password")
+        new_password = request.data.get("new_password")
+        confirm_password = request.data.get("confirm_password")
+
+        # Validate input
+        if not old_password or not new_password or not confirm_password:
+            return custom_404( "All fields are required")
+
+        if new_password != confirm_password:
+            return custom_404( "New password and confirm password do not match")
+
+        # Check old password
+        if not user.check_password(old_password):
+            return custom_404( "Old password is incorrect")
+
+        # Set new password
+        user.set_password(new_password)
+        user.save()
+
+        return custom_200("Password updated successfully")
+    
+# logout api
+class LogoutAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data.get("refresh")
+            if not refresh_token:
+                return custom_404("Refresh token required")
+
+            token = RefreshToken(refresh_token)
+            token.blacklist()   # ✅ Blacklist token
+
+            return custom_200("Successfully logged out")
+        except TokenError:
+            return custom_404("Invalid or expired token")    

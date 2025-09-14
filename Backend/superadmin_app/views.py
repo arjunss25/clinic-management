@@ -6,9 +6,11 @@ from . mixins import *
 from .utils import *
 from .serializers import *
 from rest_framework.permissions import IsAuthenticated
+from django.db import IntegrityError
 # Create your views here.
 
-# clinical registration by superadmin
+
+#clinical registration by superadmin
 class ClinicRegisterAPIView(APIView):
     permission_classes = [IsAuthenticated]  
 
@@ -21,7 +23,10 @@ class ClinicRegisterAPIView(APIView):
         serializer = ClinicRegisterSerializer(data=request.data, context={"password": password})
 
         if serializer.is_valid():
-            clinic = serializer.save()
+            try:
+             clinic = serializer.save()
+            except IntegrityError:
+                return custom_404("A user with this email already exists.") 
 
             send_password_email(clinic.email, password)
 
@@ -34,4 +39,3 @@ class ClinicRegisterAPIView(APIView):
             })
 
         return custom_404(serializer.errors)
-
