@@ -35,14 +35,17 @@ urlpatterns = [
     # accreditation crud
     path('add-accreditation/', ClinicAccreditationAPIView.as_view(), name='add-accreditation'),
     path('list-accreditations/', ClinicAccreditationAPIView.as_view(), name='list-accreditations'),
+    path('edit-accreditations/<int:accreditation_id>/', ClinicAccreditationAPIView.as_view(), name='edit-accreditations'),
     path('delete-accreditation/<int:accreditation_id>/', ClinicAccreditationDeleteAPIView.as_view(), name='delete-accreditation'),
     # medical facility crud
     path('add-facility/', ClinicMedicalFacilityAPIView.as_view(), name='add-facility'),
     path('list-facilities/', ClinicMedicalFacilityAPIView.as_view(), name='list-facilities'),
+    path('edit-facilities/<int:facility_id>/', ClinicMedicalFacilityAPIView.as_view(), name='edit-facilities'),
     path('delete-facility/<int:facility_id>/', ClinicMedicalFacilitiesDeleteAPIView.as_view(), name='delete-facility'),
     # patients amenity crud
     path('add-patient-amenity/',ClinicPatientAmenitiesAPIView.as_view(),name='add-patient-amenity'),
     path('list-patient-amenity/',ClinicPatientAmenitiesAPIView.as_view(),name='list-patient-amenity'),
+    path('edit-patient-amenity/<int:amenity_id>/',ClinicPatientAmenitiesAPIView.as_view(),name='edit-patient-amenity'),
     path('delete-patient-amenity/<int:amenity_id>/',ClinicPatientAmenityDeleteAPIView.as_view(),name='delete-patient-amenity'),
 
     # working hours crud
