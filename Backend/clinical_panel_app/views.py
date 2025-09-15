@@ -656,26 +656,26 @@ class UserDeleteAPI(APIView):
 
 
 # list all patients of the clinic
-class ClinicPatientsListAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+# class ClinicPatientsListAPIView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        if request.user.role != "Clinic":
-            return custom_404("Only Clinic users can access this endpoint")
+#     def get(self, request):
+#         if request.user.role != "Clinic":
+#             return custom_404("Only Clinic users can access this endpoint")
 
-        try:
-            clinic = Clinic.objects.get(user=request.user)
-        except Clinic.DoesNotExist:
-            return custom_404("Clinic profile not found")
+#         try:
+#             clinic = Clinic.objects.get(user=request.user)
+#         except Clinic.DoesNotExist:
+#             return custom_404("Clinic profile not found")
 
-        # Get all doctors in this clinic
-        doctors = Doctor.objects.filter(clinic=clinic)
+#         # Get all doctors in this clinic
+#         doctors = Doctor.objects.filter(clinic=clinic)
 
-        # Get all patients who have appointments with these doctors
-        patients = Patient.objects.filter(appointments__doctor__in=doctors).distinct()
+#         # Get all patients who have appointments with these doctors
+#         patients = Patient.objects.filter(appointments__doctor__in=doctors).distinct()
 
-        serializer = PatientRegisterSerializer(patients, many=True)
-        return custom_200("Patients fetched successfully", serializer.data)
+#         serializer = PatientRegisterSerializer(patients, many=True)
+#         return custom_200("Patients fetched successfully", serializer.data)
 
 #booking appointment by clinic or patient
 
