@@ -32,6 +32,23 @@ class PatientProfileAPIView(APIView):
         except Patient.DoesNotExist:
             return custom_404("Patient profile not found")
         
+
+# edit login patient profile patch
+class PatientProfileEditAPIView(APIView):  
+    # authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+        try:
+            patient = Patient.objects.get(user=request.user)
+            serializer = PatientProfileSerializer(patient, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return custom_200("Patient profile updated successfully", serializer.data)
+            return custom_404(serializer.errors)
+        except Patient.DoesNotExist:
+            return custom_404("Patient profile not found")      
+        
 # list all appointments of a patient
 class PatientAppointmentsListAPIView(APIView):
     # authentication_classes = [CookieJWTAuthentication]

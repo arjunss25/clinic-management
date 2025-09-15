@@ -59,6 +59,7 @@ class DoctorProfileEditAPIView(APIView):
             return custom_404(str(e))
 
 
+
 # list appointments of logged in doctor
 class DoctorAppointmentsListAPIView(APIView):
     # authentication_classes = [CookieJWTAuthentication]
