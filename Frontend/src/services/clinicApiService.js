@@ -1083,6 +1083,36 @@ const clinicAPI = {
         return { success: false, message: error.message || 'An unexpected error occurred while deleting accreditation', data: null };
       }
     }
+  },
+
+  // List all patients
+  listAllPatients: async () => {
+    try {
+      const response = await axios.get('/list-all-patients/');
+      return {
+        success: true,
+        data: response.data.data || response.data,
+        message: response.data.message || 'Patients fetched successfully'
+      };
+    } catch (error) {
+      console.error('List all patients error:', error);
+      if (error.response) {
+        const status = error.response.status;
+        if (status === 404) {
+          return { success: false, message: 'No patients found', data: [] };
+        } else if (status === 401) {
+          return { success: false, message: 'Unauthorized access. Please login again.', data: [] };
+        } else if (status === 403) {
+          return { success: false, message: 'Access denied. You do not have permission to view patients.', data: [] };
+        } else {
+          return { success: false, message: error.response.data?.message || error.response.data?.error || 'Failed to fetch patients', data: [] };
+        }
+      } else if (error.request) {
+        return { success: false, message: 'Network error. Please check your connection and try again.', data: [] };
+      } else {
+        return { success: false, message: error.message || 'An unexpected error occurred while fetching patients', data: [] };
+      }
+    }
   }
 };
 

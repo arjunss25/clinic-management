@@ -12,6 +12,7 @@ import {
   FaGraduationCap,
 } from 'react-icons/fa';
 import clinicAPI from '../../services/clinicApiService';
+import doctorAPI from '../../services/doctorApiService';
 
 
 const DoctorsList = ({ onDoctorSelect }) => {
@@ -88,12 +89,114 @@ const DoctorsList = ({ onDoctorSelect }) => {
       }
     });
 
-  const handleDoctorSelect = (doctor) => {
+  const handleDoctorSelect = async (doctor) => {
     if (onDoctorSelect) {
-      onDoctorSelect(doctor);
+    onDoctorSelect(doctor);
     } else {
-      // Navigate to doctor profile using the numeric ID from API response
-      navigate(`/clinic/doctors/${doctor.id}`);
+      // Get today's date in YYYY-MM-DD format
+      const today = new Date().toISOString().split('T')[0];
+      
+      try {
+        // First, fetch full doctor details using the same endpoint as DoctorProfile
+        const doctorDetailsResponse = await clinicAPI.getDoctorDetails(doctor.id);
+        
+        if (doctorDetailsResponse.success) {
+          // Then fetch doctor availability for today using doctorAPI (same as doctor panel)
+          const availabilityResponse = await doctorAPI.getDoctorAvailability(doctor.id, today);
+          
+          // Transform API data to match component structure based on actual API response
+          const transformedDoctor = {
+            id: doctorDetailsResponse.data.id,
+            name: doctorDetailsResponse.data.doctor_name,
+            specialization: doctorDetailsResponse.data.specialization,
+            qualification: doctorDetailsResponse.data.education || 'MD',
+            experience: doctorDetailsResponse.data.experince_years || 0,
+            phone: doctorDetailsResponse.data.phone,
+            email: doctorDetailsResponse.data.email,
+            image: doctorDetailsResponse.data.profile_picture || null,
+            rating: '4.5', // Default rating since not in API response
+            bio: doctorDetailsResponse.data.bio || '',
+            clinic_name: doctorDetailsResponse.data.clinic_name || '',
+            appointment_amount: doctorDetailsResponse.data.appointment_amount || '0.00',
+            additional_qualification: doctorDetailsResponse.data.additional_qualification || {},
+            joinedDate: new Date(doctorDetailsResponse.data.created_at).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            }),
+            status: 'Active',
+            // Add any other fields that might be needed
+            ...doctorDetailsResponse.data
+          };
+          
+          // Navigate to appointments page with transformed doctor details and availability
+          const navigationState = { 
+            selectedDoctor: transformedDoctor, // Use transformed doctor details
+            availability: availabilityResponse.success ? availabilityResponse.data : null,
+            selectedDate: today,
+            error: availabilityResponse.success ? null : availabilityResponse.message
+          };
+          
+          
+          navigate('/clinic/appointments', { state: navigationState });
+        } else {
+          // If doctor details fetch fails, still navigate with basic doctor info
+          // Transform basic doctor info to match expected structure
+          const basicDoctorInfo = {
+            id: doctor.id,
+            name: doctor.name || doctor.doctor_name || 'Unknown Doctor',
+            specialization: doctor.specialization || 'General',
+            qualification: doctor.qualification || doctor.education || 'MD',
+            experience: doctor.experience || doctor.experince_years || 0,
+            phone: doctor.phone || '',
+            email: doctor.email || '',
+            image: doctor.image || doctor.profile_picture || null,
+            rating: '4.5',
+            bio: doctor.bio || '',
+            clinic_name: doctor.clinic_name || '',
+            appointment_amount: doctor.appointment_amount || '0.00',
+            status: 'Active',
+            ...doctor
+          };
+          
+          navigate('/clinic/appointments', { 
+            state: { 
+              selectedDoctor: basicDoctorInfo, // Use transformed basic doctor info
+              availability: null,
+              selectedDate: today,
+              error: doctorDetailsResponse.message
+            } 
+          });
+        }
+      } catch (error) {
+        // Navigate anyway but with error state
+        // Transform basic doctor info to match expected structure
+        const fallbackDoctorInfo = {
+          id: doctor.id,
+          name: doctor.name || doctor.doctor_name || 'Unknown Doctor',
+          specialization: doctor.specialization || 'General',
+          qualification: doctor.qualification || doctor.education || 'MD',
+          experience: doctor.experience || doctor.experince_years || 0,
+          phone: doctor.phone || '',
+          email: doctor.email || '',
+          image: doctor.image || doctor.profile_picture || null,
+          rating: '4.5',
+          bio: doctor.bio || '',
+          clinic_name: doctor.clinic_name || '',
+          appointment_amount: doctor.appointment_amount || '0.00',
+          status: 'Active',
+          ...doctor
+        };
+        
+        navigate('/clinic/appointments', { 
+          state: { 
+            selectedDoctor: fallbackDoctorInfo,
+            availability: null,
+            selectedDate: today,
+            error: 'Failed to load doctor data'
+          } 
+        });
+      }
     }
   };
 
@@ -289,15 +392,15 @@ const DoctorsList = ({ onDoctorSelect }) => {
               }
             </p>
             {doctors.length > 0 && (
-              <button
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedSpecialization('');
-                }}
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setSelectedSpecialization('');
+              }}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-              >
-                Clear Filters
-              </button>
+            >
+              Clear Filters
+            </button>
             )}
           </div>
         )}
