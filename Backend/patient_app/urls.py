@@ -5,5 +5,6 @@ urlpatterns = [
     path('list-patient-appointments/', PatientAppointmentsListAPIView.as_view(), name='list-patient-appointments'),
     path('patient-appointments-by-date/<str:date>/', PatientAppointmentsByDateAPIView.as_view(), name='patient-appointments-by-date'),
     path('patient-appointment-details/<int:appointment_id>/', PatientAppointmentDetailAPIView.as_view(), name='patient-appointment-details'),
-    
+    path("patients-appointments-reports-history/", PatientAppointmentsReportsHistoryAPIView.as_view(), name="patients-appointments-reports-history"),  
+    path("patients-reports-history-by-id/<int:patient_id>/", PatientAppointmentsReportsHistoryAPIView.as_view(), name="patients-reports-history-by-id"),
 ]

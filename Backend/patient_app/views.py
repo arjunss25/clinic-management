@@ -76,3 +76,30 @@ class PatientAppointmentDetailAPIView(APIView):
             return custom_200("Patient appointment details fetched successfully", serializer.data)
         except Patient.DoesNotExist:
             return custom_404("Patient profile not found")        
+        
+
+  # list appointments and medical history 
+class PatientAppointmentsReportsHistoryAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, patient_id=None):
+        try:
+            # Case 1: Logged-in patient
+            if request.user.role == "Patient" and not patient_id:
+                patient = Patient.objects.get(user=request.user)
+
+            # Case 2: Pass patient_id (for clinic/admin usage)
+            elif patient_id:
+                patient = Patient.objects.get(id=patient_id)
+
+            else:
+                return custom_404("Patient ID required or login as patient.")
+
+            # Fetch appointments with related reports
+            appointments = AppointmentBooking.objects.filter(patient=patient).prefetch_related("medical_reports")
+
+            serializer = ListAppointmentBookingSerializer(appointments, many=True)
+            return custom_200("History listed successfully",serializer.data)
+
+        except Patient.DoesNotExist:
+            return custom_404("Patient not found.")      

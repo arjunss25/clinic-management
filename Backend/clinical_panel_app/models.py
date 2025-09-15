@@ -33,6 +33,23 @@ class DoctorBlockedSlot(models.Model):
     def __str__(self):
         return f"{self.doctor.doctor_name} - {self.date} {self.slot_start}-{self.slot_end} ({'Blocked' if self.is_blocked else 'Unblocked'})"
 
+class DoctorUnavailableSlot(models.Model):
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name="unavailable_slots")
+    date = models.DateField()
+    slot_start = models.TimeField()
+    slot_end = models.TimeField()
+    reason = models.CharField(max_length=255, blank=True, null=True)  # optional
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("doctor", "date", "slot_start", "slot_end")
+
+    def __str__(self):
+        return f"{self.doctor.doctor_name} - {self.date} {self.slot_start}-{self.slot_end}"
+
+
+
 #appointment booking model
 class AppointmentBooking(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="appointments")

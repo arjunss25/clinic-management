@@ -14,6 +14,7 @@ urlpatterns = [
     path('update-doctor-availability/<int:availability_id>/', DoctorAvailabilityUpdateAPIView.as_view(), name='update-doctor-availability'),
     path('list-doctor-availability/<int:doctor_id>/<str:date>/', DoctorAvailabilityListAPIView.as_view(), name='list-doctor-availability'),
     path('list-doctor-availability/<str:date>/', DoctorAvailabilityListAPIView.as_view(), name='list-doctor-availability'),
+    path('delete-doctor-slots/',DoctorSlotDeleteAPIView.as_view(),name='delete-doctor-slots'),
     path('slots-block-unblock/', DoctorSlotBlockUnblockAPIView.as_view(), name='slots-block-unblock'),
     path('appointment-booking/', AppointmentBookingAPI.as_view(), name='appointment-booking'),
     path('list-all-appointments-clinic/', ClinicAppointmentsListAPIView.as_view(), name='list-all-appointments-clinic'),

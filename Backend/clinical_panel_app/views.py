@@ -239,45 +239,391 @@ class DoctorDetailAPIView(APIView):
     
 
 # add doctor availability by doctor or clinic
+# class AddDoctorAvailabilityAPIView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self, request):
+#         user = request.user
+
+#         # Case 1: Doctor sets their own availability
+#         if user.role == "Doctor":
+#             try:
+#                 doctor = Doctor.objects.get(user=user)
+#             except Doctor.DoesNotExist:
+#                 return custom_404("Doctor profile not found")
+
+#         # Case 2: Clinic sets availability for a doctor
+#         elif user.role == "Clinic":
+#             doctor_id = request.data.get("doctor")
+#             if not doctor_id:
+#                 return custom_404("doctor_id is required when clinic is setting availability")
+#             try:
+#                 doctor = Doctor.objects.get(id=doctor_id, clinic=user.clinic_profile)
+#             except Doctor.DoesNotExist:
+#                 return custom_404("Doctor not found for this clinic")
+
+#         else:
+#             return custom_404("Only Doctor or Clinic users can set availability")
+
+#         serializer = DoctorAvailabilitySerializer(data=request.data)
+#         if serializer.is_valid():
+#             availability = serializer.save(doctor=doctor)
+#             return custom_201("Availability set successfully", {
+#                 "availability_id": availability.id,
+#                 "doctor_id": doctor.id,
+#                 "day_of_week": availability.day_of_week,
+#                 "start_time": availability.start_time,
+#                 "end_time": availability.end_time
+#             })
+
+#         return custom_404(serializer.errors)
+    
+import json
+from datetime import datetime, date, time
+
+
+# class AddDoctorAvailabilityAPIView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def _parse_day_list(self, raw):
+#         """
+#         Normalize day_of_week field to a list of weekday names.
+#         Accepts: list, JSON-string list ('["Monday","Tuesday"]'), comma-separated string.
+#         """
+#         if raw is None:
+#             return []
+#         if isinstance(raw, list):
+#             return [str(x).strip() for x in raw if str(x).strip()]
+#         if isinstance(raw, str):
+#             raw = raw.strip()
+#             # try json first
+#             if raw.startswith('['):
+#                 try:
+#                     parsed = json.loads(raw)
+#                     return [str(x).strip() for x in parsed if str(x).strip()]
+#                 except Exception:
+#                     pass
+#             # fallback: comma separated
+#             return [p.strip() for p in raw.split(',') if p.strip()]
+#         return []
+
+#     def _parse_date(self, v):
+#         if not v:
+#             return None
+#         if isinstance(v, date):
+#             return v
+#         try:
+#             return datetime.strptime(v, "%Y-%m-%d").date()
+#         except Exception:
+#             raise ValueError("Invalid date, expected YYYY-MM-DD")
+
+#     def _parse_time(self, v):
+#         if not v:
+#             return None
+#         if isinstance(v, time):
+#             return v
+#         try:
+#             return datetime.strptime(v, "%H:%M").time()
+#         except Exception:
+#             raise ValueError("Invalid time, expected HH:MM (24h)")
+
+#     def _date_ranges_overlap(self, s1, e1, s2, e2):
+#         # None means open-ended: treat as -inf / +inf
+#         s1 = s1 or date.min
+#         e1 = e1 or date.max
+#         s2 = s2 or date.min
+#         e2 = e2 or date.max
+#         return not (e1 < s2 or e2 < s1)
+
+#     def _time_ranges_overlap(self, a_start, a_end, b_start, b_end):
+#         # If any end is None, consider it overlapping (defensive)
+#         if a_start is None or b_start is None:
+#             return True
+#         if a_end is None or b_end is None:
+#             return True
+#         # Normal overlap condition for same-day times:
+#         return not (a_end <= b_start or b_end <= a_start)
+
+#     def post(self, request):
+#         user = request.user
+
+#         # Determine doctor by role (same logic as you had)
+#         if user.role == "Doctor":
+#             try:
+#                 doctor = Doctor.objects.get(user=user)
+#             except Doctor.DoesNotExist:
+#                 return custom_404("Doctor profile not found")
+#         elif user.role == "Clinic":
+#             doctor_id = request.data.get("doctor")
+#             if not doctor_id:
+#                 return custom_404("doctor_id is required when clinic is setting availability")
+#             try:
+#                 doctor = Doctor.objects.get(id=doctor_id, clinic=user.clinic_profile)
+#             except Doctor.DoesNotExist:
+#                 return custom_404("Doctor not found for this clinic")
+#         else:
+#             return custom_404("Only Doctor or Clinic users can set availability")
+
+#         # Copy data and normalize fields
+#         data = request.data.copy()
+
+#         # day_of_week normalization
+#         try:
+#             day_list = self._parse_day_list(data.get("day_of_week"))
+#         except Exception:
+#             return custom_404("Invalid day_of_week format. Provide a list of weekdays.")
+#         if not day_list:
+#             return custom_404("day_of_week is required and must contain at least one weekday")
+
+#         # parse times and dates (validate format early)
+#         try:
+#             start_time = self._parse_time(data.get("start_time"))
+#             end_time = self._parse_time(data.get("end_time"))
+#         except ValueError as e:
+#             return custom_404(str(e))
+
+#         if start_time is None:
+#             return custom_404("start_time is required")
+#         if end_time is None:
+#             return custom_404("end_time is required")
+
+#         # Reject overnight ranges for simplicity (start_time must be before end_time).
+#         if start_time >= end_time:
+#             return custom_404("start_time must be before end_time (overnight ranges are not supported)")
+
+#         try:
+#             start_date = self._parse_date(data.get("start_date"))
+#             end_date = self._parse_date(data.get("end_date"))
+#         except ValueError as e:
+#             return custom_404(str(e))
+
+#         # slot_duration basic parse: must contain integer minutes
+#         slot_duration_raw = data.get("slot_duration")
+#         try:
+#             slot_minutes = int("".join([c for c in str(slot_duration_raw) if c.isdigit()]))
+#             if slot_minutes <= 0:
+#                 raise ValueError
+#         except Exception:
+#             return custom_404("slot_duration must contain positive integer minutes (e.g. '15' or '15m')")
+
+#         # Now check for conflicts with existing availabilities of the same doctor
+#         conflicts = []
+#         existing_qs = doctor.availabilities.all()  # related_name in your model
+#         for existing in existing_qs:
+#             # normalize existing day's field which might be json/list/string
+#             existing_days = existing.day_of_week if isinstance(existing.day_of_week, list) else self._parse_day_list(existing.day_of_week)
+
+#             # If weekdays don't intersect, skip
+#             if not set(day_list).intersection(set(existing_days)):
+#                 continue
+
+#             # Check date-range overlap
+#             if not self._date_ranges_overlap(existing.start_date, existing.end_date, start_date, end_date):
+#                 continue
+
+#             # Check time overlap
+#             if self._time_ranges_overlap(existing.start_time, existing.end_time, start_time, end_time):
+#                 # Build a helpful conflict message
+#                 conflicts.append({
+#                     "availability_id": existing.id,
+#                     "days": existing_days,
+#                     "start_time": existing.start_time.strftime("%H:%M") if existing.start_time else None,
+#                     "end_time": existing.end_time.strftime("%H:%M") if existing.end_time else None,
+#                     "start_date": existing.start_date.strftime("%Y-%m-%d") if existing.start_date else None,
+#                     "end_date": existing.end_date.strftime("%Y-%m-%d") if existing.end_date else None,
+#                 })
+
+#         if conflicts:
+#             return custom_404({
+#                 "message": "Conflicting availability found. The new availability overlaps with existing ones.",
+#                 "conflicts": conflicts
+#             })
+
+#         # No conflicts — proceed to serializer/save
+#         serializer = DoctorAvailabilitySerializer(data=data)
+#         if serializer.is_valid():
+#             availability = serializer.save(doctor=doctor)
+#             return custom_201("Availability set successfully", {
+#                 "availability_id": availability.id,
+#                 "doctor_id": doctor.id,
+#                 "day_of_week": availability.day_of_week,
+#                 "start_time": availability.start_time,
+#                 "end_time": availability.end_time
+#             })
+
+#         return custom_404(serializer.errors)
+import calendar
+from datetime import datetime, date as date_cls, time as time_cls, timedelta
+
 class AddDoctorAvailabilityAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         user = request.user
 
-        # Case 1: Doctor sets their own availability
+        # Determine doctor (doctor sets their own OR clinic sets for a doctor)
         if user.role == "Doctor":
             try:
                 doctor = Doctor.objects.get(user=user)
             except Doctor.DoesNotExist:
                 return custom_404("Doctor profile not found")
 
-        # Case 2: Clinic sets availability for a doctor
         elif user.role == "Clinic":
             doctor_id = request.data.get("doctor")
             if not doctor_id:
                 return custom_404("doctor_id is required when clinic is setting availability")
             try:
+                # assuming clinic relation is user.clinic_profile as in your earlier code
                 doctor = Doctor.objects.get(id=doctor_id, clinic=user.clinic_profile)
             except Doctor.DoesNotExist:
                 return custom_404("Doctor not found for this clinic")
-
         else:
             return custom_404("Only Doctor or Clinic users can set availability")
 
         serializer = DoctorAvailabilitySerializer(data=request.data)
-        if serializer.is_valid():
-            availability = serializer.save(doctor=doctor)
-            return custom_201("Availability set successfully", {
-                "availability_id": availability.id,
-                "doctor_id": doctor.id,
-                "day_of_week": availability.day_of_week,
-                "start_time": availability.start_time,
-                "end_time": availability.end_time
-            })
+        if not serializer.is_valid():
+            return custom_404(serializer.errors)
 
-        return custom_404(serializer.errors)
-    
+        # Helper functions -------------------------------------------------
+        def normalize_days(value):
+            """
+            Accept list or comma-separated string or single string.
+            Return set of weekday names like {'Monday', 'Tuesday', ...}.
+            If empty or None -> treat as ALL days (for duplication safety).
+            """
+            ALL_DAYS = {d for d in calendar.day_name}
+            if not value:
+                return ALL_DAYS
+            if isinstance(value, str):
+                # tolerate single day or comma separated e.g. "Monday,Tuesday"
+                items = [s.strip() for s in value.split(",") if s.strip()]
+            elif isinstance(value, (list, tuple, set)):
+                items = [str(s).strip() for s in value if s is not None]
+            else:
+                # unknown type -> treat as all days (safe)
+                return ALL_DAYS
+
+            days = set()
+            for it in items:
+                # unify to full weekday name if possible
+                name = it.strip()
+                if not name:
+                    continue
+                # allow lower/upper variants
+                for d in calendar.day_name:
+                    if d.lower() == name.lower():
+                        days.add(d)
+                        break
+                else:
+                    # if not recognized, ignore
+                    continue
+            return days or ALL_DAYS
+
+        def parse_date(val):
+            if val is None:
+                return None
+            if isinstance(val, date_cls):
+                return val
+            try:
+                return datetime.strptime(val, "%Y-%m-%d").date()
+            except Exception:
+                return None
+
+        def parse_time(val):
+            if val is None:
+                return None
+            if isinstance(val, time_cls):
+                return val
+            for fmt in ("%H:%M", "%H:%M:%S"):
+                try:
+                    return datetime.strptime(val, fmt).time()
+                except Exception:
+                    continue
+            return None
+
+        def date_ranges_overlap(start1, end1, start2, end2):
+            # treat None as open-ended range
+            s1 = start1 or date_cls.min
+            e1 = end1 or date_cls.max
+            s2 = start2 or date_cls.min
+            e2 = end2 or date_cls.max
+            return not (e1 < s2 or e2 < s1)
+
+        def time_ranges_overlap(t1_start, t1_end, t2_start, t2_end):
+            # treat None end as end of day
+            def _norm_start(s):
+                if s is None:
+                    return time_cls(0, 0, 0)
+                return s
+            def _norm_end(e):
+                if e is None:
+                    return time_cls(23, 59, 59)
+                return e
+
+            a1 = _norm_start(t1_start)
+            b1 = _norm_end(t1_end)
+            a2 = _norm_start(t2_start)
+            b2 = _norm_end(t2_end)
+            # overlap if intervals intersect
+            return (a1 < b2) and (a2 < b1)
+
+        # Extract new availability values (use validated data when possible)
+        validated = serializer.validated_data
+
+        new_day_set = normalize_days(validated.get("day_of_week") or request.data.get("day_of_week"))
+        new_start_time = parse_time(validated.get("start_time") or request.data.get("start_time"))
+        new_end_time = parse_time(validated.get("end_time") or request.data.get("end_time"))
+        new_start_date = parse_date(validated.get("start_date") or request.data.get("start_date"))
+        new_end_date = parse_date(validated.get("end_date") or request.data.get("end_date"))
+
+        # Defensive: must have a start_time to perform meaningful duplication check
+        if new_start_time is None:
+            return custom_404("start_time is required or must be in HH:MM or HH:MM:SS format for duplication check")
+
+        # Query existing availabilities for this doctor
+        existing_qs = DoctorAvailability.objects.filter(doctor=doctor)
+
+        # Check overlaps
+        for exist in existing_qs:
+            exist_day_set = normalize_days(exist.day_of_week)
+            # If weekdays do not intersect, skip
+            if new_day_set.isdisjoint(exist_day_set):
+                continue
+
+            # Parse existing date/time fields
+            exist_start_date = exist.start_date
+            exist_end_date = exist.end_date
+            # if either range doesn't intersect in date dimension -> skip
+            if not date_ranges_overlap(new_start_date, new_end_date, exist_start_date, exist_end_date):
+                continue
+
+            exist_start_time = exist.start_time
+            exist_end_time = exist.end_time
+
+            # If times overlap -> this is a duplication / overlap
+            if time_ranges_overlap(new_start_time, new_end_time, exist_start_time, exist_end_time):
+                # Build useful message with conflict details
+                conflict_days = sorted(list(new_day_set.intersection(exist_day_set)))
+                msg = (
+                    "Availability overlaps with an existing availability."
+                    f" Existing availability id={exist.id}, days={exist.day_of_week},"
+                    f" time={exist.start_time} - {exist.end_time},"
+                    f" date_range={exist.start_date} - {exist.end_date}."
+                    f" Overlapping weekdays: {conflict_days}."
+                )
+                return custom_404(msg)
+
+        # No overlaps found -> safe to save
+        availability = serializer.save(doctor=doctor)
+        return custom_201("Availability set successfully", {
+            "availability_id": availability.id,
+            "doctor_id": doctor.id,
+            "day_of_week": availability.day_of_week,
+            "start_time": availability.start_time,
+            "end_time": availability.end_time,
+            "start_date": availability.start_date,
+            "end_date": availability.end_date,
+        })
 
 
 # update availability by clinic or doctor
@@ -326,15 +672,121 @@ class DoctorAvailabilityUpdateAPIView(APIView):
 
 
 
-# list available slots for a doctor on a given date
+# # list available slots for a doctor on a given date
 
+# class DoctorAvailabilityListAPIView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request, doctor_id=None, date=None):
+#         user = request.user
+
+       
+#         if not date:
+#             return custom_404("date is required (format: YYYY-MM-DD)")
+
+#         try:
+#             selected_date = datetime.strptime(date, "%Y-%m-%d").date()
+#         except ValueError:
+#             return custom_404("Invalid date format, expected YYYY-MM-DD")
+
+#         # Logged-in Doctor (no doctor_id required)
+#         if user.role == "Doctor" and doctor_id is None:
+#             try:
+#                 doctor = Doctor.objects.get(user=user)
+#             except Doctor.DoesNotExist:
+#                 return custom_404("Doctor profile not found")
+
+#         #  Clinic or Patient providing doctor_id
+#         else:
+#             if not doctor_id:
+#                 return custom_404("doctor_id is required for this request")
+#             try:
+#                 doctor = Doctor.objects.get(id=doctor_id)
+#             except Doctor.DoesNotExist:
+#                 return custom_404("Doctor not found")
+
+        
+#         day_of_week = calendar.day_name[selected_date.weekday()]
+
+#         #  Query doctor availability
+#         availabilities_qs = DoctorAvailability.objects.filter(
+#             doctor=doctor,
+#             start_date__lte=selected_date
+#         ).filter(
+#             models.Q(end_date__isnull=True) | models.Q(end_date__gte=selected_date)
+#         )
+
+#         #  Filter by weekday in Python
+#         availabilities = [
+#             a for a in availabilities_qs
+#             if day_of_week in a.day_of_week
+#         ]
+
+#         if not availabilities:
+#             return custom_404("No availability found for this doctor on given date")
+
+#         all_slots = []
+
+#         for availability in availabilities:
+#             start_time = datetime.combine(selected_date, availability.start_time)
+#             end_time = datetime.combine(selected_date, availability.end_time)
+
+#             try:
+#                 slot_minutes = int("".join([c for c in availability.slot_duration if c.isdigit()]))
+#                 duration = timedelta(minutes=slot_minutes)
+#             except (ValueError, TypeError):
+#                 return custom_404("Invalid slot_duration format, must contain integer minutes")
+
+           
+#             break_periods = []
+#             if availability.break_duration:
+             
+#                 breaks = availability.break_duration if isinstance(availability.break_duration, list) else [availability.break_duration]
+
+#                 for b in breaks:
+#                     try:
+#                         break_minutes = int("".join([c for c in str(b) if c.isdigit()]))
+                       
+#                         mid_point = start_time + (end_time - start_time) / 2
+#                         break_start = mid_point
+#                         break_end = break_start + timedelta(minutes=break_minutes)
+#                         break_periods.append((break_start, break_end))
+#                     except (ValueError, TypeError):
+#                         continue
+
+#             # ✅ Generate slots
+#             current_time = start_time
+#             while current_time + duration <= end_time:
+#                 slot_start = current_time
+#                 slot_end = current_time + duration
+
+#                 # Exclude break overlaps
+#                 in_break = any(
+#                     slot_start < b_end and slot_end > b_start
+#                     for b_start, b_end in break_periods
+#                 )
+
+#                 if not in_break:
+#                     all_slots.append({
+#                         "slot_start": slot_start.strftime("%H:%M"),
+#                         "slot_end": slot_end.strftime("%H:%M"),
+#                     })
+
+#                 current_time += duration
+
+#         return custom_200("Available slots fetched successfully", {
+#             "doctor_id": doctor.id,
+#             "doctor_name": doctor.doctor_name,
+#             "date": selected_date.strftime("%Y-%m-%d"),
+#             "slots": all_slots
+#         })
+    
 class DoctorAvailabilityListAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, doctor_id=None, date=None):
         user = request.user
 
-       
         if not date:
             return custom_404("date is required (format: YYYY-MM-DD)")
 
@@ -350,7 +802,7 @@ class DoctorAvailabilityListAPIView(APIView):
             except Doctor.DoesNotExist:
                 return custom_404("Doctor profile not found")
 
-        #  Clinic or Patient providing doctor_id
+        # Clinic or Patient providing doctor_id
         else:
             if not doctor_id:
                 return custom_404("doctor_id is required for this request")
@@ -359,10 +811,9 @@ class DoctorAvailabilityListAPIView(APIView):
             except Doctor.DoesNotExist:
                 return custom_404("Doctor not found")
 
-        
         day_of_week = calendar.day_name[selected_date.weekday()]
 
-        #  Query doctor availability
+        # Query doctor availability
         availabilities_qs = DoctorAvailability.objects.filter(
             doctor=doctor,
             start_date__lte=selected_date
@@ -370,7 +821,7 @@ class DoctorAvailabilityListAPIView(APIView):
             models.Q(end_date__isnull=True) | models.Q(end_date__gte=selected_date)
         )
 
-        #  Filter by weekday in Python
+        # Filter by weekday in Python
         availabilities = [
             a for a in availabilities_qs
             if day_of_week in a.day_of_week
@@ -391,16 +842,13 @@ class DoctorAvailabilityListAPIView(APIView):
             except (ValueError, TypeError):
                 return custom_404("Invalid slot_duration format, must contain integer minutes")
 
-           
             break_periods = []
             if availability.break_duration:
-             
                 breaks = availability.break_duration if isinstance(availability.break_duration, list) else [availability.break_duration]
 
                 for b in breaks:
                     try:
                         break_minutes = int("".join([c for c in str(b) if c.isdigit()]))
-                       
                         mid_point = start_time + (end_time - start_time) / 2
                         break_start = mid_point
                         break_end = break_start + timedelta(minutes=break_minutes)
@@ -428,13 +876,26 @@ class DoctorAvailabilityListAPIView(APIView):
 
                 current_time += duration
 
+        # 🚫 Exclude unavailable slots from DoctorUnavailableSlot
+        unavailable = DoctorUnavailableSlot.objects.filter(
+            doctor=doctor,
+            date=selected_date
+        ).values_list("slot_start", "slot_end")
+
+        unavailable_set = {(s.strftime("%H:%M"), e.strftime("%H:%M")) for s, e in unavailable}
+
+        filtered_slots = [
+            slot for slot in all_slots
+            if (slot["slot_start"], slot["slot_end"]) not in unavailable_set
+        ]
+
         return custom_200("Available slots fetched successfully", {
             "doctor_id": doctor.id,
             "doctor_name": doctor.doctor_name,
             "date": selected_date.strftime("%Y-%m-%d"),
-            "slots": all_slots
+            "slots": filtered_slots
         })
-    
+
 
 
 # Block or unblock doctor slots
@@ -551,6 +1012,59 @@ class DoctorSlotBlockUnblockAPIView(APIView):
             "is_blocked": blocked_slot.is_blocked
         })
 
+# delete slots
+class DoctorSlotDeleteAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, doctor_id=None):
+        user = request.user
+        data = request.data
+
+        date = data.get("date")
+        slot_start = data.get("slot_start")
+        slot_end = data.get("slot_end")
+
+        if not all([date, slot_start, slot_end]):
+            return custom_404("date, slot_start, and slot_end are required")
+
+        try:
+            date_obj = datetime.strptime(date, "%Y-%m-%d").date()
+            start_time = datetime.strptime(slot_start, "%H:%M").time()
+            end_time = datetime.strptime(slot_end, "%H:%M").time()
+        except ValueError:
+            return custom_404("Invalid date or time format")
+
+        # If doctor logs in, use their ID
+        if user.role == "Doctor" and doctor_id is None:
+            try:
+                doctor = Doctor.objects.get(user=user)
+            except Doctor.DoesNotExist:
+                return custom_404("Doctor profile not found")
+        else:
+            if not doctor_id:
+                return custom_404("doctor_id is required")
+            try:
+                doctor = Doctor.objects.get(id=doctor_id)
+            except Doctor.DoesNotExist:
+                return custom_404("Doctor not found")
+
+        # Save to DoctorUnavailableSlot
+        unavailable, created = DoctorUnavailableSlot.objects.get_or_create(
+            doctor=doctor,
+            date=date_obj,
+            slot_start=start_time,
+            slot_end=end_time
+        )
+
+        if not created:
+            return custom_404("Slot already marked as deleted")
+
+        return custom_200("Slot deleted successfully", {
+            "doctor_id": doctor.id,
+            "date": date,
+            "slot_start": slot_start,
+            "slot_end": slot_end
+        })
 
 # patient register and profile view and update
 class PatientRegisterAPI(APIView):
