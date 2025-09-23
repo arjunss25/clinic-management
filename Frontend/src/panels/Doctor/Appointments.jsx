@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FaUserMd,
@@ -20,6 +20,10 @@ import {
   FaBan,
 } from 'react-icons/fa';
 import { SiTicktick } from "react-icons/si";
+import doctorAPI from '../../services/doctorApiService';
+import LoadingOverlay from '../../components/common/LoadingOverlay';
+import ResultModal from '../../components/common/ResultModal';
+import ConfirmationModal from '../../components/common/ConfirmationModal';
 
 // Theme colors (matching your existing design)
 const COLORS = {
@@ -75,77 +79,8 @@ function getMonthMatrix(year, month) {
   return matrix;
 }
 
-// Mock data for doctor's schedule
+// Get today's date for initial state
 const todayDate = new Date();
-const yyyy = todayDate.getFullYear();
-const mm = todayDate.getMonth() + 1;
-const todayStr = formatDate(todayDate);
-
-// Doctor's available slots
-const mockDoctorSlots = [
-  {
-    id: 1,
-    date: todayStr,
-    time: '09:00',
-    duration: 30,
-    status: 'available',
-    patient: null,
-    notes: '',
-  },
-  {
-    id: 2,
-    date: todayStr,
-    time: '09:30',
-    duration: 30,
-    status: 'booked',
-    patient: {
-      name: 'John Smith',
-      phone: '+1 (555) 123-4567',
-      reason: 'Regular checkup',
-    },
-    notes: 'First-time patient',
-  },
-  {
-    id: 3,
-    date: todayStr,
-    time: '10:00',
-    duration: 30,
-    status: 'available',
-    patient: null,
-    notes: '',
-  },
-  {
-    id: 4,
-    date: `${yyyy}-${pad(mm)}-05`,
-    time: '14:00',
-    duration: 60,
-    status: 'booked',
-    patient: {
-      name: 'Sarah Johnson',
-      phone: '+1 (555) 987-6543',
-      reason: 'Follow-up consultation',
-    },
-    notes: 'Needs lab results review',
-  },
-  {
-    id: 5,
-    date: `${yyyy}-${pad(mm)}-05`,
-    time: '15:00',
-    duration: 30,
-    status: 'blocked',
-    patient: null,
-    notes: 'Personal break',
-  },
-  {
-    id: 6,
-    date: `${yyyy}-${pad(mm)}-12`,
-    time: '11:30',
-    duration: 45,
-    status: 'available',
-    patient: null,
-    notes: '',
-  },
-];
 
 const statusStyles = {
   available: {
@@ -172,7 +107,7 @@ const Appointments = () => {
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(todayDate);
   const [selectedDate, setSelectedDate] = useState(todayDate);
-  const [slots, setSlots] = useState(mockDoctorSlots);
+  const [slots, setSlots] = useState([]);
   
   // Modals
   const [showDayModal, setShowDayModal] = useState(false);
@@ -182,6 +117,15 @@ const Appointments = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [editingSlot, setEditingSlot] = useState(null);
   const [cancellingSlot, setCancellingSlot] = useState(null);
+  
+  // Loading and result states
+  const [isLoading, setIsLoading] = useState(false);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [resultModalData, setResultModalData] = useState({ success: false, message: '' });
+  
+  // Delete confirmation modal states
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [slotToDelete, setSlotToDelete] = useState(null);
   
   // Slot creation/editing form
   const [slotForm, setSlotForm] = useState({
@@ -226,6 +170,11 @@ const Appointments = () => {
     [currentMonth]
   );
 
+  // Fetch availability when component mounts and when month changes
+  useEffect(() => {
+    fetchAvailabilityForMonth();
+  }, [currentMonth]);
+
   const getSlotsForDay = (date) => {
     if (!date) return [];
     return slots.filter((slot) => slot.date === formatDate(date));
@@ -262,6 +211,8 @@ const Appointments = () => {
   const openDayModal = (date) => {
     setSelectedDate(date);
     setShowDayModal(true);
+    // Fetch availability for the selected date
+    fetchAvailabilityForDate(date);
   };
 
   const openSlotModal = (date, slot = null) => {
@@ -306,75 +257,310 @@ const Appointments = () => {
     setShowSingleDayBulkModal(true);
   };
 
-  const handleSlotSubmit = (e) => {
+  const handleSlotSubmit = async (e) => {
     e.preventDefault();
     
-    if (editingSlot) {
-      if (slotForm.isReschedule) {
-        // Handle rescheduling - create new slot and cancel original
-        const newSlot = {
-          id: Date.now(),
-          ...slotForm,
-          status: 'booked',
-          patient: editingSlot.patient,
-          notes: slotForm.notes ? `${slotForm.notes} (Rescheduled from ${editingSlot.date} ${editingSlot.time})` : `Rescheduled from ${editingSlot.date} ${editingSlot.time}`,
+    setIsLoading(true);
+    
+    try {
+      if (editingSlot) {
+        if (slotForm.isReschedule) {
+          // Handle rescheduling - create new slot and cancel original
+          const newSlot = {
+            id: Date.now(),
+            ...slotForm,
+            status: 'booked',
+            patient: editingSlot.patient,
+            notes: slotForm.notes ? `${slotForm.notes} (Rescheduled from ${editingSlot.date} ${editingSlot.time})` : `Rescheduled from ${editingSlot.date} ${editingSlot.time}`,
+          };
+          
+          // Cancel the original appointment
+          setSlots(prev => prev.map(slot => 
+            slot.id === slotForm.originalSlotId 
+              ? { ...slot, status: 'available', patient: null, notes: slot.notes ? `${slot.notes} (Cancelled - Rescheduled)` : 'Cancelled - Rescheduled' }
+              : slot
+          ));
+          
+          // Add the new rescheduled slot
+          setSlots(prev => [...prev, newSlot]);
+          
+          // Show success message for rescheduling
+          setResultModalData({
+            success: true,
+            message: 'Appointment rescheduled successfully!'
+          });
+          setShowResultModal(true);
+        } else {
+          // Update existing slot using API
+          const selectedDate = new Date(slotForm.date);
+          const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          const dayOfWeek = dayNames[selectedDate.getDay()];
+          
+          // Prepare API payload for update
+          const updateData = {
+            doctor: 1, // This should be the current doctor's ID
+            day_of_week: [dayOfWeek],
+            start_date: slotForm.date,
+            end_date: slotForm.date,
+            start_time: slotForm.time,
+            end_time: new Date(`2000-01-01 ${slotForm.time}`).setMinutes(new Date(`2000-01-01 ${slotForm.time}`).getMinutes() + slotForm.duration).toTimeString().slice(0, 5),
+            slot_duration: `${slotForm.duration} minutes`,
+            break_duration: "0 minutes"
+          };
+          
+          const result = await doctorAPI.updateDoctorAvailability(updateData);
+          
+          if (result.success) {
+            // Update local state
+            setSlots(prev => prev.map(slot => 
+              slot.id === editingSlot.id 
+                ? { ...slot, ...slotForm, status: slot.status }
+                : slot
+            ));
+            
+            setResultModalData({
+              success: true,
+              message: result.message || 'Slot updated successfully!'
+            });
+            setShowResultModal(true);
+          } else {
+            setResultModalData({
+              success: false,
+              message: result.message || 'Failed to update slot'
+            });
+            setShowResultModal(true);
+          }
+        }
+      } else {
+        // Create new slot using API
+        const selectedDate = new Date(slotForm.date);
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayOfWeek = dayNames[selectedDate.getDay()];
+        
+        // Prepare API payload for new slot
+        const newSlotData = {
+          doctor: 1, // This should be the current doctor's ID
+          day_of_week: [dayOfWeek],
+          start_date: slotForm.date,
+          end_date: slotForm.date,
+          start_time: slotForm.time,
+          end_time: new Date(`2000-01-01 ${slotForm.time}`).setMinutes(new Date(`2000-01-01 ${slotForm.time}`).getMinutes() + slotForm.duration).toTimeString().slice(0, 5),
+          slot_duration: `${slotForm.duration} minutes`,
+          break_duration: "0 minutes"
         };
         
-        // Cancel the original appointment
-        setSlots(prev => prev.map(slot => 
-          slot.id === slotForm.originalSlotId 
-            ? { ...slot, status: 'available', patient: null, notes: slot.notes ? `${slot.notes} (Cancelled - Rescheduled)` : 'Cancelled - Rescheduled' }
-            : slot
-        ));
+        const result = await doctorAPI.setDoctorAvailability(newSlotData);
         
-        // Add the new rescheduled slot
-        setSlots(prev => [...prev, newSlot]);
-      } else {
-        // Update existing slot
-        setSlots(prev => prev.map(slot => 
-          slot.id === editingSlot.id 
-            ? { ...slot, ...slotForm, status: slot.status }
-            : slot
-        ));
+        if (result.success) {
+          // Add to local state
+          const newSlot = {
+            id: Date.now(),
+            ...slotForm,
+            status: 'available',
+            patient: null,
+          };
+          setSlots(prev => [...prev, newSlot]);
+          
+          setResultModalData({
+            success: true,
+            message: result.message || 'Slot created successfully!'
+          });
+          setShowResultModal(true);
+        } else {
+          setResultModalData({
+            success: false,
+            message: result.message || 'Failed to create slot'
+          });
+          setShowResultModal(true);
+        }
       }
-    } else {
-      // Create new slot
-      const newSlot = {
-        id: Date.now(),
-        ...slotForm,
-        status: 'available',
-        patient: null,
-      };
-      setSlots(prev => [...prev, newSlot]);
+    } catch (error) {
+      console.error('Error handling slot submit:', error);
+      setResultModalData({
+        success: false,
+        message: 'An unexpected error occurred while processing the slot'
+      });
+      setShowResultModal(true);
+    } finally {
+      setIsLoading(false);
+      setShowSlotModal(false);
+      setEditingSlot(null);
     }
-    
-    setShowSlotModal(false);
-    setEditingSlot(null);
   };
 
   const deleteSlot = (slotId) => {
     const slot = slots.find(s => s.id === slotId);
-    const slotTime = slot ? `${slot.time} (${slot.duration}min)` : '';
-    
-    if (window.confirm(`Are you sure you want to delete the slot at ${slotTime}?\n\nThis action cannot be undone.`)) {
-      setSlots(prev => prev.filter(slot => slot.id !== slotId));
+    if (!slot) return;
+
+    setSlotToDelete(slot);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const confirmDeleteSlot = async () => {
+    if (!slotToDelete) return;
+
+    const slotId = slotToDelete.id;
+    const slotTime = `${slotToDelete.time} (${slotToDelete.duration}min)`;
+
+    // Calculate end time for the slot
+    const endTime = new Date(`2000-01-01 ${slotToDelete.time}`);
+    endTime.setMinutes(endTime.getMinutes() + slotToDelete.duration);
+    const endTimeStr = endTime.toTimeString().slice(0, 5);
+
+    // Prepare API payload
+    const slotData = {
+      doctor_id: 1, // This should be the current doctor's ID
+      date: slotToDelete.date,
+      slot_start: slotToDelete.time,
+      slot_end: endTimeStr
+    };
+
+    setIsLoading(true);
+    setShowDeleteConfirmModal(false);
+
+    try {
+      const result = await doctorAPI.unblockSlot(slotData);
+      
+      if (result.success) {
+        // Remove from local state
+        setSlots(prev => prev.filter(s => s.id !== slotId));
+        
+        setResultModalData({
+          success: true,
+          message: result.message || 'Slot deleted successfully!'
+        });
+        setShowResultModal(true);
+      } else {
+        setResultModalData({
+          success: false,
+          message: result.message || 'Failed to delete slot'
+        });
+        setShowResultModal(true);
+      }
+    } catch (error) {
+      console.error('Error deleting slot:', error);
+      setResultModalData({
+        success: false,
+        message: 'An unexpected error occurred while deleting slot'
+      });
+      setShowResultModal(true);
+    } finally {
+      setIsLoading(false);
+      setSlotToDelete(null);
     }
   };
 
-  const blockSlot = (slotId) => {
-    setSlots(prev => prev.map(slot => 
-      slot.id === slotId 
-        ? { ...slot, status: 'blocked', patient: null }
-        : slot
-    ));
+  const cancelDeleteSlot = () => {
+    setShowDeleteConfirmModal(false);
+    setSlotToDelete(null);
   };
 
-  const unblockSlot = (slotId) => {
-    setSlots(prev => prev.map(slot => 
-      slot.id === slotId 
-        ? { ...slot, status: 'available' }
-        : slot
-    ));
+  const blockSlot = async (slotId) => {
+    const slot = slots.find(s => s.id === slotId);
+    if (!slot) return;
+
+    // Calculate end time for the slot
+    const endTime = new Date(`2000-01-01 ${slot.time}`);
+    endTime.setMinutes(endTime.getMinutes() + slot.duration);
+    const endTimeStr = endTime.toTimeString().slice(0, 5);
+
+    // Prepare API payload
+    const slotData = {
+      doctor_id: 1, // This should be the current doctor's ID
+      date: slot.date,
+      slot_start: slot.time,
+      slot_end: endTimeStr
+    };
+
+    setIsLoading(true);
+
+    try {
+      const result = await doctorAPI.blockSlot(slotData);
+      
+      if (result.success) {
+        // Update local state
+        setSlots(prev => prev.map(s => 
+          s.id === slotId 
+            ? { ...s, status: 'blocked', patient: null }
+            : s
+        ));
+        
+        setResultModalData({
+          success: true,
+          message: result.message || 'Slot blocked successfully!'
+        });
+        setShowResultModal(true);
+      } else {
+        setResultModalData({
+          success: false,
+          message: result.message || 'Failed to block slot'
+        });
+        setShowResultModal(true);
+      }
+    } catch (error) {
+      console.error('Error blocking slot:', error);
+      setResultModalData({
+        success: false,
+        message: 'An unexpected error occurred while blocking slot'
+      });
+      setShowResultModal(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const unblockSlot = async (slotId) => {
+    const slot = slots.find(s => s.id === slotId);
+    if (!slot) return;
+
+    // Calculate end time for the slot
+    const endTime = new Date(`2000-01-01 ${slot.time}`);
+    endTime.setMinutes(endTime.getMinutes() + slot.duration);
+    const endTimeStr = endTime.toTimeString().slice(0, 5);
+
+    // Prepare API payload
+    const slotData = {
+      doctor_id: 1, // This should be the current doctor's ID
+      date: slot.date,
+      slot_start: slot.time,
+      slot_end: endTimeStr
+    };
+
+    setIsLoading(true);
+
+    try {
+      const result = await doctorAPI.unblockSlot(slotData);
+      
+      if (result.success) {
+        // Update local state
+        setSlots(prev => prev.map(s => 
+          s.id === slotId 
+            ? { ...s, status: 'available' }
+            : s
+        ));
+        
+        setResultModalData({
+          success: true,
+          message: result.message || 'Slot unblocked successfully!'
+        });
+        setShowResultModal(true);
+      } else {
+        setResultModalData({
+          success: false,
+          message: result.message || 'Failed to unblock slot'
+        });
+        setShowResultModal(true);
+      }
+    } catch (error) {
+      console.error('Error unblocking slot:', error);
+      setResultModalData({
+        success: false,
+        message: 'An unexpected error occurred while unblocking slot'
+      });
+      setShowResultModal(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const cancelAppointment = (slotId) => {
@@ -448,62 +634,213 @@ const Appointments = () => {
     return slots;
   };
 
-  const handleBulkAdd = (e) => {
+  const handleBulkAdd = async (e) => {
     e.preventDefault();
     
     const { startDate, endDate, startTime, endTime, slotDuration, breakDuration, selectedDays } = bulkForm;
-    const timeSlots = generateTimeSlots(startTime, endTime, slotDuration, breakDuration);
     
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const newSlots = [];
+    // Convert selectedDays to day names
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const selectedDayNames = selectedDays.map(dayNum => dayNames[dayNum === 7 ? 0 : dayNum]);
     
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const dayOfWeek = d.getDay() === 0 ? 7 : d.getDay(); // Convert Sunday from 0 to 7
+    // Prepare API payload
+    const availabilityData = {
+      doctor: 1, // This should be the current doctor's ID - you might need to get this from context or props
+      day_of_week: selectedDayNames,
+      start_date: startDate,
+      end_date: endDate,
+      start_time: startTime,
+      end_time: endTime,
+      slot_duration: slotDuration,
+      break_duration: breakDuration
+    };
+    
+    setIsLoading(true);
+    
+    try {
+      const result = await doctorAPI.setDoctorAvailability(availabilityData);
       
-      if (selectedDays.includes(dayOfWeek)) {
-        timeSlots.forEach(time => {
-          newSlots.push({
-            id: Date.now() + Math.random(),
-            date: formatDate(d),
-            time: time,
-            duration: slotDuration,
-            status: 'available',
-            patient: null,
-            notes: '',
-          });
+      if (result.success) {
+        // Generate local slots for immediate UI update
+        const timeSlots = generateTimeSlots(startTime, endTime, slotDuration, breakDuration);
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const newSlots = [];
+        
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          const dayOfWeek = d.getDay() === 0 ? 7 : d.getDay();
+          
+          if (selectedDays.includes(dayOfWeek)) {
+            timeSlots.forEach(time => {
+              newSlots.push({
+                id: Date.now() + Math.random(),
+                date: formatDate(d),
+                time: time,
+                duration: slotDuration,
+                status: 'available',
+                patient: null,
+                notes: '',
+              });
+            });
+          }
+        }
+        
+        setSlots(prev => [...prev, ...newSlots]);
+        setShowBulkAddModal(false);
+        
+        // Show success modal
+        setResultModalData({
+          success: true,
+          message: result.message || 'Availability set successfully!'
         });
+        setShowResultModal(true);
+      } else {
+        // Show error modal
+        setResultModalData({
+          success: false,
+          message: result.message || 'Failed to set availability'
+        });
+        setShowResultModal(true);
       }
+    } catch (error) {
+      console.error('Error setting availability:', error);
+      setResultModalData({
+        success: false,
+        message: 'An unexpected error occurred while setting availability'
+      });
+      setShowResultModal(true);
+    } finally {
+      setIsLoading(false);
     }
-    
-    setSlots(prev => [...prev, ...newSlots]);
-    setShowBulkAddModal(false);
   };
 
-  const handleSingleDayBulkAdd = (e) => {
+  const handleSingleDayBulkAdd = async (e) => {
     e.preventDefault();
     
     const { date, startTime, endTime, slotDuration, breakDuration } = singleDayBulkForm;
-    const timeSlots = generateTimeSlots(startTime, endTime, slotDuration, breakDuration);
     
-    const newSlots = timeSlots.map(time => ({
-      id: Date.now() + Math.random(),
-      date: date,
-      time: time,
-      duration: slotDuration,
-      status: 'available',
-      patient: null,
-      notes: '',
-    }));
+    // Get day of week for the selected date
+    const selectedDate = new Date(date);
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayOfWeek = dayNames[selectedDate.getDay()];
     
-    setSlots(prev => [...prev, ...newSlots]);
-    setShowSingleDayBulkModal(false);
+    // Prepare API payload
+    const availabilityData = {
+      doctor: 1, // This should be the current doctor's ID
+      day_of_week: [dayOfWeek],
+      start_date: date,
+      end_date: date,
+      start_time: startTime,
+      end_time: endTime,
+      slot_duration: slotDuration,
+      break_duration: breakDuration
+    };
+    
+    setIsLoading(true);
+    
+    try {
+      const result = await doctorAPI.setDoctorAvailability(availabilityData);
+      
+      if (result.success) {
+        // Generate local slots for immediate UI update
+        const timeSlots = generateTimeSlots(startTime, endTime, slotDuration, breakDuration);
+        const newSlots = timeSlots.map(time => ({
+          id: Date.now() + Math.random(),
+          date: date,
+          time: time,
+          duration: slotDuration,
+          status: 'available',
+          patient: null,
+          notes: '',
+        }));
+        
+        setSlots(prev => [...prev, ...newSlots]);
+        setShowSingleDayBulkModal(false);
+        
+        // Show success modal
+        setResultModalData({
+          success: true,
+          message: result.message || 'Availability set successfully!'
+        });
+        setShowResultModal(true);
+      } else {
+        // Show error modal
+        setResultModalData({
+          success: false,
+          message: result.message || 'Failed to set availability'
+        });
+        setShowResultModal(true);
+      }
+    } catch (error) {
+      console.error('Error setting availability:', error);
+      setResultModalData({
+        success: false,
+        message: 'An unexpected error occurred while setting availability'
+      });
+      setShowResultModal(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const isSameDay = (a, b) =>
     a.getFullYear() === b.getFullYear() &&
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate();
+
+  // Fetch availability for a specific date
+  const fetchAvailabilityForDate = async (date) => {
+    const dateStr = formatDate(date);
+    const doctorId = 1; // This should be the current doctor's ID
+    
+    try {
+      const result = await doctorAPI.getDoctorAvailability(doctorId, dateStr);
+      
+      if (result.success && result.data.slots) {
+        // Convert API slots to local slot format
+        const apiSlots = result.data.slots.map((slot, index) => ({
+          id: `${dateStr}-${slot.slot_start}-${index}`,
+          date: dateStr,
+          time: slot.slot_start,
+          duration: calculateDuration(slot.slot_start, slot.slot_end),
+          status: 'available',
+          patient: null,
+          notes: '',
+        }));
+        
+        // Remove existing slots for this date and add new ones
+        setSlots(prev => {
+          const filteredSlots = prev.filter(slot => slot.date !== dateStr);
+          return [...filteredSlots, ...apiSlots];
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching availability for date:', error);
+    }
+  };
+
+  // Calculate duration between two time strings
+  const calculateDuration = (startTime, endTime) => {
+    const start = new Date(`2000-01-01 ${startTime}`);
+    const end = new Date(`2000-01-01 ${endTime}`);
+    return Math.round((end - start) / (1000 * 60)); // Return duration in minutes
+  };
+
+  // Fetch availability for all days in the current month
+  const fetchAvailabilityForMonth = async () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    // Fetch availability for each day in the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      // Only fetch for future dates or today
+      if (date >= new Date(new Date().setHours(0, 0, 0, 0))) {
+        await fetchAvailabilityForDate(date);
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -1710,9 +2047,36 @@ const Appointments = () => {
              </div>
            </div>
          )}
+
+        {/* Loading Overlay */}
+        {isLoading && <LoadingOverlay />}
+
+        {/* Result Modal */}
+        {showResultModal && (
+          <ResultModal
+            isOpen={showResultModal}
+            onClose={() => setShowResultModal(false)}
+            type={resultModalData.success ? 'success' : 'error'}
+            message={resultModalData.message}
+          />
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirmModal && slotToDelete && (
+          <ConfirmationModal
+            isOpen={showDeleteConfirmModal}
+            onClose={cancelDeleteSlot}
+            onConfirm={confirmDeleteSlot}
+            title="Delete Time Slot"
+            message={`Are you sure you want to delete the slot at ${slotToDelete.time} (${slotToDelete.duration}min)?`}
+            confirmText="Delete Slot"
+            cancelText="Cancel"
+            type="danger"
+          />
+        )}
        </div>
      </div>
    );
  };
-
-export default Appointments;
+ 
+ export default Appointments;

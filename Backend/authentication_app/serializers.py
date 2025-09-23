@@ -21,6 +21,7 @@ class OTPVerifySerializer(serializers.Serializer):
     otp = serializers.CharField()
 
 
+<<<<<<< HEAD
 class SuperUserCreateSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     password = serializers.CharField(write_only=True, required=True, min_length=8)
@@ -33,3 +34,8 @@ class SuperUserCreateSerializer(serializers.Serializer):
         if ProfileUser.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError("A user with this email already exists.")
         return value
+=======
+
+class ResendOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+>>>>>>> 8c4c14b04225f36ed5634b20fa4755841e0dfe89

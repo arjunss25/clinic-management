@@ -1,5 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import clinicAPI from '../../services/clinicApiService';
+import LoadingOverlay from '../../components/common/LoadingOverlay';
+import ResultModal from '../../components/common/ResultModal';
 import {
   FaSearch,
   FaFilter,
@@ -29,69 +32,31 @@ const COLORS = {
   gray50: '#F9FAFB',
 };
 
-// Sample patient data - Move to constants file in real app
-const SAMPLE_PATIENTS = [
-  {
-    id: 'PAT-2024-001',
-    name: 'John Doe',
-    age: 35,
-    gender: 'Male',
-    phone: '+1 (555) 123-4567',
-    email: 'john.doe@email.com',
-    lastVisit: '15 Mar 2024',
-    status: 'Active',
-    bloodGroup: 'O+',
-    emergencyContact: 'Sarah Doe (Wife)',
-  },
-  {
-    id: 'PAT-2024-002',
-    name: 'Jane Smith',
-    age: 28,
-    gender: 'Female',
-    phone: '+1 (555) 234-5678',
-    email: 'jane.smith@email.com',
-    lastVisit: '12 Mar 2024',
-    status: 'Active',
-    bloodGroup: 'A+',
-    emergencyContact: 'Mike Smith (Husband)',
-  },
-  {
-    id: 'PAT-2024-003',
-    name: 'Robert Johnson',
-    age: 45,
-    gender: 'Male',
-    phone: '+1 (555) 345-6789',
-    email: 'robert.johnson@email.com',
-    lastVisit: '10 Mar 2024',
-    status: 'Active',
-    bloodGroup: 'B+',
-    emergencyContact: 'Lisa Johnson (Sister)',
-  },
-  {
-    id: 'PAT-2024-004',
-    name: 'Emily Davis',
-    age: 32,
-    gender: 'Female',
-    phone: '+1 (555) 456-7890',
-    email: 'emily.davis@email.com',
-    lastVisit: '08 Mar 2024',
-    status: 'Active',
-    bloodGroup: 'AB+',
-    emergencyContact: 'David Davis (Brother)',
-  },
-  {
-    id: 'PAT-2024-005',
-    name: 'Michael Wilson',
-    age: 52,
-    gender: 'Male',
-    phone: '+1 (555) 567-8901',
-    email: 'michael.wilson@email.com',
-    lastVisit: '05 Mar 2024',
-    status: 'Active',
-    bloodGroup: 'O-',
-    emergencyContact: 'Jennifer Wilson (Daughter)',
-  },
-];
+// Transform API patient data to match component structure
+const transformPatientData = (apiPatient) => {
+  return {
+    id: apiPatient.id || apiPatient.patient_id,
+    name: apiPatient.full_name || apiPatient.name,
+    age: apiPatient.age,
+    gender: apiPatient.gender,
+    phone: apiPatient.phone_number || apiPatient.phone,
+    email: apiPatient.email,
+    lastVisit: apiPatient.last_visit ? new Date(apiPatient.last_visit).toLocaleDateString('en-US', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    }) : 'No visits',
+    status: apiPatient.status || 'Active',
+    bloodGroup: apiPatient.blood_group || 'Not specified',
+    emergencyContact: apiPatient.emergency_contact_name ? 
+      `${apiPatient.emergency_contact_name}${apiPatient.emergency_contact_phone ? ` (${apiPatient.emergency_contact_phone})` : ''}` : 
+      'Not specified',
+    address: apiPatient.address || '',
+    knownAllergies: apiPatient.known_allergies || '',
+    // Keep original API data for reference
+    ...apiPatient
+  };
+};
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 const GENDER_OPTIONS = ['Male', 'Female', 'Other'];
@@ -102,17 +67,18 @@ const FILTER_OPTIONS = [
   { value: 'recent', label: 'Recent Visits' },
 ];
 
-// Initial form state
+// Initial form state (matching API structure)
 const INITIAL_PATIENT_STATE = {
-  name: '',
+  full_name: '',
   age: '',
   gender: '',
-  phone: '',
+  phone_number: '',
   email: '',
-  bloodGroup: '',
-  emergencyContact: '',
-  emergencyContactPhone: '',
+  blood_group: '',
+  emergency_contact_name: '',
+  emergency_contact_phone: '',
   address: '',
+  known_allergies: '',
 };
 
 // Custom hooks for form management
@@ -120,6 +86,10 @@ const usePatientForm = () => {
   const [newPatient, setNewPatient] = useState(INITIAL_PATIENT_STATE);
   const [allergies, setAllergies] = useState([]);
   const [newAllergy, setNewAllergy] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [resultModal, setResultModal] = useState({ type: '', title: '', message: '' });
 
   const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -141,6 +111,22 @@ const usePatientForm = () => {
     setNewPatient(INITIAL_PATIENT_STATE);
     setAllergies([]);
     setNewAllergy('');
+    setError(null);
+  }, []);
+
+  const showSuccessModal = useCallback((title, message) => {
+    setResultModal({ type: 'success', title, message });
+    setShowResultModal(true);
+  }, []);
+
+  const showErrorModal = useCallback((title, message) => {
+    setResultModal({ type: 'error', title, message });
+    setShowResultModal(true);
+  }, []);
+
+  const closeResultModal = useCallback(() => {
+    setShowResultModal(false);
+    setResultModal({ type: '', title: '', message: '' });
   }, []);
 
   return {
@@ -148,10 +134,19 @@ const usePatientForm = () => {
     allergies,
     newAllergy,
     setNewAllergy,
+    isLoading,
+    setLoading: setIsLoading,
+    error,
+    setError,
     handleInputChange,
     handleAddAllergy,
     handleRemoveAllergy,
     resetForm,
+    showResultModal,
+    resultModal,
+    showSuccessModal,
+    showErrorModal,
+    closeResultModal,
   };
 };
 
@@ -471,6 +466,9 @@ const Patients = () => {
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const {
@@ -478,43 +476,136 @@ const Patients = () => {
     allergies,
     newAllergy,
     setNewAllergy,
+    isLoading: isFormLoading,
+    setLoading: setFormLoading,
+    error: formError,
+    setError: setFormError,
     handleInputChange,
     handleAddAllergy,
     handleRemoveAllergy,
     resetForm,
+    showResultModal,
+    resultModal,
+    showSuccessModal,
+    showErrorModal,
+    closeResultModal,
   } = usePatientForm();
+
+  // Fetch patients from API
+  const fetchPatients = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await clinicAPI.listAllPatients();
+      if (response.success) {
+        const transformedPatients = response.data.map(transformPatientData);
+        setPatients(transformedPatients);
+      } else {
+        setError(response.message || 'Failed to fetch patients');
+        setPatients([]);
+      }
+    } catch (err) {
+      setError('An unexpected error occurred while fetching patients');
+      setPatients([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Load patients on component mount
+  React.useEffect(() => {
+    fetchPatients();
+  }, [fetchPatients]);
 
   // Memoized filtered patients
   const filteredPatients = useMemo(() => {
-    return SAMPLE_PATIENTS.filter(patient => {
+    return patients.filter(patient => {
       const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           patient.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           patient.email.toLowerCase().includes(searchTerm.toLowerCase());
+                           patient.id.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (patient.email && patient.email.toLowerCase().includes(searchTerm.toLowerCase()));
       
       if (selectedFilter === 'all') return matchesSearch;
       if (selectedFilter === 'male') return matchesSearch && patient.gender === 'Male';
       if (selectedFilter === 'female') return matchesSearch && patient.gender === 'Female';
       if (selectedFilter === 'recent') {
-        const lastVisitDate = new Date(patient.lastVisit);
-        const weekAgo = new Date();
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        return matchesSearch && lastVisitDate >= weekAgo;
+        // For recent filter, we'll check if lastVisit is not "No visits"
+        return matchesSearch && patient.lastVisit !== 'No visits';
       }
       return matchesSearch;
     });
-  }, [searchTerm, selectedFilter]);
+  }, [patients, searchTerm, selectedFilter]);
 
   // Event handlers
   const handleViewPatient = useCallback((patient) => {
     navigate(`/clinic/patients/${patient.id}`);
   }, [navigate]);
 
-  const handleAddPatient = useCallback((e) => {
+  const handleAddPatient = useCallback(async (e) => {
     e.preventDefault();
-    console.log('Adding new patient:', { ...newPatient, allergies });
-    resetForm();
-    setShowAddModal(false);
-  }, [newPatient, allergies, resetForm]);
+    setFormLoading(true);
+    setFormError(null);
+
+    try {
+      // Prepare the payload according to the API specification
+      const patientPayload = {
+        full_name: newPatient.full_name,
+        age: newPatient.age,
+        gender: newPatient.gender,
+        phone_number: newPatient.phone_number,
+        blood_group: newPatient.blood_group,
+        emergency_contact_name: newPatient.emergency_contact_name,
+        emergency_contact_phone: newPatient.emergency_contact_phone,
+        address: newPatient.address,
+        known_allergies: allergies.join(', '), // Convert array to comma-separated string
+        email: newPatient.email,
+      };
+
+      console.log('Registering patient with payload:', patientPayload);
+      
+      const response = await clinicAPI.registerPatient(patientPayload);
+      
+      if (response.success) {
+        console.log('Patient registered successfully:', response);
+        
+        // Close add patient modal first
+        setShowAddModal(false);
+        resetForm();
+        
+        // Refresh patients list
+        fetchPatients();
+        
+        // Show success modal
+        showSuccessModal(
+          'Patient Registered Successfully!',
+          `${newPatient.full_name} has been successfully added to your patient directory. They can now book appointments.`
+        );
+      } else {
+        console.error('Failed to register patient:', response.message);
+        
+        // Close add patient modal first
+        setShowAddModal(false);
+        
+        // Show error modal
+        showErrorModal(
+          'Registration Failed',
+          response.message || 'Failed to register patient. Please try again.'
+        );
+      }
+    } catch (error) {
+      console.error('Error registering patient:', error);
+      
+      // Close add patient modal first
+      setShowAddModal(false);
+      
+      // Show error modal
+      showErrorModal(
+        'Registration Failed',
+        'An unexpected error occurred. Please try again.'
+      );
+    } finally {
+      setFormLoading(false);
+    }
+  }, [newPatient, allergies, resetForm, setFormLoading, showSuccessModal, showErrorModal, fetchPatients]);
 
   const handleCloseModal = useCallback(() => {
     setShowAddModal(false);
@@ -540,6 +631,37 @@ const Patients = () => {
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, [handleClickOutside]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading patients...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Patients</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={fetchPatients}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -792,7 +914,7 @@ const Patients = () => {
           onClick={handleCloseModal}
         >
           <div
-            className="w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto relative"
             style={{
               background: COLORS.surface,
               border: `1px solid ${COLORS.border}`,
@@ -800,6 +922,13 @@ const Patients = () => {
             }}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Loading Overlay */}
+            <LoadingOverlay 
+              isLoading={isFormLoading}
+              title="Registering Patient..."
+              message="Please wait while we process your request"
+              spinnerSize="xl"
+            />
             {/* Modal Header */}
             <div
               className="px-4 sm:px-6 py-4 sm:py-5 border-b flex items-center justify-between sticky top-0 z-10"
@@ -846,8 +975,8 @@ const Patients = () => {
                 <div className="lg:col-span-2">
                   <FormInput
                     label="Full Name"
-                    name="name"
-                    value={newPatient.name}
+                    name="full_name"
+                    value={newPatient.full_name}
                     onChange={handleInputChange}
                     required
                     placeholder="Enter patient's full name"
@@ -878,9 +1007,9 @@ const Patients = () => {
 
                 <FormInput
                   label="Phone Number"
-                  name="phone"
+                  name="phone_number"
                   type="tel"
-                  value={newPatient.phone}
+                  value={newPatient.phone_number}
                   onChange={handleInputChange}
                   required
                   placeholder="+1 (555) 123-4567"
@@ -897,8 +1026,8 @@ const Patients = () => {
 
                 <FormSelect
                   label="Blood Group"
-                  name="bloodGroup"
-                  value={newPatient.bloodGroup}
+                  name="blood_group"
+                  value={newPatient.blood_group}
                   onChange={handleInputChange}
                   options={BLOOD_GROUPS}
                   placeholder="Select Blood Group"
@@ -906,17 +1035,17 @@ const Patients = () => {
 
                 <FormInput
                   label="Emergency Contact Name"
-                  name="emergencyContact"
-                  value={newPatient.emergencyContact}
+                  name="emergency_contact_name"
+                  value={newPatient.emergency_contact_name}
                   onChange={handleInputChange}
                   placeholder="John Doe (Spouse)"
                 />
 
                 <FormInput
                   label="Emergency Contact Phone"
-                  name="emergencyContactPhone"
+                  name="emergency_contact_phone"
                   type="tel"
-                  value={newPatient.emergencyContactPhone}
+                  value={newPatient.emergency_contact_phone}
                   onChange={handleInputChange}
                   placeholder="+1 (555) 987-6543"
                 />
@@ -1058,6 +1187,15 @@ const Patients = () => {
           </div>
         </div>
       )}
+
+      {/* Result Modal */}
+      <ResultModal
+        isOpen={showResultModal}
+        type={resultModal.type}
+        title={resultModal.title}
+        message={resultModal.message}
+        onClose={closeResultModal}
+      />
     </div>
   );
 };

@@ -111,14 +111,19 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
     specialization = serializers.CharField(required=True)
     phone = serializers.CharField(required=True)
     email = serializers.EmailField(required=True)
+    patients_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Doctor
         fields = [
-            "clinic_name","doctor_name", "specialization", "phone", "email",
+            "id","clinic_name","doctor_name", "specialization", "phone", "email",
             "bio", "profile_picture", "experince_years",
-            "education", "additional_qualification"
+            "education", "additional_qualification","appointment_amount","created_at","patients_count"
         ]
+        read_only_fields = ["id","patients_count","created_at"]
+
+    def get_patients_count(self, obj):
+        return obj.appointments.values("patient").distinct().count()  # assumes Clinic has related_name="patients"    
 
     def create(self, validated_data):
         clinic = self.context.get("clinic")
@@ -139,7 +144,62 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
             **validated_data
         )
         return doctor
-    
+
+
+
+class PatientRegisterSerializer(serializers.ModelSerializer):
+    # email = serializers.EmailField(required=True)
+
+    # Input field (write-only)
+    email = serializers.EmailField(write_only=True, required=True)
+    # Output field (read-only, mapped from user relation)
+    email_display = serializers.EmailField(source="user.email", read_only=True)
+ 
+    phone_number = serializers.CharField(required=True, min_length=10, max_length=15)
+
+    class Meta:
+        model = Patient
+        fields = [
+            "id",
+            "full_name",
+            "age",
+            "gender",
+            "phone_number",
+            "email",
+            "blood_group",
+            "emergency_contact_name",
+            "emergency_contact_phone",
+            "address",
+            "known_allergies",
+            "email",          # for POST/PATCH input
+            "email_display",  # for GET response
+        ]
+        read_only_fields = ["id"]
+
+    # ✅ Field-level validation
+    def validate_age(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Age must be a positive number.")
+        return value
+
+    def validate_phone_number(self, value):
+        if not value.isdigit():
+            raise serializers.ValidationError("Phone number must contain digits only.")
+        return value
+
+    # ✅ Object-level validation (cross-checks + unknown fields)
+    def validate(self, data):
+        # Reject wrong field names
+        for field in self.initial_data.keys():
+            if field not in self.fields:
+                raise serializers.ValidationError({field: "This field is not allowed."})
+
+        # Gender check
+        if data.get("gender") and data["gender"] not in ["Male", "Female", "Other"]:
+            raise serializers.ValidationError({"gender": "Invalid gender choice."})
+        return data
+
+
 
 
 class DoctorAvailabilitySerializer(serializers.ModelSerializer):
@@ -185,6 +245,7 @@ class DoctorAvailabilitySerializer(serializers.ModelSerializer):
             end_time = (datetime.combine(datetime.today(), start_time) +
                         timedelta(minutes=slot_duration)).time()
             attrs["end_time"] = end_time
+            
 
         return attrs
 
@@ -266,3 +327,96 @@ class SuperAdminAppointmentBookingSerializer(BaseAppointmentBookingSerializer):
         model = AppointmentBooking
         exclude = ['id', 'created_at']
 
+    
+# appointment booking serializer
+class AppointmentBookingSerializer(serializers.ModelSerializer):
+    doctor_name = serializers.CharField(source='doctor.doctor_name', read_only=True)
+    patient_name = serializers.CharField(source='patient.full_name', read_only=True)
+    class Meta:
+        model = AppointmentBooking
+        fields = '__all__'
+        read_only_fields = ['id','created_at','doctor_name','patient_name']    
+
+
+
+# clinic profile serlaizers
+class ClinicProfileEditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Clinic
+        fields = [
+            "clinic_name", "license_number", "location",
+            "address", "phone", "specialties","about_clinic","website",
+        ]
+
+
+# accreditation serializer
+class ClinicAccreditationSerializer(serializers.ModelSerializer):
+    clinic_name = serializers.CharField(source='clinic.clinic_name', read_only=True)
+    class Meta:
+        model = ClinicAccreditation
+        fields = ["id","clinic_name","name", "issued_by", "issue_date", "expiry_date", "document"]
+        read_only_fields = ["id"]
+        extra_kwargs = {'document': {'required': False},'issued_by' :{'required':False} , 'issue_date' : {'required':False} , 'expiry_date':{'required':False}}  # Make document optional        
+
+
+# medical facility serializer
+class ClinicMedicalFacilitySerializer(serializers.ModelSerializer):
+    clinic_name = serializers.CharField(source='clinic.clinic_name', read_only=True)
+    class Meta:
+        model = ClinicMedicalFacility
+        fields = ["id","clinic_name","name","description"]
+        read_only_fields = ["id"]        
+
+
+# clinic patients amenties 
+class ClinicPatientsAmenitySerializer(serializers.ModelSerializer):
+    clinic_name = serializers.CharField(source='clinic.clinic_name', read_only=True)
+    class Meta:
+        model = ClinicPatientAmenity
+        fields = ["id","clinic_name","patient_amenities","description"]
+        read_only_fields = ["id"]  
+
+
+# working hours serializer
+class ClinicWorkingHoursSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClinicWorkingHours
+        fields = ['id', 'clinic', 'day_of_week', 'opening_time', 'closing_time', 'is_available']
+        extra_kwargs = {
+            'clinic': {'read_only': True}
+        }
+        read_only_fields = ['id']
+
+# clinic address edit serializer
+class ClinicAddressEditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Clinic
+        fields = ["address"]
+
+# contact info update serializer
+class ClinicContactInfoEditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Clinic
+        fields = ["phone", "website"]
+
+# specialty edit serializer
+class SpecialtyEditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Specialty
+        fields = ["name"]
+
+
+# medical report serializer
+class MedicalReportSerializer(serializers.ModelSerializer):
+    patient_name = serializers.CharField(source="patient.full_name", read_only=True)
+    appointment_id = serializers.IntegerField(source="appointment.id", read_only=True)
+
+    class Meta:
+        model = MedicalReport
+        fields = [
+            "id", "appointment_id", "patient", "patient_name",
+            "report_title", "priority", "report_type", "description",
+            "document", "created_at"
+        ]
+        read_only_fields = ["id", "created_at", "appointment_id", "patient_name"]
+        

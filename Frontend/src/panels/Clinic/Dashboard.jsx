@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
+import clinicAPI from '../../services/clinicApiService';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 import {
   FaCalendarAlt,
   FaUserInjured,
@@ -62,7 +64,56 @@ const Dashboard = () => {
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedDoctor, setSelectedDoctor] = useState('all');
   
+  // Dashboard counts state
+  const [dashboardCounts, setDashboardCounts] = useState({
+    totalPatients: 0,
+    totalAppointments: 0,
+    todayAppointments: 0,
+    completedToday: 0,
+    waitingList: 0,
+    noShows: 0,
+    upcomingAppointments: 0
+  });
+  const [loadingCounts, setLoadingCounts] = useState(false);
+  
   const navigate = useNavigate();
+
+  // Fetch dashboard counts from API
+  const fetchDashboardCounts = useCallback(async () => {
+    setLoadingCounts(true);
+    try {
+      const result = await clinicAPI.getDashboardCounts();
+      if (result.success) {
+        console.log('Dashboard counts fetched successfully:', result.data);
+        
+        // Map API response fields to dashboard state fields
+        const mappedCounts = {
+          totalPatients: result.data.total_patients || 0,
+          totalAppointments: result.data.total_todays_appointments || 0,
+          todayAppointments: result.data.total_todays_appointments || 0,
+          completedToday: result.data.total_completed_appointments || 0,
+          waitingList: result.data.total_waiting_list || 0,
+          noShows: result.data.total_no_shows || 0,
+          upcomingAppointments: result.data.total_todays_appointments || 0
+        };
+        
+        setDashboardCounts(mappedCounts);
+      } else {
+        console.error('Failed to fetch dashboard counts:', result.message);
+        // Keep default values on error
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard counts:', error);
+      // Keep default values on error
+    } finally {
+      setLoadingCounts(false);
+    }
+  }, []);
+
+  // Fetch dashboard counts on component mount
+  useEffect(() => {
+    fetchDashboardCounts();
+  }, [fetchDashboardCounts]);
 
   // Sample departments data
   const departments = [
@@ -415,10 +466,19 @@ const Dashboard = () => {
             <p className="text-gray-500 text-sm">Total Patients</p>
           </div>
           <div className="mt-4 space-y-1">
-            <p className="text-2xl font-semibold text-gray-900">
-              {clinic.totalPatients}
-            </p>
-            <p className="text-gray-600 text-sm">+25 this month</p>
+            {loadingCounts ? (
+              <div className="flex items-center gap-2">
+                <LoadingSpinner size="sm" />
+                <p className="text-gray-500 text-sm">Loading...</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {dashboardCounts.totalPatients || 0}
+                </p>
+                <p className="text-gray-600 text-sm">Registered patients</p>
+              </>
+            )}
           </div>
         </motion.div>
 
@@ -435,13 +495,21 @@ const Dashboard = () => {
             <p className="text-gray-500 text-sm">Today's Appointments</p>
           </div>
           <div className="mt-4 space-y-1">
-            <p className="text-2xl font-semibold text-gray-900">
-              {filterAppointments(Object.values(todayAppointments).flat()).length -
-                getTabCount('waitingList')}
-            </p>
-            <p className="text-gray-600 text-sm">
-              {getTabCount('upcoming')} upcoming
-            </p>
+            {loadingCounts ? (
+              <div className="flex items-center gap-2">
+                <LoadingSpinner size="sm" />
+                <p className="text-gray-500 text-sm">Loading...</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {dashboardCounts.todayAppointments || 0}
+                </p>
+                <p className="text-gray-600 text-sm">
+                  {dashboardCounts.upcomingAppointments || 0} upcoming
+                </p>
+              </>
+            )}
           </div>
         </motion.div>
 
@@ -458,12 +526,21 @@ const Dashboard = () => {
             <p className="text-gray-500 text-sm">Completed Today</p>
           </div>
           <div className="mt-4 space-y-1">
-            <p className="text-2xl font-semibold text-gray-900">
-              {getTabCount('completed')}
-            </p>
-            <p className="text-green-600 text-sm font-medium">
-              Appointments done
-            </p>
+            {loadingCounts ? (
+              <div className="flex items-center gap-2">
+                <LoadingSpinner size="sm" />
+                <p className="text-gray-500 text-sm">Loading...</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {dashboardCounts.completedToday || 0}
+                </p>
+                <p className="text-green-600 text-sm font-medium">
+                  Appointments done
+                </p>
+              </>
+            )}
           </div>
         </motion.div>
 
@@ -480,10 +557,19 @@ const Dashboard = () => {
             <p className="text-gray-500 text-sm">Waiting List</p>
           </div>
           <div className="mt-4 space-y-1">
-            <p className="text-2xl font-semibold text-gray-900">
-              {getTabCount('waitingList')}
-            </p>
-            <p className="text-orange-600 text-sm">Patients waiting</p>
+            {loadingCounts ? (
+              <div className="flex items-center gap-2">
+                <LoadingSpinner size="sm" />
+                <p className="text-gray-500 text-sm">Loading...</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {dashboardCounts.waitingList || 0}
+                </p>
+                <p className="text-orange-600 text-sm">Patients waiting</p>
+              </>
+            )}
           </div>
         </motion.div>
 
@@ -500,10 +586,19 @@ const Dashboard = () => {
             <p className="text-gray-500 text-sm">No Shows</p>
           </div>
           <div className="mt-4 space-y-1">
-            <p className="text-2xl font-semibold text-gray-900">
-              {getTabCount('notVisited')}
-            </p>
-            <p className="text-red-600 text-sm">Missed appointments</p>
+            {loadingCounts ? (
+              <div className="flex items-center gap-2">
+                <LoadingSpinner size="sm" />
+                <p className="text-gray-500 text-sm">Loading...</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {dashboardCounts.noShows || 0}
+                </p>
+                <p className="text-red-600 text-sm">Missed appointments</p>
+              </>
+            )}
           </div>
         </motion.div>
       </motion.div>

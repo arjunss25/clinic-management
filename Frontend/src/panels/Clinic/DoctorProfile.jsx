@@ -25,6 +25,7 @@ import {
   FaCheckCircle,
   FaDollarSign,
 } from 'react-icons/fa';
+import clinicAPI from '../../services/clinicApiService';
 
 // Theme colors (matching project theme)
 const COLORS = {
@@ -46,188 +47,110 @@ const COLORS = {
 const DoctorProfile = () => {
   const { doctorId } = useParams();
   const navigate = useNavigate();
+  
   const [activeTab, setActiveTab] = useState('overview');
   const [doctor, setDoctor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editForm, setEditForm] = useState({});
+  const [specializations, setSpecializations] = useState([]);
+  const [loadingSpecializations, setLoadingSpecializations] = useState(false);
 
-  // Comprehensive doctor database
-  const doctorsDatabase = {
-    'DOC-2024-001': {
-      id: 'DOC-2024-001',
-      name: 'Dr. Sarah Johnson',
-      specialization: 'Cardiology',
-      qualification: 'MD, FACC',
-      experience: 15,
-      phone: '+1 (555) 123-4567',
-      email: 'sarah.johnson@clinic.com',
-      joinedDate: '15 Jan 2020',
-      status: 'Active',
-      licenseNumber: 'MD123456',
-      address: '123 Medical Center Drive, New York, NY 10001',
-      specializations: ['Cardiology', 'Internal Medicine', 'Interventional Cardiology'],
-      qualifications: [
-        'MD - Harvard Medical School (2009)',
-        'Board Certified Cardiologist (2012)',
-        'Fellowship in Interventional Cardiology - Mayo Clinic (2013)',
-        'FACC - Fellow of American College of Cardiology (2015)',
-      ],
-      hospital: 'New York Presbyterian Hospital',
-      department: 'Cardiology Department',
-      languages: ['English', 'Spanish'],
-      rating: 4.8,
-      totalPatients: 1250,
-      education: 'Harvard Medical School',
-      certifications: ['Board Certified Cardiologist', 'FACC', 'Interventional Cardiology'],
-      achievements: [
-        'Best Cardiologist Award 2023 - New York Medical Association',
-        'Published 25+ research papers in leading cardiology journals',
-        'Speaker at American Heart Association Annual Meeting 2023',
-      ],
-      schedule: {
-        monday: { start: '09:00', end: '17:00', available: true },
-        tuesday: { start: '09:00', end: '17:00', available: true },
-        wednesday: { start: '09:00', end: '17:00', available: true },
-        thursday: { start: '09:00', end: '17:00', available: true },
-        friday: { start: '09:00', end: '17:00', available: true },
-        saturday: { start: '10:00', end: '14:00', available: true },
-        sunday: { start: '00:00', end: '00:00', available: false },
-      },
-      consultationFee: 150,
-      emergencyContact: '+1 (555) 999-8888',
-      bio: 'Dr. Sarah Johnson is a highly experienced cardiologist with over 15 years of practice. She specializes in interventional cardiology and has performed over 2000 cardiac procedures. Her research focuses on preventive cardiology and innovative treatment methods.',
-      recentPublications: [
-        'Advanced Cardiac Imaging Techniques (2023)',
-        'Preventive Cardiology in Modern Practice (2022)',
-        'Interventional Cardiology Outcomes Study (2021)',
-      ],
-      awards: [
-        'Excellence in Cardiology Award - 2023',
-        'Patient Choice Award - 2022',
-        'Research Excellence Award - 2021',
-      ],
-    },
-    'DOC-2024-002': {
-      id: 'DOC-2024-002',
-      name: 'Dr. Michael Chen',
-      specialization: 'Neurology',
-      qualification: 'MD, PhD',
-      experience: 12,
-      phone: '+1 (555) 234-5678',
-      email: 'michael.chen@clinic.com',
-      joinedDate: '22 Mar 2021',
-      status: 'Active',
-      licenseNumber: 'MD234567',
-      address: '456 Healthcare Plaza, Los Angeles, CA 90210',
-      specializations: ['Neurology', 'Neurosurgery', 'Movement Disorders'],
-      qualifications: [
-        'MD - Stanford University (2012)',
-        'PhD - Neuroscience - Stanford University (2014)',
-        'Board Certified Neurologist (2015)',
-        'Fellowship in Movement Disorders - UCLA (2016)',
-      ],
-      hospital: 'UCLA Medical Center',
-      department: 'Neurology Department',
-      languages: ['English', 'Mandarin'],
-      rating: 4.9,
-      totalPatients: 980,
-      education: 'Stanford University',
-      certifications: ['Board Certified Neurologist', 'PhD Neuroscience', 'Movement Disorders Specialist'],
-      achievements: [
-        'Leading researcher in Parkinson\'s disease treatment',
-        'Developed innovative diagnostic protocols for movement disorders',
-        'Mentored 15+ neurology residents',
-      ],
-      schedule: {
-        monday: { start: '08:00', end: '16:00', available: true },
-        tuesday: { start: '08:00', end: '16:00', available: true },
-        wednesday: { start: '08:00', end: '16:00', available: true },
-        thursday: { start: '08:00', end: '16:00', available: true },
-        friday: { start: '08:00', end: '16:00', available: true },
-        saturday: { start: '09:00', end: '13:00', available: true },
-        sunday: { start: '00:00', end: '00:00', available: false },
-      },
-      consultationFee: 180,
-      emergencyContact: '+1 (555) 777-6666',
-      bio: 'Dr. Michael Chen is a distinguished neurologist with expertise in movement disorders and neurodegenerative diseases. His research has contributed significantly to understanding Parkinson\'s disease mechanisms.',
-      recentPublications: [
-        'Novel Approaches to Parkinson\'s Treatment (2023)',
-        'Movement Disorders in Aging Population (2022)',
-        'Neurological Biomarkers Study (2021)',
-      ],
-      awards: [
-        'Neurology Research Excellence Award - 2023',
-        'Young Investigator Award - 2022',
-        'Patient Care Excellence - 2021',
-      ],
-    },
-    'DOC-2024-003': {
-      id: 'DOC-2024-003',
-      name: 'Dr. Emily Rodriguez',
-      specialization: 'Pediatrics',
-      qualification: 'MD, FAAP',
-      experience: 8,
-      phone: '+1 (555) 345-6789',
-      email: 'emily.rodriguez@clinic.com',
-      joinedDate: '10 May 2022',
-      status: 'Active',
-      licenseNumber: 'MD345678',
-      address: '789 Children\'s Hospital Way, Miami, FL 33101',
-      specializations: ['Pediatrics', 'Child Development', 'Pediatric Cardiology'],
-      qualifications: [
-        'MD - Johns Hopkins University (2016)',
-        'Board Certified Pediatrician (2018)',
-        'Fellowship in Pediatric Cardiology (2019)',
-        'FAAP - Fellow of American Academy of Pediatrics (2020)',
-      ],
-      hospital: 'Miami Children\'s Hospital',
-      department: 'Pediatrics Department',
-      languages: ['English', 'Spanish'],
-      rating: 4.7,
-      totalPatients: 2100,
-      education: 'Johns Hopkins University',
-      certifications: ['Board Certified Pediatrician', 'FAAP', 'Pediatric Cardiology'],
-      achievements: [
-        'Specialized in treating congenital heart defects',
-        'Developed child-friendly examination protocols',
-        'Active in community pediatric health programs',
-      ],
-      schedule: {
-        monday: { start: '08:30', end: '16:30', available: true },
-        tuesday: { start: '08:30', end: '16:30', available: true },
-        wednesday: { start: '08:30', end: '16:30', available: true },
-        thursday: { start: '08:30', end: '16:30', available: true },
-        friday: { start: '08:30', end: '16:30', available: true },
-        saturday: { start: '09:00', end: '15:00', available: true },
-        sunday: { start: '00:00', end: '00:00', available: false },
-      },
-      consultationFee: 120,
-      emergencyContact: '+1 (555) 555-4444',
-      bio: 'Dr. Emily Rodriguez is a compassionate pediatrician specializing in child development and pediatric cardiology. She has a special interest in treating children with congenital heart conditions.',
-      recentPublications: [
-        'Pediatric Heart Disease Management (2023)',
-        'Child Development Milestones (2022)',
-        'Pediatric Care Best Practices (2021)',
-      ],
-      awards: [
-        'Pediatric Excellence Award - 2023',
-        'Community Service Award - 2022',
-        'Patient Family Choice Award - 2021',
-      ],
-    },
+
+  // Fetch specializations from API
+  const fetchSpecializations = async () => {
+    setLoadingSpecializations(true);
+    try {
+      const result = await clinicAPI.getClinicSpecializations();
+      if (result.success) {
+        setSpecializations(result.data || []);
+      } else {
+        console.error('Failed to fetch specializations:', result.message);
+        setSpecializations([]);
+      }
+    } catch (error) {
+      console.error('Error fetching specializations:', error);
+      setSpecializations([]);
+    } finally {
+      setLoadingSpecializations(false);
+    }
+  };
+
+  // Fetch doctor details from API
+  const fetchDoctorDetails = async () => {
+    setLoading(true);
+    try {
+      const result = await clinicAPI.getDoctorDetails(doctorId);
+      if (result.success) {
+        // Transform API data to match component structure
+        const transformedDoctor = {
+          id: result.data.id,
+          name: result.data.doctor_name,
+          specialization: result.data.specialization,
+          qualification: result.data.education || 'MD',
+          experience: result.data.experince_years || 0,
+          phone: result.data.phone,
+          email: result.data.email,
+          joinedDate: new Date(result.data.created_at).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          }),
+          status: 'Active',
+          licenseNumber: `MD${result.data.id}`,
+          address: result.data.clinic_name ? `${result.data.clinic_name} Clinic` : 'Clinic Address',
+          specializations: [result.data.specialization],
+          qualifications: [
+            result.data.education || 'Medical Degree',
+            ...(result.data.additional_qualification?.fellowships || []),
+            ...(result.data.additional_qualification?.certifications || [])
+          ],
+          hospital: result.data.clinic_name || 'Medical Center',
+          department: `${result.data.specialization} Department`,
+          languages: ['English'],
+          rating: 4.5,
+          totalPatients: 0,
+          education: result.data.education || 'Medical School',
+          certifications: result.data.additional_qualification?.certifications || [],
+          achievements: result.data.additional_qualification?.fellowships || [],
+          schedule: {
+            monday: { start: '09:00', end: '17:00', available: true },
+            tuesday: { start: '09:00', end: '17:00', available: true },
+            wednesday: { start: '09:00', end: '17:00', available: true },
+            thursday: { start: '09:00', end: '17:00', available: true },
+            friday: { start: '09:00', end: '17:00', available: true },
+            saturday: { start: '10:00', end: '14:00', available: true },
+            sunday: { start: '00:00', end: '00:00', available: false },
+          },
+          consultationFee: parseFloat(result.data.appointment_amount) || 0,
+          emergencyContact: result.data.phone,
+          bio: result.data.bio || `${result.data.doctor_name} is a qualified ${result.data.specialization.toLowerCase()} specialist.`,
+          recentPublications: [],
+          awards: result.data.additional_qualification?.certifications || []
+        };
+        
+        setDoctor(transformedDoctor);
+        setEditForm(transformedDoctor);
+      } else {
+        console.error('Failed to fetch doctor details:', result.message);
+        setDoctor(null);
+      }
+    } catch (error) {
+      console.error('Error fetching doctor details:', error);
+      setDoctor(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      const doctorData = doctorsDatabase[doctorId];
-      if (doctorData) {
-        setDoctor(doctorData);
-        setEditForm(doctorData);
-      }
-      setLoading(false);
-    }, 1000);
+    // Fetch specializations when component mounts
+    fetchSpecializations();
+    
+    // Fetch doctor details from API
+    if (doctorId) {
+      fetchDoctorDetails();
+    }
   }, [doctorId]);
 
   const handleFormChange = (field, value) => {
@@ -712,12 +635,22 @@ const DoctorProfile = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Specialization</label>
-                  <input
-                    type="text"
+                  <select
                     value={editForm.specialization || ''}
                     onChange={(e) => handleFormChange('specialization', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  />
+                    disabled={loadingSpecializations}
+                  >
+                    <option value="">Select Specialization</option>
+                    {specializations.map((specialization) => (
+                      <option key={specialization.id || specialization.pk || specialization} value={specialization.name || specialization}>
+                        {specialization.name || specialization}
+                      </option>
+                    ))}
+                  </select>
+                  {loadingSpecializations && (
+                    <p className="text-xs text-gray-500 mt-1">Loading specializations...</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text }}>Phone</label>

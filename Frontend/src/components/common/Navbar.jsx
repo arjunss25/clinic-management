@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { HiBell, HiChevronDown, HiCog6Tooth, HiUser, HiArrowRightOnRectangle, HiEllipsisVertical, HiBars3 } from 'react-icons/hi2';
 import { FaBell } from 'react-icons/fa';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { navigationConfig } from '../../config/navigation';
+import { useAppDispatch } from '../../store/hooks';
+import { logout } from '../../store/slices/authSlice';
 
 const Navbar = ({ role = 'patient', userName = 'John Doe' }) => {
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
@@ -39,8 +43,15 @@ const Navbar = ({ role = 'patient', userName = 'John Doe' }) => {
     },
   ];
 
-  const handleLogout = () => {
-    console.log('Logging out...');
+  const handleLogout = async () => {
+    try {
+      await dispatch(logout());
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still navigate to login even if logout API fails
+      navigate('/login');
+    }
   };
 
   const isActive = (path) => {

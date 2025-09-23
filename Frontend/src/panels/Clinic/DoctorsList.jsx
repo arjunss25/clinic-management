@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FaUserMd,
   FaSearch,
@@ -10,132 +11,225 @@ import {
   FaClock,
   FaGraduationCap,
 } from 'react-icons/fa';
+import clinicAPI from '../../services/clinicApiService';
+import doctorAPI from '../../services/doctorApiService';
 
-// Mock data for doctors
-const mockDoctors = [
-  {
-    id: 1,
-    name: 'Dr. Sarah Johnson',
-    specialization: 'Cardiology',
-    experience: '15 years',
-    phone: '+1 (555) 123-4567',
-    email: 'sarah.johnson@clinic.com',
-    location: 'Main Building, Floor 2',
-    availability: 'Mon-Fri, 9:00 AM - 5:00 PM',
-    rating: 4.8,
-    patientsCount: 1250,
-    image:
-      'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&h=150&fit=crop&crop=face',
-  },
-  {
-    id: 2,
-    name: 'Dr. Michael Chen',
-    specialization: 'Neurology',
-    experience: '12 years',
-    phone: '+1 (555) 234-5678',
-    email: 'michael.chen@clinic.com',
-    location: 'Main Building, Floor 3',
-    availability: 'Mon-Sat, 8:00 AM - 6:00 PM',
-    rating: 4.9,
-    patientsCount: 980,
-    image:
-      'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=150&h=150&fit=crop&crop=face',
-  },
-  {
-    id: 3,
-    name: 'Dr. Emily Rodriguez',
-    specialization: 'Pediatrics',
-    experience: '8 years',
-    phone: '+1 (555) 345-6789',
-    email: 'emily.rodriguez@clinic.com',
-    location: "Children's Wing, Floor 1",
-    availability: 'Mon-Fri, 10:00 AM - 4:00 PM',
-    rating: 4.7,
-    patientsCount: 2100,
-    image:
-      'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=150&h=150&fit=crop&crop=face',
-  },
-  {
-    id: 4,
-    name: 'Dr. David Thompson',
-    specialization: 'Orthopedics',
-    experience: '20 years',
-    phone: '+1 (555) 456-7890',
-    email: 'david.thompson@clinic.com',
-    location: 'Surgery Center, Floor 4',
-    availability: 'Mon-Fri, 7:00 AM - 3:00 PM',
-    rating: 4.6,
-    patientsCount: 890,
-    image:
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-  },
-  {
-    id: 5,
-    name: 'Dr. Lisa Park',
-    specialization: 'Dermatology',
-    experience: '10 years',
-    phone: '+1 (555) 567-8901',
-    email: 'lisa.park@clinic.com',
-    location: 'Main Building, Floor 1',
-    availability: 'Mon-Thu, 9:00 AM - 5:00 PM',
-    rating: 4.8,
-    patientsCount: 1560,
-    image:
-      'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=150&h=150&fit=crop&crop=face',
-  },
-  {
-    id: 6,
-    name: 'Dr. Robert Wilson',
-    specialization: 'Psychiatry',
-    experience: '18 years',
-    phone: '+1 (555) 678-9012',
-    email: 'robert.wilson@clinic.com',
-    location: 'Mental Health Center, Floor 2',
-    availability: 'Mon-Fri, 10:00 AM - 6:00 PM',
-    rating: 4.9,
-    patientsCount: 720,
-    image:
-      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-  },
-];
 
 const DoctorsList = ({ onDoctorSelect }) => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialization, setSelectedSpecialization] = useState('');
   const [sortBy, setSortBy] = useState('name');
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Get unique specializations
+  // Fetch doctors data on component mount
+  useEffect(() => {
+    fetchDoctors();
+  }, []);
+
+  const fetchDoctors = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await clinicAPI.listAllDoctors();
+      
+      if (response.success) {
+        setDoctors(response.data || []);
+      } else {
+        setError(response.message || 'Failed to fetch doctors');
+        setDoctors([]);
+      }
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+      setError('An unexpected error occurred while loading doctors');
+      setDoctors([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get unique specializations from the fetched doctors data
   const specializations = [
-    ...new Set(mockDoctors.map((doctor) => doctor.specialization)),
+    ...new Set(doctors.map((doctor) => doctor.specialization).filter(Boolean)),
   ];
 
   // Filter and sort doctors
-  const filteredDoctors = mockDoctors
+  const filteredDoctors = doctors
     .filter((doctor) => {
+      const doctorName = doctor.doctor_name || doctor.name || '';
+      const doctorSpecialization = doctor.specialization || '';
+      
       const matchesSearch =
-        doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doctor.specialization.toLowerCase().includes(searchTerm.toLowerCase());
+        doctorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        doctorSpecialization.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesSpecialization =
         !selectedSpecialization ||
-        doctor.specialization === selectedSpecialization;
+        doctorSpecialization === selectedSpecialization;
       return matchesSearch && matchesSpecialization;
     })
     .sort((a, b) => {
       switch (sortBy) {
         case 'name':
-          return a.name.localeCompare(b.name);
+          const nameA = a.doctor_name || a.name || '';
+          const nameB = b.doctor_name || b.name || '';
+          return nameA.localeCompare(nameB);
         case 'experience':
-          return parseInt(b.experience) - parseInt(a.experience);
+          const expA = parseInt(a.experience_years || a.experience || 0);
+          const expB = parseInt(b.experience_years || b.experience || 0);
+          return expB - expA;
         case 'patients':
-          return b.patientsCount - a.patientsCount;
+          const patientsA = parseInt(a.totalPatients || a.patientsCount || 0);
+          const patientsB = parseInt(b.totalPatients || b.patientsCount || 0);
+          return patientsB - patientsA;
         default:
           return 0;
       }
     });
 
-  const handleDoctorSelect = (doctor) => {
+  const handleDoctorSelect = async (doctor) => {
+    if (onDoctorSelect) {
     onDoctorSelect(doctor);
+    } else {
+      // Get today's date in YYYY-MM-DD format
+      const today = new Date().toISOString().split('T')[0];
+      
+      try {
+        // First, fetch full doctor details using the same endpoint as DoctorProfile
+        const doctorDetailsResponse = await clinicAPI.getDoctorDetails(doctor.id);
+        
+        if (doctorDetailsResponse.success) {
+          // Then fetch doctor availability for today using doctorAPI (same as doctor panel)
+          const availabilityResponse = await doctorAPI.getDoctorAvailability(doctor.id, today);
+          
+          // Transform API data to match component structure based on actual API response
+          const transformedDoctor = {
+            id: doctorDetailsResponse.data.id,
+            name: doctorDetailsResponse.data.doctor_name,
+            specialization: doctorDetailsResponse.data.specialization,
+            qualification: doctorDetailsResponse.data.education || 'MD',
+            experience: doctorDetailsResponse.data.experince_years || 0,
+            phone: doctorDetailsResponse.data.phone,
+            email: doctorDetailsResponse.data.email,
+            image: doctorDetailsResponse.data.profile_picture || null,
+            rating: '4.5', // Default rating since not in API response
+            bio: doctorDetailsResponse.data.bio || '',
+            clinic_name: doctorDetailsResponse.data.clinic_name || '',
+            appointment_amount: doctorDetailsResponse.data.appointment_amount || '0.00',
+            additional_qualification: doctorDetailsResponse.data.additional_qualification || {},
+            joinedDate: new Date(doctorDetailsResponse.data.created_at).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            }),
+            status: 'Active',
+            // Add any other fields that might be needed
+            ...doctorDetailsResponse.data
+          };
+          
+          // Navigate to appointments page with transformed doctor details and availability
+          const navigationState = { 
+            selectedDoctor: transformedDoctor, // Use transformed doctor details
+            availability: availabilityResponse.success ? availabilityResponse.data : null,
+            selectedDate: today,
+            error: availabilityResponse.success ? null : availabilityResponse.message
+          };
+          
+          
+          navigate('/clinic/appointments', { state: navigationState });
+        } else {
+          // If doctor details fetch fails, still navigate with basic doctor info
+          // Transform basic doctor info to match expected structure
+          const basicDoctorInfo = {
+            id: doctor.id,
+            name: doctor.name || doctor.doctor_name || 'Unknown Doctor',
+            specialization: doctor.specialization || 'General',
+            qualification: doctor.qualification || doctor.education || 'MD',
+            experience: doctor.experience || doctor.experince_years || 0,
+            phone: doctor.phone || '',
+            email: doctor.email || '',
+            image: doctor.image || doctor.profile_picture || null,
+            rating: '4.5',
+            bio: doctor.bio || '',
+            clinic_name: doctor.clinic_name || '',
+            appointment_amount: doctor.appointment_amount || '0.00',
+            status: 'Active',
+            ...doctor
+          };
+          
+          navigate('/clinic/appointments', { 
+            state: { 
+              selectedDoctor: basicDoctorInfo, // Use transformed basic doctor info
+              availability: null,
+              selectedDate: today,
+              error: doctorDetailsResponse.message
+            } 
+          });
+        }
+      } catch (error) {
+        // Navigate anyway but with error state
+        // Transform basic doctor info to match expected structure
+        const fallbackDoctorInfo = {
+          id: doctor.id,
+          name: doctor.name || doctor.doctor_name || 'Unknown Doctor',
+          specialization: doctor.specialization || 'General',
+          qualification: doctor.qualification || doctor.education || 'MD',
+          experience: doctor.experience || doctor.experince_years || 0,
+          phone: doctor.phone || '',
+          email: doctor.email || '',
+          image: doctor.image || doctor.profile_picture || null,
+          rating: '4.5',
+          bio: doctor.bio || '',
+          clinic_name: doctor.clinic_name || '',
+          appointment_amount: doctor.appointment_amount || '0.00',
+          status: 'Active',
+          ...doctor
+        };
+        
+        navigate('/clinic/appointments', { 
+          state: { 
+            selectedDoctor: fallbackDoctorInfo,
+            availability: null,
+            selectedDate: today,
+            error: 'Failed to load doctor data'
+          } 
+        });
+      }
+    }
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading doctors...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <FaUserMd className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Doctors</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={fetchDoctors}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -211,26 +305,24 @@ const DoctorsList = ({ onDoctorSelect }) => {
 
         {/* Doctors Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDoctors.map((doctor) => (
+          {filteredDoctors.map((doctor, index) => (
             <div
-              key={doctor.id}
+              key={doctor.id || doctor.pk || doctor.doctor_name || doctor.name || `doctor-${index}`}
               className="bg-white border border-gray-200 rounded-lg hover:border-blue-500 transition-colors duration-200 cursor-pointer"
               onClick={() => handleDoctorSelect(doctor)}
             >
               {/* Doctor Profile */}
               <div className="p-6">
                 <div className="flex items-center space-x-4 mb-4">
-                  <img
-                    src={doctor.image}
-                    alt={doctor.name}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
-                  />
+                  <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center border-2 border-gray-200">
+                    <FaUserMd className="w-8 h-8 text-blue-600" />
+                  </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      {doctor.name}
+                      Dr. {doctor.doctor_name || doctor.name || 'Unknown'}
                     </h3>
                     <span className="inline-block px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 rounded-full">
-                      {doctor.specialization}
+                      {doctor.specialization || 'General'}
                     </span>
                   </div>
                 </div>
@@ -241,14 +333,14 @@ const DoctorsList = ({ onDoctorSelect }) => {
                     <FaGraduationCap className="w-4 h-4 text-blue-600 mx-auto mb-1" />
                     <p className="text-xs text-gray-600 mb-1">Experience</p>
                     <p className="text-sm font-semibold text-gray-900">
-                      {doctor.experience}
+                      {doctor.experience_years || doctor.experience || 0} years
                     </p>
                   </div>
                   <div className="text-center p-3 border border-gray-200 rounded-lg">
                     <FaUsers className="w-4 h-4 text-blue-600 mx-auto mb-1" />
                     <p className="text-xs text-gray-600 mb-1">Patients</p>
                     <p className="text-sm font-semibold text-gray-900">
-                      {doctor.patientsCount.toLocaleString()}
+                      {(doctor.totalPatients || doctor.patientsCount || 0).toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -257,21 +349,23 @@ const DoctorsList = ({ onDoctorSelect }) => {
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center space-x-3 text-sm text-gray-600">
                     <FaPhone className="w-4 h-4 text-blue-600" />
-                    <span>{doctor.phone}</span>
+                    <span>{doctor.phone || 'N/A'}</span>
                   </div>
                   <div className="flex items-center space-x-3 text-sm text-gray-600">
                     <FaEnvelope className="w-4 h-4 text-blue-600" />
-                    <span className="truncate">{doctor.email}</span>
+                    <span className="truncate">{doctor.email || 'N/A'}</span>
                   </div>
                 </div>
 
-                {/* Availability */}
+                {/* Bio */}
                 <div className="p-3 bg-gray-50 rounded-lg mb-4">
                   <div className="flex items-center space-x-2 text-sm text-gray-700 mb-1">
-                    <FaClock className="w-4 h-4 text-blue-600" />
-                    <span className="font-medium">Availability</span>
+                    <FaUserMd className="w-4 h-4 text-blue-600" />
+                    <span className="font-medium">About</span>
                   </div>
-                  <p className="text-sm text-gray-600">{doctor.availability}</p>
+                  <p className="text-sm text-gray-600">
+                    {doctor.bio || 'No bio available'}
+                  </p>
                 </div>
 
                 {/* Action Button */}
@@ -285,24 +379,29 @@ const DoctorsList = ({ onDoctorSelect }) => {
         </div>
 
         {/* Empty State */}
-        {filteredDoctors.length === 0 && (
+        {filteredDoctors.length === 0 && !loading && (
           <div className="text-center py-12">
             <FaUserMd className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No doctors found
+              {doctors.length === 0 ? 'No doctors available' : 'No doctors found'}
             </h3>
-            <p className="text-gray-600">
-              Try adjusting your search criteria or filters.
+            <p className="text-gray-600 mb-6">
+              {doctors.length === 0 
+                ? 'There are no doctors registered in the system yet.' 
+                : 'Try adjusting your search criteria or filters.'
+              }
             </p>
+            {doctors.length > 0 && (
             <button
               onClick={() => {
                 setSearchTerm('');
                 setSelectedSpecialization('');
               }}
-              className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
             >
               Clear Filters
             </button>
+            )}
           </div>
         )}
       </div>

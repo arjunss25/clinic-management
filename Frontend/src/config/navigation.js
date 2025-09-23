@@ -73,6 +73,11 @@ export const navigationConfig = {
       path: '/doctor/patients',
       icon: FaUsers,
     },
+    {
+      name: 'Profile',
+      path: '/doctor/profile',
+      icon: FaUser,
+    },
   ],
   clinic: [
     {

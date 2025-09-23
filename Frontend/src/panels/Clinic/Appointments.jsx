@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   FaUserMd,
   FaChevronLeft,
@@ -23,6 +23,8 @@ import {
 } from 'react-icons/fa';
 import { SiTicktick } from 'react-icons/si';
 import DoctorsList from './DoctorsList';
+import clinicAPI from '../../services/clinicApiService';
+import doctorAPI from '../../services/doctorApiService';
 
 // Theme colors (matching your existing design,)
 const COLORS = {
@@ -78,247 +80,8 @@ function getMonthMatrix(year, month) {
   return matrix;
 }
 
-// Mock data for doctor's schedule
+// Today's date for initialization
 const todayDate = new Date();
-const yyyy = todayDate.getFullYear();
-const mm = todayDate.getMonth() + 1;
-const todayStr = formatDate(todayDate);
-
-// Doctor's available slots - now includes doctorId
-const mockDoctorSlots = [
-  {
-    id: 1,
-    doctorId: 1, // Dr. Sarah Johnson
-    date: todayStr,
-    time: '09:00',
-    duration: 30,
-    status: 'available',
-    patient: null,
-    notes: '',
-  },
-  {
-    id: 2,
-    doctorId: 1, // Dr. Sarah Johnson
-    date: todayStr,
-    time: '09:30',
-    duration: 30,
-    status: 'booked',
-    patient: {
-      name: 'John Smith',
-      phone: '+1 (555) 123-4567',
-      reason: 'Regular checkup',
-    },
-    notes: 'First-time patient',
-  },
-  {
-    id: 3,
-    doctorId: 1, // Dr. Sarah Johnson
-    date: todayStr,
-    time: '10:00',
-    duration: 30,
-    status: 'available',
-    patient: null,
-    notes: '',
-  },
-  {
-    id: 4,
-    doctorId: 2, // Dr. Michael Chen
-    date: `${yyyy}-${pad(mm)}-05`,
-    time: '14:00',
-    duration: 60,
-    status: 'booked',
-    patient: {
-      name: 'Sarah Johnson',
-      phone: '+1 (555) 987-6543',
-      reason: 'Follow-up consultation',
-    },
-    notes: 'Needs lab results review',
-  },
-  {
-    id: 5,
-    doctorId: 2, // Dr. Michael Chen
-    date: `${yyyy}-${pad(mm)}-05`,
-    time: '15:00',
-    duration: 30,
-    status: 'blocked',
-    patient: null,
-    notes: 'Personal break',
-  },
-  {
-    id: 6,
-    doctorId: 3, // Dr. Emily Rodriguez
-    date: `${yyyy}-${pad(mm)}-12`,
-    time: '11:30',
-    duration: 45,
-    status: 'available',
-    patient: null,
-    notes: '',
-  },
-  // Additional slots for Dr. Michael Chen
-  {
-    id: 7,
-    doctorId: 2,
-    date: todayStr,
-    time: '08:00',
-    duration: 30,
-    status: 'booked',
-    patient: {
-      name: 'Maria Garcia',
-      phone: '+1 (555) 111-2222',
-      reason: 'Neurological consultation',
-    },
-    notes: 'Follow-up appointment',
-  },
-  {
-    id: 8,
-    doctorId: 2,
-    date: todayStr,
-    time: '08:30',
-    duration: 30,
-    status: 'available',
-    patient: null,
-    notes: '',
-  },
-  // Additional slots for Dr. Emily Rodriguez
-  {
-    id: 9,
-    doctorId: 3,
-    date: todayStr,
-    time: '10:30',
-    duration: 45,
-    status: 'booked',
-    patient: {
-      name: 'Tommy Wilson',
-      phone: '+1 (555) 333-4444',
-      reason: 'Child wellness check',
-    },
-    notes: 'Annual physical',
-  },
-  {
-    id: 10,
-    doctorId: 3,
-    date: todayStr,
-    time: '11:15',
-    duration: 30,
-    status: 'available',
-    patient: null,
-    notes: '',
-  },
-  // Additional slots for Dr. David Thompson
-  {
-    id: 11,
-    doctorId: 4,
-    date: todayStr,
-    time: '07:00',
-    duration: 60,
-    status: 'booked',
-    patient: {
-      name: 'Robert Davis',
-      phone: '+1 (555) 555-6666',
-      reason: 'Knee surgery follow-up',
-    },
-    notes: 'Post-operative check',
-  },
-  {
-    id: 12,
-    doctorId: 4,
-    date: todayStr,
-    time: '08:00',
-    duration: 30,
-    status: 'available',
-    patient: null,
-    notes: '',
-  },
-  // Additional slots for Dr. Lisa Park
-  {
-    id: 13,
-    doctorId: 5,
-    date: todayStr,
-    time: '09:00',
-    duration: 45,
-    status: 'booked',
-    patient: {
-      name: 'Jennifer Lee',
-      phone: '+1 (555) 777-8888',
-      reason: 'Skin condition evaluation',
-    },
-    notes: 'Rash examination',
-  },
-  {
-    id: 14,
-    doctorId: 5,
-    date: todayStr,
-    time: '09:45',
-    duration: 30,
-    status: 'available',
-    patient: null,
-    notes: '',
-  },
-  // Additional slots for Dr. Robert Wilson
-  {
-    id: 15,
-    doctorId: 6,
-    date: todayStr,
-    time: '10:00',
-    duration: 60,
-    status: 'booked',
-    patient: {
-      name: 'Michael Brown',
-      phone: '+1 (555) 999-0000',
-      reason: 'Therapy session',
-    },
-    notes: 'Weekly counseling',
-  },
-  {
-    id: 16,
-    doctorId: 6,
-    date: todayStr,
-    time: '11:00',
-    duration: 45,
-    status: 'available',
-    patient: null,
-    notes: '',
-  },
-  // Future appointments for various doctors
-  {
-    id: 17,
-    doctorId: 1,
-    date: `${yyyy}-${pad(mm)}-15`,
-    time: '14:00',
-    duration: 30,
-    status: 'booked',
-    patient: {
-      name: 'Alice Johnson',
-      phone: '+1 (555) 111-3333',
-      reason: 'Cardiac consultation',
-    },
-    notes: 'Follow-up after stress test',
-  },
-  {
-    id: 18,
-    doctorId: 2,
-    date: `${yyyy}-${pad(mm)}-18`,
-    time: '16:00',
-    duration: 45,
-    status: 'available',
-    patient: null,
-    notes: '',
-  },
-  {
-    id: 19,
-    doctorId: 3,
-    date: `${yyyy}-${pad(mm)}-20`,
-    time: '13:30',
-    duration: 30,
-    status: 'booked',
-    patient: {
-      name: 'Emma Rodriguez',
-      phone: '+1 (555) 222-4444',
-      reason: 'Vaccination',
-    },
-    notes: 'Annual flu shot',
-  },
-];
 
 const statusStyles = {
   available: {
@@ -343,10 +106,13 @@ const statusStyles = {
 
 const Appointments = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(todayDate);
   const [selectedDate, setSelectedDate] = useState(todayDate);
-  const [slots, setSlots] = useState(mockDoctorSlots);
+  const [slots, setSlots] = useState([]);
+  const [loadingAvailability, setLoadingAvailability] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState(null);
 
   // Modals
   const [showDayModal, setShowDayModal] = useState(false);
@@ -439,6 +205,9 @@ const Appointments = () => {
   const openDayModal = (date) => {
     setSelectedDate(date);
     setShowDayModal(true);
+    
+    // No need to fetch individual dates since we're fetching the entire month
+    // The slots should already be available from the monthly fetch
   };
 
   const openSlotModal = (date, slot = null) => {
@@ -716,13 +485,202 @@ const Appointments = () => {
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate();
 
-  const handleDoctorSelect = (doctor) => {
-    setSelectedDoctor(doctor);
+  const handleDoctorSelect = async (doctor) => {
+    try {
+      // First, fetch full doctor details using the same endpoint as DoctorProfile
+      const doctorDetailsResponse = await clinicAPI.getDoctorDetails(doctor.id);
+      
+      if (doctorDetailsResponse.success) {
+        // Transform API data to match component structure based on actual API response
+        const transformedDoctor = {
+          id: doctorDetailsResponse.data.id,
+          name: doctorDetailsResponse.data.doctor_name,
+          specialization: doctorDetailsResponse.data.specialization,
+          qualification: doctorDetailsResponse.data.education || 'MD',
+          experience: doctorDetailsResponse.data.experince_years || 0,
+          phone: doctorDetailsResponse.data.phone,
+          email: doctorDetailsResponse.data.email,
+          image: doctorDetailsResponse.data.profile_picture || null,
+          rating: '4.5', // Default rating since not in API response
+          bio: doctorDetailsResponse.data.bio || '',
+          clinic_name: doctorDetailsResponse.data.clinic_name || '',
+          appointment_amount: doctorDetailsResponse.data.appointment_amount || '0.00',
+          additional_qualification: doctorDetailsResponse.data.additional_qualification || {},
+          joinedDate: new Date(doctorDetailsResponse.data.created_at).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          }),
+          status: 'Active',
+          // Add any other fields that might be needed
+          ...doctorDetailsResponse.data
+        };
+        
+        
+        setSelectedDoctor(transformedDoctor);
+        // Automatically fetch availability for the entire current month when a doctor is selected
+        if (transformedDoctor && transformedDoctor.id) {
+          fetchAvailabilityForMonth(transformedDoctor.id, currentMonth);
+        }
+      } else {
+        // If doctor details fetch fails, still use basic doctor info
+        console.error('Failed to fetch doctor details:', doctorDetailsResponse.message);
+        setSelectedDoctor(doctor);
+        if (doctor && doctor.id) {
+          fetchAvailabilityForMonth(doctor.id, currentMonth);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching doctor details:', error);
+      // Fallback to basic doctor info
+      setSelectedDoctor(doctor);
+      if (doctor && doctor.id) {
+        fetchAvailabilityForMonth(doctor.id, currentMonth);
+      }
+    }
+  };
+
+  // Fetch availability for a specific date
+  const fetchAvailabilityForDate = async (doctorId, date) => {
+    if (!doctorId || !date) return;
+    
+    setLoadingAvailability(true);
+    setAvailabilityError(null);
+    
+    try {
+      const dateStr = formatDate(date);
+      const response = await doctorAPI.getDoctorAvailability(doctorId, dateStr);
+      
+      if (response.success) {
+        // The response.data contains the slots array
+        const availabilityData = response.data;
+        const transformedSlots = transformAvailabilityToSlots(availabilityData, doctorId);
+        // Merge with existing slots, replacing any existing slots for this doctor and date
+        setSlots(prev => [
+          ...prev.filter(slot => !(slot.doctorId === doctorId && slot.date === dateStr)),
+          ...transformedSlots
+        ]);
+      }
+    } catch (error) {
+      // Don't set error for individual date failures
+    } finally {
+      setLoadingAvailability(false);
+    }
+  };
+
+  // Fetch availability for all days in the current month
+  const fetchAvailabilityForMonth = async (doctorId, monthDate) => {
+    if (!doctorId || !monthDate) return;
+    
+    setLoadingAvailability(true);
+    setAvailabilityError(null);
+    
+    try {
+      const year = monthDate.getFullYear();
+      const month = monthDate.getMonth();
+      
+      // Get all days in the month
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      
+      // Create array of all dates in the month
+      const datesInMonth = [];
+      for (let day = 1; day <= daysInMonth; day++) {
+        datesInMonth.push(new Date(year, month, day));
+      }
+      
+      // Fetch availability for each day in parallel
+      const availabilityPromises = datesInMonth.map(date => {
+        const dateStr = formatDate(date);
+        return doctorAPI.getDoctorAvailability(doctorId, dateStr);
+      });
+      
+      const responses = await Promise.all(availabilityPromises);
+      
+      // Process all responses
+      responses.forEach((response, index) => {
+        const dateStr = formatDate(datesInMonth[index]);
+        if (response.success && response.data && response.data.slots) {
+          const transformedSlots = transformAvailabilityToSlots(response.data, doctorId);
+          
+          // Add slots to state
+          setSlots(prev => [
+            ...prev.filter(slot => !(slot.doctorId === doctorId && slot.date === dateStr)),
+            ...transformedSlots
+          ]);
+        }
+      });
+      
+    } catch (error) {
+      setAvailabilityError('Failed to load availability data for the month');
+    } finally {
+      setLoadingAvailability(false);
+    }
   };
 
   const handleBackToDoctors = () => {
     setSelectedDoctor(null);
+    setAvailabilityError(null);
   };
+
+  // Transform API availability data to match our slots format
+  const transformAvailabilityToSlots = (availabilityData, doctorId) => {
+    // Extract slots from the API response format
+    const slots = availabilityData.slots;
+    
+    if (!slots || !Array.isArray(slots)) {
+      return [];
+    }
+
+    // Helper function to calculate duration
+    const calculateDuration = (startTime, endTime) => {
+      const start = new Date(`2000-01-01 ${startTime}`);
+      const end = new Date(`2000-01-01 ${endTime}`);
+      return Math.round((end - start) / (1000 * 60)); // Convert to minutes
+    };
+
+    return slots.map((slot, index) => ({
+      id: `${availabilityData.date}-${slot.slot_start}-${index}`,
+      doctorId: doctorId,
+      date: availabilityData.date, // Use date from the main response
+      time: slot.slot_start,
+      duration: calculateDuration(slot.slot_start, slot.slot_end),
+      status: 'available', // All slots from this endpoint are available
+      patient: null,
+      notes: '',
+    }));
+  };
+
+  // Handle navigation state when component mounts
+  useEffect(() => {
+    if (location.state) {
+      const { selectedDoctor: navDoctor, availability, selectedDate: navDate, error } = location.state;
+      
+      if (navDoctor) {
+        setSelectedDoctor(navDoctor);
+        if (navDate) {
+          setSelectedDate(new Date(navDate));
+          setCurrentMonth(new Date(navDate));
+        }
+        if (error) {
+          setAvailabilityError(error);
+        }
+        if (availability) {
+          // Transform API availability data to match our slots format
+          const transformedSlots = transformAvailabilityToSlots(availability, navDoctor.id);
+          setSlots(transformedSlots);
+        } else {
+          setSlots([]);
+          // Fetch availability for the entire month since no data was passed
+          if (navDoctor.id) {
+            fetchAvailabilityForMonth(navDoctor.id, new Date(navDate || todayDate));
+          }
+        }
+      }
+      
+      // Clear the navigation state to prevent re-processing on re-renders
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   // Scroll to top when selectedDoctor changes
   useEffect(() => {
@@ -744,6 +702,13 @@ const Appointments = () => {
     const timeoutId = setTimeout(scrollToTop, 100);
     return () => clearTimeout(timeoutId);
   }, [selectedDoctor]);
+
+  // Fetch availability for the entire month when currentMonth changes
+  useEffect(() => {
+    if (selectedDoctor && selectedDoctor.id) {
+      fetchAvailabilityForMonth(selectedDoctor.id, currentMonth);
+    }
+  }, [currentMonth, selectedDoctor]);
 
   return (
     <div className="min-h-screen">
@@ -773,6 +738,13 @@ const Appointments = () => {
               >
                 Manage {selectedDoctor.name}'s availability and appointments
               </p>
+              {availabilityError && (
+                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-xs text-red-600">
+                    ⚠️ {availabilityError}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 lg:gap-4">
@@ -797,6 +769,12 @@ const Appointments = () => {
 
               {/* Action buttons */}
               <div className="flex gap-2 w-full sm:w-auto">
+                {loadingAvailability && (
+                  <div className="flex items-center gap-2 px-3 py-2 text-xs text-gray-600">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <span>Loading availability...</span>
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={() => setShowBulkAddModal(true)}
@@ -830,14 +808,23 @@ const Appointments = () => {
           <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-4 sm:mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center space-x-3 sm:space-x-4">
-                <img
-                  src={
-                    selectedDoctor.image ||
-                    'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&h=150&fit=crop&crop=face'
-                  }
-                  alt={selectedDoctor.name}
-                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-blue-100 flex-shrink-0"
-                />
+                {selectedDoctor.image ? (
+                  <img
+                    src={selectedDoctor.image}
+                    alt={selectedDoctor.name}
+                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-blue-100 flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center border-2 border-blue-100 flex-shrink-0 bg-gradient-to-br from-blue-50 to-blue-100">
+                    {selectedDoctor.name ? (
+                      <span className="text-blue-600 font-semibold text-sm sm:text-lg">
+                        {selectedDoctor.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      </span>
+                    ) : (
+                      <FaUserMd className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
+                    )}
+                  </div>
+                )}
                 <div className="min-w-0 flex-1">
                   <h3 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">
                     {selectedDoctor.name}
@@ -846,9 +833,19 @@ const Appointments = () => {
                     {selectedDoctor.specialization}
                   </p>
                   <p className="text-xs sm:text-sm text-gray-600">
-                    {selectedDoctor.experience} experience •{' '}
-                    {selectedDoctor.rating} ★
+                    {selectedDoctor.experience || 0} years experience •{' '}
+                    {selectedDoctor.rating || '4.5'} ★
                   </p>
+                  {selectedDoctor.bio && (
+                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                      {selectedDoctor.bio}
+                    </p>
+                  )}
+                  {selectedDoctor.clinic_name && (
+                    <p className="text-xs text-blue-600 mt-1">
+                      📍 {selectedDoctor.clinic_name}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="text-left sm:text-right">

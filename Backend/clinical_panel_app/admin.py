@@ -6,3 +6,4 @@ from .models import *
 admin.site.register(DoctorAvailability)
 admin.site.register(DoctorBlockedSlot)
 admin.site.register(AppointmentBooking)
+admin.site.register(MedicalReport)

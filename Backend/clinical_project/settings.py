@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from datetime import timedelta
-from decouple import config
 import environ
 import stripe
 
@@ -51,10 +50,20 @@ INSTALLED_APPS = [
     'doctor_app',
     'patient_app',
     'superadmin_app',
+    'corsheaders',
+    'rest_framework_simplejwt.token_blacklist',
 
 ]
 
+
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    # "https://myfrontend.com",
+]
+
 MIDDLEWARE = [
+      'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -63,6 +72,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+
+CORS_ALLOW_ALL_ORIGINS = True
+
 
 ROOT_URLCONF = 'clinical_project.urls'
 
@@ -98,18 +111,12 @@ DATABASES = {
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES':(
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+            # "authentication_app.authentication.CookieJWTAuthentication",
     )
 }
 
-# # Create a Patient profile and Send an email with credentials.
-# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-# EMAIL_HOST = "smtp.gmail.com"       # or smtp.office365.com, etc.
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = "kiranraveendran74@gmail.com"   # sender email
-# EMAIL_HOST_PASSWORD = "lyjy rbcs bsgv gkub" # Gmail/Outlook app password
-# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+<<<<<<< HEAD
 # SMTP configs
 EMAIL_BACKEND = config('EMAIL_BACKEND')
 EMAIL_HOST = config('EMAIL_HOST')
@@ -124,6 +131,9 @@ STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = config("STRIPE_PUBLISHABLE_KEY")
 
 stripe.api_key = STRIPE_SECRET_KEY
+=======
+
+>>>>>>> 8c4c14b04225f36ed5634b20fa4755841e0dfe89
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

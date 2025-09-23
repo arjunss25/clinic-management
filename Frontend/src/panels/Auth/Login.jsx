@@ -1,13 +1,27 @@
 import React, { useState, useEffect } from 'react'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 import { FcGoogle } from "react-icons/fc";
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { login, verifyOtp, selectUser, selectLoginLoading, selectOtpLoading, selectError } from '../../store/slices/authSlice';
 
 const Login = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector(selectUser);
+  const isLoading = useAppSelector(selectLoginLoading);
+  const isOtpLoading = useAppSelector(selectOtpLoading);
+  const error = useAppSelector(selectError);
+  
   const [showPassword, setShowPassword] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showOtpModal, setShowOtpModal] = useState(false)
+  const [otp, setOtp] = useState('')
+  const [otpError, setOtpError] = useState('')
 
   const slides = [
     {
@@ -55,6 +69,71 @@ const Login = () => {
 
   const getActiveDotIndex = () => {
     return currentSlide >= slides.length ? 0 : currentSlide;
+  };
+
+  // Check if user is already authenticated
+  useEffect(() => {
+    if (user?.isAuthenticated) {
+      const roleRoutes = {
+        'SuperAdmin': '/superadmin',
+        'Clinic': '/clinic',
+        'Doctor': '/doctor',
+        'Patient': '/patient'
+      };
+      
+      const redirectPath = roleRoutes[user.role] || '/login';
+      navigate(redirectPath, { replace: true });
+    }
+  }, [user, navigate]);
+
+  // Handle login form submission
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    if (!email || !password) {
+      return;
+    }
+
+    const result = await dispatch(login({ email, password }));
+    
+    if (login.fulfilled.match(result)) {
+      setShowOtpModal(true);
+    }
+  };
+
+  // Handle OTP verification
+  const handleOtpVerification = async (e) => {
+    e.preventDefault();
+    setOtpError('');
+
+    if (!otp) {
+      setOtpError('Please enter the OTP');
+      return;
+    }
+
+    const result = await dispatch(verifyOtp({ email, otp }));
+    
+    if (verifyOtp.fulfilled.match(result)) {
+      const { role } = result.payload.data;
+      const roleRoutes = {
+        'SuperAdmin': '/superadmin',
+        'Clinic': '/clinic',
+        'Doctor': '/doctor',
+        'Patient': '/patient'
+      };
+      
+      const redirectPath = roleRoutes[role] || '/login';
+      navigate(redirectPath, { replace: true });
+    } else if (verifyOtp.rejected.match(result)) {
+      setOtpError(result.payload);
+    }
+  };
+
+  // Close OTP modal
+  const closeOtpModal = () => {
+    setShowOtpModal(false);
+    setOtp('');
+    setOtpError('');
   };
 
   return (
@@ -131,7 +210,7 @@ const Login = () => {
                 </div>
               </div>
               
-              <style jsx>{`
+              <style>{`
                 @keyframes growWidth {
                   from { transform: scaleX(0.5); }
                   to { transform: scaleX(1); }
@@ -205,7 +284,19 @@ const Login = () => {
               </p>
             </div>
 
-            <form className='space-y-4 sm:space-y-5'>
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">
+                  {typeof error === 'string' ? error : 
+                   typeof error === 'object' && error.message ? error.message :
+                   typeof error === 'object' && error.non_field_errors ? 
+                     (Array.isArray(error.non_field_errors) ? error.non_field_errors.join(', ') : error.non_field_errors) :
+                   'An error occurred. Please try again.'}
+                </p>
+              </div>
+            )}
+            
+            <form onSubmit={handleLogin} className='space-y-4 sm:space-y-5'>
               <div>
                 <label htmlFor="email" className='block text-sm font-medium text-gray-700 mb-1.5'>
                   Email address
@@ -259,9 +350,10 @@ const Login = () => {
 
               <button
                 type="submit"
-                className='w-full bg-gradient-to-r from-[#0118D8] to-[#1B56FD] text-white py-2 sm:py-2.5 rounded-xl font-medium hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 text-sm sm:text-base'
+                disabled={isLoading}
+                className='w-full bg-gradient-to-r from-[#0118D8] to-[#1B56FD] text-white py-2 sm:py-2.5 rounded-xl font-medium hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed'
               >
-                Sign in
+                {isLoading ? 'Signing in...' : 'Sign in'}
               </button>
             </form>
 
@@ -296,6 +388,176 @@ const Login = () => {
           </div>
         </div>
       </div>
+
+
+      {/* OTP Verification Modal */}
+      {showOtpModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4"
+          style={{
+            background: 'rgba(15, 23, 42, 0.4)',
+            backdropFilter: 'saturate(140%) blur(8px)',
+          }}
+          onClick={() => setShowOtpModal(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden"
+            style={{
+              background: '#ffffff',
+              border: '1px solid #ECEEF2',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              className="px-6 py-5 border-b flex items-center justify-between"
+              style={{
+                background: '#ffffff',
+                borderColor: '#ECEEF2',
+              }}
+            >
+              <div>
+                <h3
+                  className="text-xl font-semibold"
+                  style={{ color: '#111827' }}
+                >
+                  Verify OTP
+                </h3>
+                <p className="text-sm mt-1" style={{ color: '#6B7280' }}>
+                  We've sent a verification code to <span className="font-medium">{email}</span>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowOtpModal(false)}
+                className="w-10 h-10 rounded-full transition-all flex items-center justify-center hover:scale-105 group"
+                style={{
+                  background: '#ffffff',
+                  color: '#6B7280',
+                  border: '1px solid #ECEEF2',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#0F1ED115';
+                  e.target.style.borderColor = '#0F1ED1';
+                  e.target.style.color = '#0F1ED1';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = '#ECEEF2';
+                  e.target.style.color = '#6B7280';
+                }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form
+              onSubmit={handleOtpVerification}
+              className="p-6 space-y-6"
+            >
+              {otpError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-600 text-sm">
+                    {typeof otpError === 'string' ? otpError : 
+                     typeof otpError === 'object' && otpError.message ? otpError.message :
+                     typeof otpError === 'object' && otpError.non_field_errors ? 
+                       (Array.isArray(otpError.non_field_errors) ? otpError.non_field_errors.join(', ') : otpError.non_field_errors) :
+                     'OTP verification failed. Please try again.'}
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <label
+                  className="block text-sm font-semibold mb-2"
+                  style={{ color: '#111827' }}
+                >
+                  Enter OTP <span style={{ color: '#EF4444' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  id="otp"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  required
+                  maxLength={6}
+                  placeholder="000000"
+                  className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2 text-center text-lg font-mono tracking-widest"
+                  style={{
+                    background: '#ffffff',
+                    border: '2px solid #ECEEF2',
+                    color: '#111827',
+                    outline: 'none',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#0F1ED1';
+                    e.target.style.boxShadow = '0 0 0 4px #0F1ED115';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#ECEEF2';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                />
+              </div>
+
+              {/* Form Actions */}
+              <div
+                className="flex flex-col sm:flex-row gap-3 pt-6 border-t"
+                style={{ borderColor: '#ECEEF2' }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowOtpModal(false)}
+                  className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all"
+                  style={{
+                    background: '#ffffff',
+                    color: '#6B7280',
+                    border: '2px solid #ECEEF2',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = '#6B728010';
+                    e.target.style.borderColor = '#6B7280';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = '#ffffff';
+                    e.target.style.borderColor = '#ECEEF2';
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isOtpLoading}
+                  className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    background: 'linear-gradient(135deg, #0F1ED1, #1B56FD)',
+                    color: '#ffffff',
+                    border: 'none',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isOtpLoading) {
+                      e.target.style.transform = 'translateY(-1px)';
+                      e.target.style.boxShadow =
+                        '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow =
+                      '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                  }}
+                >
+                  {isOtpLoading ? 'Verifying...' : 'Verify OTP'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

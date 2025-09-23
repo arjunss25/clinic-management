@@ -29,7 +29,11 @@ import {
   FaCreditCard,
   FaShieldAlt,
   FaStethoscope,
+  FaExclamationTriangle,
 } from 'react-icons/fa';
+import ResultModal from '../../components/common/ResultModal';
+import ConfirmationModal from '../../components/common/ConfirmationModal';
+import LoadingOverlay from '../../components/common/LoadingOverlay';
 
 // Theme colors (matching project theme)
 const COLORS = {
@@ -53,6 +57,7 @@ const ClinicProfile = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [clinic, setClinic] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [activeEditSection, setActiveEditSection] = useState('');
@@ -62,137 +67,291 @@ const ClinicProfile = () => {
   const [newAccreditation, setNewAccreditation] = useState('');
   const [showFacilitiesModal, setShowFacilitiesModal] = useState(false);
   const [newFacility, setNewFacility] = useState('');
+  const [addingFacility, setAddingFacility] = useState(false);
+  const [facilities, setFacilities] = useState([]);
+  const [loadingFacilities, setLoadingFacilities] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [showOperatingHoursModal, setShowOperatingHoursModal] = useState(false);
+  const [workingHours, setWorkingHours] = useState([]);
+  const [loadingWorkingHours, setLoadingWorkingHours] = useState(false);
+  const [updatingWorkingHours, setUpdatingWorkingHours] = useState(false);
+  const [workingHoursForm, setWorkingHoursForm] = useState({
+    Monday: { day_of_week: 'Monday', opening_time: '08:00', closing_time: '20:00', is_available: true },
+    Tuesday: { day_of_week: 'Tuesday', opening_time: '08:00', closing_time: '20:00', is_available: true },
+    Wednesday: { day_of_week: 'Wednesday', opening_time: '08:00', closing_time: '20:00', is_available: true },
+    Thursday: { day_of_week: 'Thursday', opening_time: '08:00', closing_time: '20:00', is_available: true },
+    Friday: { day_of_week: 'Friday', opening_time: '08:00', closing_time: '20:00', is_available: true },
+    Saturday: { day_of_week: 'Saturday', opening_time: '09:00', closing_time: '18:00', is_available: true },
+    Sunday: { day_of_week: 'Sunday', opening_time: '10:00', closing_time: '16:00', is_available: false }
+  });
   const [showAmenitiesModal, setShowAmenitiesModal] = useState(false);
   const [newAmenity, setNewAmenity] = useState('');
+  const [amenities, setAmenities] = useState([]);
+  const [loadingAmenities, setLoadingAmenities] = useState(false);
+  const [addingAmenity, setAddingAmenity] = useState(false);
+  const [pendingAccreditations, setPendingAccreditations] = useState([]);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [accreditationToDelete, setAccreditationToDelete] = useState(null);
+  const [showAmenityDeleteConfirmModal, setShowAmenityDeleteConfirmModal] = useState(false);
+  const [amenityToDelete, setAmenityToDelete] = useState(null);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [resultModal, setResultModal] = useState({ type: '', title: '', message: '' });
 
-  // Sample clinic data - In real app, this would come from API
-  const clinicData = {
-    id: 'CLINIC-2024-001',
-    name: 'MedCare General Hospital',
-    type: 'Multi-Specialty Hospital',
-    established: '2010',
-    licenseNumber: 'HOSP-2024-001',
-    phone: '+1 (555) 123-4567',
-    email: 'info@medcarehospital.com',
-    website: 'www.medcarehospital.com',
-    address: '123 Medical Center Drive, New York, NY 10001',
-    city: 'New York',
-    state: 'NY',
-    zipCode: '10001',
-    country: 'USA',
-    description: 'MedCare General Hospital is a leading multi-specialty healthcare facility providing comprehensive medical services with state-of-the-art technology and experienced medical professionals.',
-    specialties: [
-      'Cardiology',
-      'Orthopedics',
-      'Neurology',
-      'Oncology',
-      'Pediatrics',
-      'Emergency Medicine',
-      'General Surgery',
-      'Internal Medicine'
-    ],
-    facilities: [
-      '24/7 Emergency Services',
-      'ICU & CCU',
-      'Operation Theaters',
-      'Diagnostic Imaging',
-      'Laboratory Services',
-      'Pharmacy',
-      'Ambulance Services',
-      'Patient Rooms',
-      'Cafeteria',
-      'Parking'
-    ],
-    amenities: [
-      'Free WiFi',
-      'Wheelchair Accessible',
-      'Parking Available',
-      'Credit Card Accepted',
-      'Insurance Accepted',
-      'Online Booking',
-      'Telemedicine Services'
-    ],
-    operatingHours: {
-      monday: { start: '08:00', end: '20:00', available: true },
-      tuesday: { start: '08:00', end: '20:00', available: true },
-      wednesday: { start: '08:00', end: '20:00', available: true },
-      thursday: { start: '08:00', end: '20:00', available: true },
-      friday: { start: '08:00', end: '20:00', available: true },
-      saturday: { start: '09:00', end: '18:00', available: true },
-      sunday: { start: '09:00', end: '16:00', available: true },
-    },
-    emergencyHours: '24/7',
-    totalDoctors: 45,
-    totalPatients: 8500,
-    totalStaff: 120,
-    totalBeds: 150,
-    rating: 4.7,
-    totalReviews: 1250,
-    accreditation: [
-      'Joint Commission Accreditation',
-      'ISO 9001:2015 Certified',
-      'American Hospital Association Member'
-    ],
-    insurance: [
-      'Blue Cross Blue Shield',
-      'Aetna',
-      'Cigna',
-      'UnitedHealth Group',
-      'Medicare',
-      'Medicaid'
-    ],
-    paymentMethods: [
-      'Cash',
-      'Credit Card',
-      'Debit Card',
-      'Insurance',
-      'Online Payment'
-    ],
-    statistics: {
-      patientsPerMonth: 2500,
-      surgeriesPerMonth: 150,
-      emergencyCases: 300,
-      outpatientVisits: 1800
-    },
-    achievements: [
-      'Best Hospital Award 2023 - New York Medical Association',
-      'Excellence in Patient Care 2022',
-      'Top 10 Hospitals in New York State 2023',
-      'Green Hospital Certification 2023'
-    ],
-    contactInfo: {
-      emergency: '+1 (555) 999-8888',
-      appointment: '+1 (555) 123-4567',
-      billing: '+1 (555) 123-4568',
-      general: '+1 (555) 123-4569'
-    }
+  // Helper functions for result modals
+  const showSuccessModal = (title, message) => {
+    setResultModal({ type: 'success', title, message });
+    setShowResultModal(true);
+  };
+
+  const showErrorModal = (title, message) => {
+    setResultModal({ type: 'error', title, message });
+    setShowResultModal(true);
+  };
+
+  const closeResultModal = () => {
+    setShowResultModal(false);
+    setResultModal({ type: '', title: '', message: '' });
   };
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setClinic(clinicData);
-      setLoading(false);
-    }, 1000);
+    fetchClinicProfile();
+    fetchAccreditations();
+    fetchFacilities();
+    fetchAmenities();
+    fetchWorkingHours();
   }, []);
+
+  const fetchClinicProfile = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Import the clinic API service
+      const clinicAPI = await import('../../services/clinicApiService');
+      
+      const response = await clinicAPI.default.getClinicProfile();
+      
+      if (response.success) {
+        setClinic(response.data);
+      } else {
+        setError(response.message);
+        setClinic(null);
+      }
+    } catch (error) {
+      console.error('Error fetching clinic profile:', error);
+      setError('An unexpected error occurred while loading clinic profile');
+      setClinic(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAccreditations = async () => {
+    try {
+      // Import the clinic API service
+      const clinicAPI = await import('../../services/clinicApiService');
+      
+      const response = await clinicAPI.default.listAccreditations();
+      
+      if (response.success) {
+        // Keep the full accreditation objects to preserve IDs
+        setClinic(prev => ({
+          ...prev,
+          accreditation: response.data
+        }));
+      } else {
+        console.error('Failed to fetch accreditations:', response.message);
+        // Keep existing accreditations on error
+      }
+    } catch (error) {
+      console.error('Error fetching accreditations:', error);
+      // Keep existing accreditations on error
+    }
+  };
+
+  const fetchFacilities = async () => {
+    try {
+      setLoadingFacilities(true);
+      // Import the clinic API service
+      const clinicAPI = await import('../../services/clinicApiService');
+      
+      const response = await clinicAPI.default.listFacilities();
+      
+      if (response.success) {
+        // Keep the full facility objects to preserve IDs for deletion
+        setFacilities(response.data);
+        
+        // Transform the API data for backward compatibility (display purposes)
+        const facilitiesList = response.data.map(facility => 
+          typeof facility === 'string' ? facility : (facility.name || facility)
+        );
+        
+        // Also update the clinic state for backward compatibility
+        setClinic(prev => ({
+          ...prev,
+          facilities: facilitiesList
+        }));
+      } else {
+        console.error('Failed to fetch facilities:', response.message);
+        // Keep existing facilities on error
+      }
+    } catch (error) {
+      console.error('Error fetching facilities:', error);
+      // Keep existing facilities on error
+    } finally {
+      setLoadingFacilities(false);
+    }
+  };
+
+  const fetchAmenities = async () => {
+    try {
+      setLoadingAmenities(true);
+      // Import the clinic API service
+      const clinicAPI = await import('../../services/clinicApiService');
+      
+      const response = await clinicAPI.default.listPatientAmenities();
+      
+      if (response.success) {
+        // Keep the full amenity objects to preserve IDs for deletion
+        setAmenities(response.data);
+        
+        // Transform the API data for backward compatibility (display purposes)
+        const amenitiesList = response.data.map(amenity => 
+          typeof amenity === 'string' ? amenity : (amenity.patient_amenities || amenity.name || amenity)
+        );
+        
+        // Also update the clinic state for backward compatibility
+        setClinic(prev => ({
+          ...prev,
+          amenities: amenitiesList
+        }));
+      } else {
+        console.error('Failed to fetch amenities:', response.message);
+        // Keep existing amenities on error
+      }
+    } catch (error) {
+      console.error('Error fetching amenities:', error);
+      // Keep existing amenities on error
+    } finally {
+      setLoadingAmenities(false);
+    }
+  };
+
+  const fetchWorkingHours = async () => {
+    try {
+      setLoadingWorkingHours(true);
+      // Import the clinic API service
+      const clinicAPI = await import('../../services/clinicApiService');
+      
+      const response = await clinicAPI.default.listClinicWorkingHours();
+      
+      if (response.success) {
+        // Keep the full working hours objects
+        setWorkingHours(response.data);
+        
+        // Update the form with existing data
+        if (response.data && response.data.length > 0) {
+          const formData = {};
+          response.data.forEach(workingHour => {
+            const day = workingHour.day_of_week || workingHour.day;
+            if (day) {
+              formData[day] = {
+                day_of_week: day,
+                opening_time: workingHour.opening_time || workingHour.start_time || workingHour.start || '08:00',
+                closing_time: workingHour.closing_time || workingHour.end_time || workingHour.end || '20:00',
+                is_available: workingHour.is_available !== undefined ? workingHour.is_available : workingHour.available || true
+              };
+            }
+          });
+          setWorkingHoursForm(prev => ({ ...prev, ...formData }));
+        }
+        
+        // Also update the clinic state for backward compatibility
+        setClinic(prev => ({
+          ...prev,
+          operatingHours: response.data
+        }));
+      } else {
+        console.error('Failed to fetch working hours:', response.message);
+        // Keep existing working hours on error
+      }
+    } catch (error) {
+      console.error('Error fetching working hours:', error);
+      // Keep existing working hours on error
+    } finally {
+      setLoadingWorkingHours(false);
+    }
+  };
 
   const handleEdit = () => {
     setActiveEditSection('basic');
-    setEditForm(clinic);
+    // Ensure all clinic data is properly copied to edit form
+    setEditForm({
+      ...clinic,
+      // Ensure we have all the necessary fields with fallbacks
+      clinic_name: clinic.clinic_name || clinic.name || '',
+      phone: clinic.phone || '',
+      email: clinic.email || '',
+      address: clinic.address || '',
+      city: clinic.city || '',
+      state: clinic.state || '',
+      zipCode: clinic.zipCode || '',
+      description: clinic.description || '',
+      type: clinic.type || '',
+      specialties: clinic.specialties || []
+    });
     setShowEditModal(true);
   };
 
-  const handleSave = () => {
-    setClinic(editForm);
-    setShowEditModal(false);
-    // In real app, make API call to update clinic data
+  const handleSave = async () => {
+    try {
+      // Import the clinic API service
+      const clinicAPI = await import('../../services/clinicApiService');
+      
+      // Transform the data to match API expectations
+      const transformedData = {
+        ...editForm,
+        // Ensure specialties are in the correct format (extract IDs only)
+        specialties: editForm.specialties ? editForm.specialties.map(specialty => {
+          if (typeof specialty === 'string') {
+            return specialty;
+          }
+          return specialty.id || specialty.pk || specialty;
+        }) : []
+      };
+      
+      const response = await clinicAPI.default.updateClinicProfile(transformedData);
+      
+      if (response.success) {
+        setClinic(editForm);
+        setShowEditModal(false);
+        // Show success message
+        alert('Clinic profile updated successfully!');
+      } else {
+        alert(`Update failed: ${response.message}`);
+      }
+    } catch (error) {
+      console.error('Error updating clinic profile:', error);
+      alert('An error occurred while updating the clinic profile');
+    }
   };
 
   const handleCancel = () => {
-    setEditForm(clinic);
+    // Reset edit form to original clinic data
+    setEditForm({
+      ...clinic,
+      clinic_name: clinic.clinic_name || clinic.name || '',
+      phone: clinic.phone || '',
+      email: clinic.email || '',
+      address: clinic.address || '',
+      city: clinic.city || '',
+      state: clinic.state || '',
+      zipCode: clinic.zipCode || '',
+      description: clinic.description || '',
+      type: clinic.type || '',
+      specialties: clinic.specialties || []
+    });
     setShowEditModal(false);
   };
 
@@ -216,58 +375,214 @@ const ClinicProfile = () => {
     setShowEditModal(true);
   };
 
-  const handleAddSpecialty = () => {
+  const handleAddSpecialty = async () => {
     if (newSpecialty.trim()) {
-      setClinic(prev => ({
-        ...prev,
-        specialties: [...prev.specialties, newSpecialty.trim()]
-      }));
-      setNewSpecialty('');
-      setShowSpecialtyModal(false);
+      try {
+        const newSpecialtyObj = { name: newSpecialty.trim() };
+        const updatedSpecialties = [...(clinic.specialties || []), newSpecialtyObj];
+        
+        // Import the clinic API service
+        const clinicAPI = await import('../../services/clinicApiService');
+        
+        const response = await clinicAPI.default.updateSpecialties(updatedSpecialties);
+        
+        if (response.success) {
+          setClinic(prev => ({
+            ...prev,
+            specialties: updatedSpecialties
+          }));
+          setNewSpecialty('');
+          setShowSpecialtyModal(false);
+        } else {
+          alert(`Failed to add specialty: ${response.message}`);
+        }
+      } catch (error) {
+        console.error('Error adding specialty:', error);
+        alert('An error occurred while adding the specialty');
+      }
     }
   };
 
-  const handleRemoveSpecialty = (index) => {
-    setClinic(prev => ({
-      ...prev,
-      specialties: prev.specialties.filter((_, i) => i !== index)
-    }));
+  const handleRemoveSpecialty = async (index) => {
+    try {
+      const updatedSpecialties = (clinic.specialties || []).filter((_, i) => i !== index);
+      
+      // Import the clinic API service
+      const clinicAPI = await import('../../services/clinicApiService');
+      
+      const response = await clinicAPI.default.updateSpecialties(updatedSpecialties);
+      
+      if (response.success) {
+        setClinic(prev => ({
+          ...prev,
+          specialties: updatedSpecialties
+        }));
+      } else {
+        alert(`Failed to remove specialty: ${response.message}`);
+      }
+    } catch (error) {
+      console.error('Error removing specialty:', error);
+      alert('An error occurred while removing the specialty');
+    }
   };
 
   const handleAddAccreditation = () => {
     if (newAccreditation.trim()) {
-      setClinic(prev => ({
-        ...prev,
-        accreditation: [...prev.accreditation, newAccreditation.trim()]
-      }));
+      // Add to pending accreditations list
+      setPendingAccreditations(prev => [...prev, newAccreditation.trim()]);
       setNewAccreditation('');
+    }
+  };
+
+  const handleRemovePendingAccreditation = (index) => {
+    setPendingAccreditations(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSaveAccreditations = async () => {
+    if (pendingAccreditations.length === 0) {
       setShowAccreditationModal(false);
+      return;
+    }
+
+    try {
+      // Import the clinic API service
+      const clinicAPI = await import('../../services/clinicApiService');
+      
+      // Add all pending accreditations
+      const addPromises = pendingAccreditations.map(accreditation => 
+        clinicAPI.default.addAccreditation({ name: accreditation })
+      );
+      
+      const results = await Promise.all(addPromises);
+      
+      // Check if all additions were successful
+      const allSuccessful = results.every(result => result.success);
+      
+      if (allSuccessful) {
+        // Clear pending accreditations and close modal
+        setPendingAccreditations([]);
+        setShowAccreditationModal(false);
+        
+        // Refresh the accreditations list from the API
+        await fetchAccreditations();
+        
+        showSuccessModal('Accreditations Added', `${pendingAccreditations.length} accreditation(s) added successfully!`);
+      } else {
+        // Handle partial failures
+        const failedCount = results.filter(result => !result.success).length;
+        showErrorModal('Add Failed', `${failedCount} accreditation(s) failed to add. Please try again.`);
+      }
+    } catch (error) {
+      console.error('Error saving accreditations:', error);
+      showErrorModal('Add Failed', 'An error occurred while saving accreditations');
     }
   };
 
-  const handleRemoveAccreditation = (index) => {
-    setClinic(prev => ({
-      ...prev,
-      accreditation: prev.accreditation.filter((_, i) => i !== index)
-    }));
+  const handleCancelAccreditations = () => {
+    // Clear pending accreditations and close modal
+    setPendingAccreditations([]);
+    setShowAccreditationModal(false);
   };
 
-  const handleAddFacility = () => {
+  const handleRemoveAccreditation = (accreditation, index) => {
+    // Show confirmation modal instead of directly deleting
+    setAccreditationToDelete(accreditation);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const confirmDeleteAccreditation = async () => {
+    if (!accreditationToDelete) return;
+
+    try {
+      // Import the clinic API service
+      const clinicAPI = await import('../../services/clinicApiService');
+      
+      // Get the accreditation ID
+      const accreditationId = accreditationToDelete.id || accreditationToDelete.pk;
+      
+      if (!accreditationId) {
+        showErrorModal('Delete Failed', 'Cannot delete accreditation: ID not found');
+        return;
+      }
+      
+      const response = await clinicAPI.default.deleteAccreditation(accreditationId);
+      
+      if (response.success) {
+        // Refresh the accreditations list from the API
+        await fetchAccreditations();
+        showSuccessModal('Accreditation Deleted', 'The accreditation has been successfully removed.');
+      } else {
+        showErrorModal('Delete Failed', response.message || 'Failed to remove accreditation');
+      }
+    } catch (error) {
+      console.error('Error removing accreditation:', error);
+      showErrorModal('Delete Failed', 'An error occurred while removing the accreditation');
+    } finally {
+      // Close confirmation modal
+      setShowDeleteConfirmModal(false);
+      setAccreditationToDelete(null);
+    }
+  };
+
+  const cancelDeleteAccreditation = () => {
+    setShowDeleteConfirmModal(false);
+    setAccreditationToDelete(null);
+  };
+
+  const handleAddFacility = async () => {
     if (newFacility.trim()) {
-      setClinic(prev => ({
-        ...prev,
-        facilities: [...prev.facilities, newFacility.trim()]
-      }));
-      setNewFacility('');
-      setShowFacilitiesModal(false);
+      setAddingFacility(true);
+      try {
+        // Import the clinic API service
+        const clinicAPI = await import('../../services/clinicApiService');
+        
+        const response = await clinicAPI.default.addFacility({ name: newFacility.trim() });
+        
+        if (response.success) {
+          // Refresh the facilities list from the API
+          await fetchFacilities();
+          setNewFacility('');
+          setShowFacilitiesModal(false);
+          showSuccessModal('Facility Added', `"${newFacility.trim()}" has been added successfully!`);
+        } else {
+          showErrorModal('Add Failed', response.message || 'Failed to add facility');
+        }
+      } catch (error) {
+        console.error('Error adding facility:', error);
+        showErrorModal('Add Failed', 'An error occurred while adding the facility');
+      } finally {
+        setAddingFacility(false);
+      }
     }
   };
 
-  const handleRemoveFacility = (index) => {
-    setClinic(prev => ({
-      ...prev,
-      facilities: prev.facilities.filter((_, i) => i !== index)
-    }));
+  const handleRemoveFacility = async (facility, index) => {
+    try {
+      // Get facility ID for API call
+      const facilityId = facility.id || facility.pk;
+      const facilityName = typeof facility === 'string' ? facility : (facility.name || facility);
+      
+      if (!facilityId) {
+        showErrorModal('Remove Failed', 'Cannot remove facility: ID not found');
+        return;
+      }
+      
+      // Import the clinic API service
+      const clinicAPI = await import('../../services/clinicApiService');
+      
+      const response = await clinicAPI.default.deleteFacility(facilityId);
+      
+      if (response.success) {
+        // Refresh the facilities list from the API
+        await fetchFacilities();
+        showSuccessModal('Facility Removed', `"${facilityName}" has been removed successfully!`);
+      } else {
+        showErrorModal('Remove Failed', response.message || 'Failed to remove facility');
+      }
+    } catch (error) {
+      console.error('Error removing facility:', error);
+      showErrorModal('Remove Failed', 'An error occurred while removing the facility');
+    }
   };
 
   const handleContactUpdate = (field, value) => {
@@ -280,6 +595,24 @@ const ClinicProfile = () => {
     }));
   };
 
+  const handleSaveContact = async () => {
+    try {
+      const clinicAPI = await import('../../services/clinicApiService');
+      
+      const response = await clinicAPI.default.updateContactInfo(clinic.contactInfo);
+      
+      if (response.success) {
+        setShowContactModal(false);
+        alert('Contact information updated successfully!');
+      } else {
+        alert(`Update failed: ${response.message}`);
+      }
+    } catch (error) {
+      console.error('Error updating contact info:', error);
+      alert('An error occurred while updating contact information');
+    }
+  };
+
   const handleAddressUpdate = (field, value) => {
     setClinic(prev => ({
       ...prev,
@@ -290,35 +623,142 @@ const ClinicProfile = () => {
     }));
   };
 
+  const handleSaveAddress = async () => {
+    try {
+      const clinicAPI = await import('../../services/clinicApiService');
+      
+      const addressData = {
+        address: clinic.address,
+        city: clinic.city,
+        state: clinic.state,
+        zipCode: clinic.zipCode,
+        country: clinic.country
+      };
+      
+      const response = await clinicAPI.default.updateAddress(addressData);
+      
+      if (response.success) {
+        setShowAddressModal(false);
+        alert('Address updated successfully!');
+      } else {
+        alert(`Update failed: ${response.message}`);
+      }
+    } catch (error) {
+      console.error('Error updating address:', error);
+      alert('An error occurred while updating address');
+    }
+  };
+
   const handleOperatingHoursUpdate = (day, field, value) => {
-    setClinic(prev => ({
+    setWorkingHoursForm(prev => ({
       ...prev,
-      operatingHours: {
-        ...prev.operatingHours,
-        [day]: {
-          ...prev.operatingHours[day],
-          [field]: value
-        }
+      [day]: {
+        ...prev[day],
+        [field]: value
       }
     }));
   };
 
-  const handleAddAmenity = () => {
-    if (newAmenity.trim()) {
-      setClinic(prev => ({
-        ...prev,
-        amenities: [...prev.amenities, newAmenity.trim()]
+  const handleSaveOperatingHours = async () => {
+    setUpdatingWorkingHours(true);
+    try {
+      const clinicAPI = await import('../../services/clinicApiService');
+      
+      // Convert form data to the expected API payload format
+      const workingHoursArray = Object.values(workingHoursForm).map(dayData => ({
+        day_of_week: dayData.day_of_week,
+        opening_time: dayData.opening_time,
+        closing_time: dayData.closing_time,
+        is_available: dayData.is_available
       }));
-      setNewAmenity('');
-      setShowAmenitiesModal(false);
+      
+      const response = await clinicAPI.default.updateClinicWorkingHours(workingHoursArray);
+      
+      if (response.success) {
+        // Refresh the working hours list from the API
+        await fetchWorkingHours();
+        setShowOperatingHoursModal(false);
+        showSuccessModal('Working Hours Updated', 'Clinic working hours have been updated successfully!');
+      } else {
+        showErrorModal('Update Failed', response.message || 'Failed to update working hours');
+      }
+    } catch (error) {
+      console.error('Error updating operating hours:', error);
+      showErrorModal('Update Failed', 'An error occurred while updating working hours');
+    } finally {
+      setUpdatingWorkingHours(false);
     }
   };
 
-  const handleRemoveAmenity = (index) => {
-    setClinic(prev => ({
-      ...prev,
-      amenities: prev.amenities.filter((_, i) => i !== index)
-    }));
+  const handleAddAmenity = async () => {
+    if (newAmenity.trim()) {
+      setAddingAmenity(true);
+      try {
+        // Import the clinic API service
+        const clinicAPI = await import('../../services/clinicApiService');
+        
+        const response = await clinicAPI.default.addPatientAmenity({ name: newAmenity.trim() });
+        
+        if (response.success) {
+          // Refresh the amenities list from the API
+          await fetchAmenities();
+          setNewAmenity('');
+          setShowAmenitiesModal(false);
+          showSuccessModal('Amenity Added', `"${newAmenity.trim()}" has been added successfully!`);
+        } else {
+          showErrorModal('Add Failed', response.message || 'Failed to add amenity');
+        }
+      } catch (error) {
+        console.error('Error adding amenity:', error);
+        showErrorModal('Add Failed', 'An error occurred while adding the amenity');
+      } finally {
+        setAddingAmenity(false);
+      }
+    }
+  };
+
+  const handleRemoveAmenity = (amenity, index) => {
+    // Show confirmation modal instead of directly deleting
+    setAmenityToDelete(amenity);
+    setShowAmenityDeleteConfirmModal(true);
+  };
+
+  const confirmDeleteAmenity = async () => {
+    try {
+      // Get amenity ID for API call
+      const amenityId = amenityToDelete.id || amenityToDelete.pk;
+      const amenityName = typeof amenityToDelete === 'string' ? amenityToDelete : (amenityToDelete.patient_amenities || amenityToDelete.name || amenityToDelete);
+      
+      if (!amenityId) {
+        showErrorModal('Remove Failed', 'Cannot remove amenity: ID not found');
+        return;
+      }
+      
+      // Import the clinic API service
+      const clinicAPI = await import('../../services/clinicApiService');
+      
+      const response = await clinicAPI.default.deletePatientAmenity(amenityId);
+      
+      if (response.success) {
+        // Refresh the amenities list from the API
+        await fetchAmenities();
+        showSuccessModal('Amenity Removed', `"${amenityName}" has been removed successfully!`);
+      } else {
+        showErrorModal('Remove Failed', response.message || 'Failed to remove amenity');
+      }
+    } catch (error) {
+      console.error('Error removing amenity:', error);
+      showErrorModal('Remove Failed', 'An error occurred while removing the amenity');
+    } finally {
+      // Close the confirmation modal
+      setShowAmenityDeleteConfirmModal(false);
+      setAmenityToDelete(null);
+    }
+  };
+
+  const cancelDeleteAmenity = () => {
+    setShowAmenityDeleteConfirmModal(false);
+    setAmenityToDelete(null);
   };
 
   if (loading) {
@@ -332,20 +772,38 @@ const ClinicProfile = () => {
     );
   }
 
-  if (!clinic) {
+
+  if (!clinic && !loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: COLORS.background }}>
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: COLORS.background }}>
         <div className="text-center max-w-md">
           <FaHospital className="w-16 h-16 mx-auto mb-4" style={{ color: COLORS.textMuted }} />
-          <h2 className="text-xl font-semibold mb-2" style={{ color: COLORS.text }}>Clinic Not Found</h2>
-          <p style={{ color: COLORS.textMuted }}>The requested clinic profile could not be found.</p>
-          <button
-            onClick={() => navigate(-1)}
-            className="mt-4 px-6 py-2 rounded-lg font-medium transition-colors duration-200"
-            style={{ background: COLORS.primary, color: COLORS.white }}
-          >
-            Back to Dashboard
-          </button>
+          <h2 className="text-xl font-semibold mb-2" style={{ color: COLORS.text }}>
+            {error ? 'Error Loading Clinic Profile' : 'No Data Available'}
+          </h2>
+          <p style={{ color: COLORS.textMuted }} className="mb-6">
+            {error || 'No clinic profile data is available at the moment.'}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={fetchClinicProfile}
+              className="px-6 py-2 rounded-lg font-medium transition-colors duration-200"
+              style={{ background: COLORS.primary, color: COLORS.white }}
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => navigate(-1)}
+              className="px-6 py-2 rounded-lg font-medium transition-colors duration-200"
+              style={{ 
+                background: COLORS.white, 
+                color: COLORS.text,
+                border: `1px solid ${COLORS.border}` 
+              }}
+            >
+              Back to Dashboard
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -400,10 +858,10 @@ const ClinicProfile = () => {
                 {/* Name and Basic Info */}
                 <div className="text-center sm:text-left">
                   <h1 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: COLORS.text }}>
-                    {clinic.name}
+                    {clinic.clinic_name || clinic.name || 'Clinic Name'}
                   </h1>
                   <p className="text-base sm:text-lg mb-2" style={{ color: COLORS.textMuted }}>
-                    {clinic.type} • Established {clinic.established}
+                    Clinic • License: {clinic.license_number || 'N/A'}
                   </p>
                   <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-4 text-xs sm:text-sm">
                     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
@@ -412,17 +870,17 @@ const ClinicProfile = () => {
                     </span>
                     <span className="flex items-center gap-1" style={{ color: COLORS.textMuted }}>
                       <FaStar className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.warning }} />
-                      {clinic.rating}/5.0
+                      {clinic.rating || 0}/5.0
                     </span>
                     <span className="flex items-center gap-1" style={{ color: COLORS.textMuted }}>
                       <FaUserMd className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.primary }} />
-                      <span className="hidden sm:inline">{clinic.totalDoctors} doctors</span>
-                      <span className="sm:hidden">{clinic.totalDoctors}</span>
+                      <span className="hidden sm:inline">{clinic.totalDoctors || 0} doctors</span>
+                      <span className="sm:hidden">{clinic.totalDoctors || 0}</span>
                     </span>
                     <span className="flex items-center gap-1" style={{ color: COLORS.textMuted }}>
                       <FaUsers className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.primary }} />
-                      <span className="hidden sm:inline">{clinic.totalPatients} patients</span>
-                      <span className="sm:hidden">{clinic.totalPatients}</span>
+                      <span className="hidden sm:inline">{clinic.totalPatients || 0} patients</span>
+                      <span className="sm:hidden">{clinic.totalPatients || 0}</span>
                     </span>
                   </div>
                 </div>
@@ -432,15 +890,15 @@ const ClinicProfile = () => {
               <div className="flex flex-col gap-2 text-xs sm:text-sm order-3 lg:order-2">
                 <div className="flex items-center gap-2 justify-center sm:justify-start">
                   <FaPhone className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
-                  <span style={{ color: COLORS.text }} className="truncate">{clinic.phone}</span>
+                  <span style={{ color: COLORS.text }} className="truncate">{clinic.phone || 'N/A'}</span>
                 </div>
                 <div className="flex items-center gap-2 justify-center sm:justify-start">
                   <FaEnvelope className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.textMuted }} />
-                  <span style={{ color: COLORS.text }} className="truncate">{clinic.email}</span>
+                  <span style={{ color: COLORS.text }} className="truncate">{clinic.email || 'N/A'}</span>
                 </div>
                 <div className="flex items-center gap-2 justify-center sm:justify-start">
                   <FaMapMarkerAlt className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" style={{ color: COLORS.textMuted }} />
-                  <span style={{ color: COLORS.text }} className="truncate max-w-[200px] sm:max-w-xs">{clinic.address}</span>
+                  <span style={{ color: COLORS.text }} className="truncate max-w-[200px] sm:max-w-xs">{clinic.location || clinic.address || 'N/A'}</span>
                 </div>
               </div>
 
@@ -492,10 +950,10 @@ const ClinicProfile = () => {
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-3 sm:p-4 lg:p-6 border border-blue-100">
                     <h3 className="text-sm sm:text-base lg:text-lg font-semibold mb-2 sm:mb-3 lg:mb-4 flex items-center gap-2" style={{ color: COLORS.text }}>
                       <FaHospital className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: COLORS.primary }} />
-                      About {clinic.name}
+                      About {clinic.clinic_name || clinic.name}
                     </h3>
                     <p className="text-xs sm:text-sm leading-relaxed" style={{ color: COLORS.textMuted }}>
-                      {clinic.description}
+                      {clinic.description || 'No description available.'}
                     </p>
                   </div>
 
@@ -518,16 +976,16 @@ const ClinicProfile = () => {
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {clinic.specialties.map((specialty, index) => (
+                        {(clinic.specialties || []).map((specialty, index) => (
                           <span
-                            key={index}
+                            key={specialty.id || index}
                             className="px-2 py-1 rounded-full text-xs font-medium"
                             style={{ 
                               backgroundColor: '#E3F2FD', 
                               color: '#1976D2' 
                             }}
                           >
-                            {specialty}
+                            {typeof specialty === 'string' ? specialty : specialty.name}
                           </span>
                         ))}
                       </div>
@@ -548,10 +1006,12 @@ const ClinicProfile = () => {
                         </button>
                       </div>
                       <div className="space-y-2">
-                        {clinic.accreditation.map((acc, index) => (
+                        {(clinic.accreditation || []).map((acc, index) => (
                           <div key={index} className="flex items-center space-x-2">
                             <FaCertificate size={14} style={{ color: COLORS.success }} />
-                            <span className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>{acc}</span>
+                            <span className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
+                              {typeof acc === 'string' ? acc : (acc.name || acc)}
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -580,12 +1040,25 @@ const ClinicProfile = () => {
                       </button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      {clinic.facilities.map((facility, index) => (
-                        <div key={index} className="flex items-center space-x-3 p-2 sm:p-3 rounded-lg" style={{ backgroundColor: COLORS.gray50 }}>
-                          <FaCheckCircle size={16} style={{ color: COLORS.success }} />
-                          <span className="text-xs sm:text-sm font-medium" style={{ color: COLORS.text }}>{facility}</span>
+                      {loadingFacilities ? (
+                        <div className="col-span-full flex items-center justify-center py-4">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: COLORS.primary }}></div>
+                          <span className="ml-2 text-sm" style={{ color: COLORS.textMuted }}>Loading facilities...</span>
                         </div>
-                      ))}
+                      ) : facilities.length > 0 ? (
+                        facilities.map((facility, index) => (
+                          <div key={facility.id || facility.pk || index} className="flex items-center space-x-3 p-2 sm:p-3 rounded-lg" style={{ backgroundColor: COLORS.gray50 }}>
+                            <FaCheckCircle size={16} style={{ color: COLORS.success }} />
+                            <span className="text-xs sm:text-sm font-medium" style={{ color: COLORS.text }}>
+                              {typeof facility === 'string' ? facility : (facility.name || facility)}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="col-span-full text-center py-4">
+                          <span className="text-sm" style={{ color: COLORS.textMuted }}>No facilities added yet</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -605,12 +1078,25 @@ const ClinicProfile = () => {
                       </button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      {clinic.amenities.map((amenity, index) => (
-                        <div key={index} className="flex items-center space-x-3 p-2 sm:p-3 rounded-lg" style={{ backgroundColor: COLORS.gray50 }}>
-                          <FaCheckCircle size={16} style={{ color: COLORS.success }} />
-                          <span className="text-xs sm:text-sm font-medium" style={{ color: COLORS.text }}>{amenity}</span>
+                      {loadingAmenities ? (
+                        <div className="col-span-full flex items-center justify-center py-4">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: COLORS.primary }}></div>
+                          <span className="ml-2 text-sm" style={{ color: COLORS.textMuted }}>Loading amenities...</span>
                         </div>
-                      ))}
+                      ) : amenities.length > 0 ? (
+                        amenities.map((amenity, index) => (
+                          <div key={amenity.id || amenity.pk || index} className="flex items-center space-x-3 p-2 sm:p-3 rounded-lg" style={{ backgroundColor: COLORS.gray50 }}>
+                            <FaCheckCircle size={16} style={{ color: COLORS.success }} />
+                            <span className="text-xs sm:text-sm font-medium" style={{ color: COLORS.text }}>
+                              {typeof amenity === 'string' ? amenity : (amenity.patient_amenities || amenity.name || amenity)}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="col-span-full text-center py-4">
+                          <span className="text-sm" style={{ color: COLORS.textMuted }}>No amenities added yet</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -634,21 +1120,34 @@ const ClinicProfile = () => {
                       </button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
-                      {Object.entries(clinic.operatingHours).map(([day, hours]) => (
-                        <div key={day} className="flex items-center justify-between p-2 sm:p-3 rounded-lg" style={{ backgroundColor: COLORS.gray50 }}>
-                          <div className="flex items-center gap-2 sm:gap-3">
-                            <span className="font-medium capitalize text-xs sm:text-sm" style={{ color: COLORS.text }}>{day}</span>
-                            {hours.available ? (
-                              <FaCheckCircle className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.success }} />
-                            ) : (
-                              <FaTimes className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.danger }} />
-                            )}
-                          </div>
-                          <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
-                            {hours.available ? `${hours.start} - ${hours.end}` : 'Not Available'}
-                          </div>
+                      {loadingWorkingHours ? (
+                        <div className="col-span-full flex items-center justify-center py-4">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: COLORS.primary }}></div>
+                          <span className="ml-2 text-sm" style={{ color: COLORS.textMuted }}>Loading working hours...</span>
                         </div>
-                      ))}
+                      ) : workingHours.length > 0 ? (
+                        workingHours.map((workingHour, index) => (
+                          <div key={workingHour.id || workingHour.pk || index} className="flex items-center justify-between p-2 sm:p-3 rounded-lg" style={{ backgroundColor: COLORS.gray50 }}>
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <span className="font-medium capitalize text-xs sm:text-sm" style={{ color: COLORS.text }}>
+                                {workingHour.day || workingHour.day_name || 'Day'}
+                              </span>
+                              {workingHour.available ? (
+                                <FaCheckCircle className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.success }} />
+                              ) : (
+                                <FaTimes className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: COLORS.danger }} />
+                              )}
+                            </div>
+                            <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
+                              {workingHour.available ? `${workingHour.start_time || workingHour.start} - ${workingHour.end_time || workingHour.end}` : 'Not Available'}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="col-span-full text-center py-4">
+                          <span className="text-sm" style={{ color: COLORS.textMuted }}>No working hours set</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -679,28 +1178,28 @@ const ClinicProfile = () => {
                           <FaPhone size={16} style={{ color: COLORS.primary }} />
                           <div>
                             <div className="font-medium text-sm sm:text-base" style={{ color: COLORS.text }}>General</div>
-                            <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>{clinic.contactInfo.general}</div>
+                            <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>{clinic.contactInfo?.general || 'N/A'}</div>
                           </div>
                         </div>
                         <div className="flex items-center space-x-3">
                           <FaCalendarAlt size={16} style={{ color: COLORS.primary }} />
                           <div>
                             <div className="font-medium text-sm sm:text-base" style={{ color: COLORS.text }}>Appointments</div>
-                            <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>{clinic.contactInfo.appointment}</div>
+                            <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>{clinic.contactInfo?.appointment || 'N/A'}</div>
                           </div>
                         </div>
                         <div className="flex items-center space-x-3">
                           <FaEnvelope size={16} style={{ color: COLORS.primary }} />
                           <div>
                             <div className="font-medium text-sm sm:text-base" style={{ color: COLORS.text }}>Email</div>
-                            <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>{clinic.email}</div>
+                            <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>{clinic.email || 'N/A'}</div>
                           </div>
                         </div>
                         <div className="flex items-center space-x-3">
                           <FaGlobe size={16} style={{ color: COLORS.primary }} />
                           <div>
                             <div className="font-medium text-sm sm:text-base" style={{ color: COLORS.text }}>Website</div>
-                            <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>{clinic.website}</div>
+                            <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>{clinic.website || 'N/A'}</div>
                           </div>
                         </div>
                       </div>
@@ -725,11 +1224,11 @@ const ClinicProfile = () => {
                         <div className="flex items-start space-x-3">
                           <FaMapMarkerAlt size={16} style={{ color: COLORS.primary }} className="mt-1" />
                           <div>
-                            <div className="font-medium text-sm sm:text-base" style={{ color: COLORS.text }}>{clinic.name}</div>
+                            <div className="font-medium text-sm sm:text-base" style={{ color: COLORS.text }}>{clinic.clinic_name || clinic.name}</div>
                             <div className="text-xs sm:text-sm" style={{ color: COLORS.textMuted }}>
-                              {clinic.address}<br />
-                              {clinic.city}, {clinic.state} {clinic.zipCode}<br />
-                              {clinic.country}
+                              {clinic.address || 'N/A'}<br />
+                              {clinic.location || clinic.city || 'N/A'}<br />
+                              {clinic.country || 'N/A'}
                             </div>
                           </div>
                         </div>
@@ -745,19 +1244,19 @@ const ClinicProfile = () => {
                 <div className="space-y-3 sm:space-y-4 lg:space-y-6">
                   <div className="text-center">
                     <div className="text-4xl font-bold mb-2" style={{ color: COLORS.primary }}>
-                      {clinic.rating}
+                      {clinic.rating || 0}
                     </div>
                     <div className="flex items-center justify-center mb-2">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <FaStar
                           key={star}
                           size={20}
-                          style={{ color: star <= Math.floor(clinic.rating) ? '#F59E0B' : COLORS.border }}
+                          style={{ color: star <= Math.floor(clinic.rating || 0) ? '#F59E0B' : COLORS.border }}
                         />
                       ))}
                     </div>
                     <p className="text-sm" style={{ color: COLORS.textMuted }}>
-                      Based on {clinic.totalReviews} reviews
+                      Based on {clinic.totalReviews || 0} reviews
                     </p>
                   </div>
 
@@ -845,8 +1344,8 @@ const ClinicProfile = () => {
                       <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Clinic Name</label>
                       <input
                         type="text"
-                        value={editForm.name || ''}
-                        onChange={(e) => handleInputChange('name', e.target.value)}
+                        value={editForm.clinic_name || editForm.name || ''}
+                        onChange={(e) => handleInputChange('clinic_name', e.target.value)}
                         className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
                         style={{
                           background: '#ffffff',
@@ -1274,9 +1773,9 @@ const ClinicProfile = () => {
               <div>
                 <label className="block text-sm font-semibold mb-3" style={{ color: '#111827' }}>Current Specialties</label>
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {clinic.specialties.map((specialty, index) => (
+                  {(clinic.specialties || []).map((specialty, index) => (
                     <span
-                      key={index}
+                      key={specialty.id || index}
                       className="px-3 py-2 rounded-full text-sm font-medium flex items-center gap-2 group"
                       style={{ 
                         backgroundColor: '#E3F2FD', 
@@ -1284,7 +1783,7 @@ const ClinicProfile = () => {
                         border: `1px solid #1976D233` 
                       }}
                     >
-                      {specialty}
+                      {typeof specialty === 'string' ? specialty : specialty.name}
                       <button
                         onClick={() => handleRemoveSpecialty(index)}
                         className="opacity-70 hover:opacity-100 hover:text-red-500 transition-all duration-200"
@@ -1294,7 +1793,7 @@ const ClinicProfile = () => {
                       </button>
                     </span>
                   ))}
-                  {clinic.specialties.length === 0 && (
+                  {(clinic.specialties || []).length === 0 && (
                     <p className="text-sm" style={{ color: '#6B7280' }}>No specialties added yet</p>
                   )}
                 </div>
@@ -1413,7 +1912,7 @@ const ClinicProfile = () => {
             background: 'rgba(15, 23, 42, 0.4)',
             backdropFilter: 'saturate(140%) blur(8px)',
           }}
-          onClick={() => setShowAccreditationModal(false)}
+          onClick={handleCancelAccreditations}
         >
           <div
             className="w-full max-w-md rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden"
@@ -1445,7 +1944,7 @@ const ClinicProfile = () => {
               </div>
               <button
                 type="button"
-                onClick={() => setShowAccreditationModal(false)}
+                onClick={handleCancelAccreditations}
                 className="w-10 h-10 rounded-full transition-all flex items-center justify-center hover:scale-105 group"
                 style={{
                   background: '#ffffff',
@@ -1472,9 +1971,9 @@ const ClinicProfile = () => {
               <div>
                 <label className="block text-sm font-semibold mb-3" style={{ color: '#111827' }}>Current Accreditations</label>
                 <div className="space-y-2">
-                  {clinic.accreditation.map((acc, index) => (
+                  {(clinic.accreditation || []).map((acc, index) => (
                     <div
-                      key={index}
+                      key={acc.id || acc.pk || index}
                       className="flex items-center justify-between p-3 rounded-lg border"
                       style={{
                         backgroundColor: '#F9FAFB',
@@ -1483,10 +1982,12 @@ const ClinicProfile = () => {
                     >
                       <div className="flex items-center gap-2">
                         <FaCertificate size={14} style={{ color: '#10B981' }} />
-                        <span className="text-sm" style={{ color: '#111827' }}>{acc}</span>
+                        <span className="text-sm" style={{ color: '#111827' }}>
+                          {typeof acc === 'string' ? acc : (acc.name || acc)}
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleRemoveAccreditation(index)}
+                        onClick={() => handleRemoveAccreditation(acc, index)}
                         className="p-1 rounded-full hover:bg-red-50 transition-all duration-200"
                         title="Remove accreditation"
                       >
@@ -1494,11 +1995,44 @@ const ClinicProfile = () => {
                       </button>
                     </div>
                   ))}
-                  {clinic.accreditation.length === 0 && (
+                  {(clinic.accreditation || []).length === 0 && (
                     <p className="text-sm" style={{ color: '#6B7280' }}>No accreditations added yet</p>
                   )}
                 </div>
               </div>
+
+              {/* Pending Accreditations */}
+              {pendingAccreditations.length > 0 && (
+                <div>
+                  <label className="block text-sm font-semibold mb-3" style={{ color: '#111827' }}>
+                    New Accreditations (Pending)
+                  </label>
+                  <div className="space-y-2">
+                    {pendingAccreditations.map((acc, index) => (
+                      <div
+                        key={`pending-${index}`}
+                        className="flex items-center justify-between p-3 rounded-lg border"
+                        style={{
+                          backgroundColor: '#EFF6FF',
+                          borderColor: '#3B82F6',
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <FaCertificate size={14} style={{ color: '#3B82F6' }} />
+                          <span className="text-sm" style={{ color: '#111827' }}>{acc}</span>
+                        </div>
+                        <button
+                          onClick={() => handleRemovePendingAccreditation(index)}
+                          className="p-1 rounded-full hover:bg-red-50 transition-all duration-200"
+                          title="Remove pending accreditation"
+                        >
+                          <FaTimes className="w-3 h-3 text-red-500" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Add New Accreditation */}
               <div>
@@ -1560,7 +2094,7 @@ const ClinicProfile = () => {
             >
               <button
                 type="button"
-                onClick={() => setShowAccreditationModal(false)}
+                onClick={handleCancelAccreditations}
                 className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all"
                 style={{
                   background: '#ffffff',
@@ -1580,7 +2114,7 @@ const ClinicProfile = () => {
               </button>
               <button
                 type="button"
-                onClick={() => setShowAccreditationModal(false)}
+                onClick={handleSaveAccreditations}
                 className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl"
                 style={{
                   background: 'linear-gradient(135deg, #0F1ED1, #1B56FD)',
@@ -1672,29 +2206,37 @@ const ClinicProfile = () => {
               <div>
                 <label className="block text-sm font-semibold mb-3" style={{ color: '#111827' }}>Current Facilities</label>
                 <div className="space-y-2">
-                  {clinic.facilities.map((facility, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 rounded-lg border"
-                      style={{
-                        backgroundColor: '#F9FAFB',
-                        borderColor: '#ECEEF2',
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <FaCheckCircle size={14} style={{ color: '#10B981' }} />
-                        <span className="text-sm" style={{ color: '#111827' }}>{facility}</span>
-                      </div>
-                      <button
-                        onClick={() => handleRemoveFacility(index)}
-                        className="p-1 rounded-full hover:bg-red-50 transition-all duration-200"
-                        title="Remove facility"
-                      >
-                        <FaTimes className="w-3 h-3 text-red-500" />
-                      </button>
+                  {loadingFacilities ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: '#0F1ED1' }}></div>
+                      <span className="ml-2 text-sm" style={{ color: '#6B7280' }}>Loading facilities...</span>
                     </div>
-                  ))}
-                  {clinic.facilities.length === 0 && (
+                  ) : facilities.length > 0 ? (
+                    facilities.map((facility, index) => (
+                      <div
+                        key={facility.id || facility.pk || index}
+                        className="flex items-center justify-between p-3 rounded-lg border"
+                        style={{
+                          backgroundColor: '#F9FAFB',
+                          borderColor: '#ECEEF2',
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <FaCheckCircle size={14} style={{ color: '#10B981' }} />
+                          <span className="text-sm" style={{ color: '#111827' }}>
+                            {typeof facility === 'string' ? facility : (facility.name || facility)}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveFacility(facility, index)}
+                          className="p-1 rounded-full hover:bg-red-50 transition-all duration-200"
+                          title="Remove facility"
+                        >
+                          <FaTimes className="w-3 h-3 text-red-500" />
+                        </button>
+                      </div>
+                    ))
+                  ) : (
                     <p className="text-sm" style={{ color: '#6B7280' }}>No facilities added yet</p>
                   )}
                 </div>
@@ -1728,26 +2270,26 @@ const ClinicProfile = () => {
                   />
                   <button
                     onClick={handleAddFacility}
-                    disabled={!newFacility.trim()}
+                    disabled={!newFacility.trim() || addingFacility}
                     className="px-6 py-3 text-white rounded-lg font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{
-                      background: newFacility.trim() ? 'linear-gradient(135deg, #0F1ED1, #1B56FD)' : '#6B7280',
+                      background: (newFacility.trim() && !addingFacility) ? 'linear-gradient(135deg, #0F1ED1, #1B56FD)' : '#6B7280',
                       border: 'none',
                     }}
                     onMouseEnter={(e) => {
-                      if (newFacility.trim()) {
+                      if (newFacility.trim() && !addingFacility) {
                         e.target.style.transform = 'translateY(-1px)';
                         e.target.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
                       }
                     }}
                     onMouseLeave={(e) => {
-                      if (newFacility.trim()) {
+                      if (newFacility.trim() && !addingFacility) {
                         e.target.style.transform = 'translateY(0)';
                         e.target.style.boxShadow = 'none';
                       }
                     }}
                   >
-                    Add
+                    {addingFacility ? 'Adding...' : 'Add'}
                   </button>
                 </div>
               </div>
@@ -1802,6 +2344,9 @@ const ClinicProfile = () => {
               </button>
             </div>
           </div>
+          
+          {/* Loading Overlay */}
+          <LoadingOverlay isLoading={addingFacility} />
         </div>
       )}
 
@@ -1874,7 +2419,7 @@ const ClinicProfile = () => {
                   <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>General Contact</label>
                   <input
                     type="text"
-                    value={clinic.contactInfo.general}
+                    value={clinic.contactInfo?.general || ''}
                     onChange={(e) => handleContactUpdate('general', e.target.value)}
                     className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
                     style={{
@@ -1897,7 +2442,7 @@ const ClinicProfile = () => {
                   <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Appointments</label>
                   <input
                     type="text"
-                    value={clinic.contactInfo.appointment}
+                    value={clinic.contactInfo?.appointment || ''}
                     onChange={(e) => handleContactUpdate('appointment', e.target.value)}
                     className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
                     style={{
@@ -1920,7 +2465,7 @@ const ClinicProfile = () => {
                   <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Emergency</label>
                   <input
                     type="text"
-                    value={clinic.contactInfo.emergency}
+                    value={clinic.contactInfo?.emergency || ''}
                     onChange={(e) => handleContactUpdate('emergency', e.target.value)}
                     className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
                     style={{
@@ -1943,7 +2488,7 @@ const ClinicProfile = () => {
                   <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Billing</label>
                   <input
                     type="text"
-                    value={clinic.contactInfo.billing}
+                    value={clinic.contactInfo?.billing || ''}
                     onChange={(e) => handleContactUpdate('billing', e.target.value)}
                     className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
                     style={{
@@ -1992,7 +2537,7 @@ const ClinicProfile = () => {
               </button>
               <button
                 type="button"
-                onClick={() => setShowContactModal(false)}
+                onClick={handleSaveContact}
                 className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl"
                 style={{
                   background: 'linear-gradient(135deg, #0F1ED1, #1B56FD)',
@@ -2014,6 +2559,9 @@ const ClinicProfile = () => {
               </button>
             </div>
           </div>
+          
+          {/* Loading Overlay */}
+          <LoadingOverlay isLoading={updatingWorkingHours} />
         </div>
       )}
 
@@ -2085,29 +2633,37 @@ const ClinicProfile = () => {
               <div>
                 <label className="block text-sm font-semibold mb-3" style={{ color: '#111827' }}>Current Amenities</label>
                 <div className="space-y-2">
-                  {clinic.amenities.map((amenity, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 rounded-lg border"
-                      style={{
-                        backgroundColor: '#F9FAFB',
-                        borderColor: '#ECEEF2',
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <FaCheckCircle size={14} style={{ color: '#10B981' }} />
-                        <span className="text-sm" style={{ color: '#111827' }}>{amenity}</span>
-                      </div>
-                      <button
-                        onClick={() => handleRemoveAmenity(index)}
-                        className="p-1 rounded-full hover:bg-red-50 transition-all duration-200"
-                        title="Remove amenity"
-                      >
-                        <FaTimes className="w-3 h-3 text-red-500" />
-                      </button>
+                  {loadingAmenities ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: '#0F1ED1' }}></div>
+                      <span className="ml-2 text-sm" style={{ color: '#6B7280' }}>Loading amenities...</span>
                     </div>
-                  ))}
-                  {clinic.amenities.length === 0 && (
+                  ) : amenities.length > 0 ? (
+                    amenities.map((amenity, index) => (
+                      <div
+                        key={amenity.id || amenity.pk || index}
+                        className="flex items-center justify-between p-3 rounded-lg border"
+                        style={{
+                          backgroundColor: '#F9FAFB',
+                          borderColor: '#ECEEF2',
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <FaCheckCircle size={14} style={{ color: '#10B981' }} />
+                          <span className="text-sm" style={{ color: '#111827' }}>
+                            {typeof amenity === 'string' ? amenity : (amenity.patient_amenities || amenity.name || amenity)}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveAmenity(amenity, index)}
+                          className="p-1 rounded-full hover:bg-red-50 transition-all duration-200"
+                          title="Remove amenity"
+                        >
+                          <FaTimes className="w-3 h-3 text-red-500" />
+                        </button>
+                      </div>
+                    ))
+                  ) : (
                     <p className="text-sm" style={{ color: '#6B7280' }}>No amenities added yet</p>
                   )}
                 </div>
@@ -2141,26 +2697,26 @@ const ClinicProfile = () => {
                   />
                   <button
                     onClick={handleAddAmenity}
-                    disabled={!newAmenity.trim()}
+                    disabled={!newAmenity.trim() || addingAmenity}
                     className="px-6 py-3 text-white rounded-lg font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{
-                      background: newAmenity.trim() ? 'linear-gradient(135deg, #0F1ED1, #1B56FD)' : '#6B7280',
+                      background: (newAmenity.trim() && !addingAmenity) ? 'linear-gradient(135deg, #0F1ED1, #1B56FD)' : '#6B7280',
                       border: 'none',
                     }}
                     onMouseEnter={(e) => {
-                      if (newAmenity.trim()) {
+                      if (newAmenity.trim() && !addingAmenity) {
                         e.target.style.transform = 'translateY(-1px)';
                         e.target.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
                       }
                     }}
                     onMouseLeave={(e) => {
-                      if (newAmenity.trim()) {
+                      if (newAmenity.trim() && !addingAmenity) {
                         e.target.style.transform = 'translateY(0)';
                         e.target.style.boxShadow = 'none';
                       }
                     }}
                   >
-                    Add
+                    {addingAmenity ? 'Adding...' : 'Add'}
                   </button>
                 </div>
               </div>
@@ -2215,6 +2771,9 @@ const ClinicProfile = () => {
               </button>
             </div>
           </div>
+          
+          {/* Loading Overlay */}
+          <LoadingOverlay isLoading={addingAmenity} />
         </div>
       )}
 
@@ -2310,7 +2869,7 @@ const ClinicProfile = () => {
                   <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>City</label>
                   <input
                     type="text"
-                    value={clinic.city}
+                    value={clinic.city || ''}
                     onChange={(e) => handleAddressUpdate('city', e.target.value)}
                     className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
                     style={{
@@ -2333,7 +2892,7 @@ const ClinicProfile = () => {
                   <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>State/Province</label>
                   <input
                     type="text"
-                    value={clinic.state}
+                    value={clinic.state || ''}
                     onChange={(e) => handleAddressUpdate('state', e.target.value)}
                     className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
                     style={{
@@ -2356,7 +2915,7 @@ const ClinicProfile = () => {
                   <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>ZIP/Postal Code</label>
                   <input
                     type="text"
-                    value={clinic.zipCode}
+                    value={clinic.zipCode || ''}
                     onChange={(e) => handleAddressUpdate('zipCode', e.target.value)}
                     className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
                     style={{
@@ -2379,7 +2938,7 @@ const ClinicProfile = () => {
                   <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Country</label>
                   <input
                     type="text"
-                    value={clinic.country}
+                    value={clinic.country || ''}
                     onChange={(e) => handleAddressUpdate('country', e.target.value)}
                     className="w-full px-4 py-3 rounded-lg transition-all text-sm border-2"
                     style={{
@@ -2428,7 +2987,7 @@ const ClinicProfile = () => {
               </button>
               <button
                 type="button"
-                onClick={() => setShowAddressModal(false)}
+                onClick={handleSaveAddress}
                 className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl"
                 style={{
                   background: 'linear-gradient(135deg, #0F1ED1, #1B56FD)',
@@ -2518,7 +3077,7 @@ const ClinicProfile = () => {
             
             <div className="px-6 py-6 space-y-6 overflow-y-auto flex-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Object.entries(clinic.operatingHours).map(([day, hours]) => (
+                {Object.entries(workingHoursForm).map(([day, hours]) => (
                   <div
                     key={day}
                     className="p-4 rounded-lg border"
@@ -2534,8 +3093,8 @@ const ClinicProfile = () => {
                       <label className="flex items-center gap-2">
                         <input
                           type="checkbox"
-                          checked={hours.available}
-                          onChange={(e) => handleOperatingHoursUpdate(day, 'available', e.target.checked)}
+                          checked={hours.is_available}
+                          onChange={(e) => handleOperatingHoursUpdate(day, 'is_available', e.target.checked)}
                           className="w-4 h-4 rounded border-2 transition-all"
                           style={{
                             borderColor: '#ECEEF2',
@@ -2546,14 +3105,14 @@ const ClinicProfile = () => {
                       </label>
                     </div>
                     
-                    {hours.available && (
+                    {hours.is_available && (
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Start Time</label>
+                          <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Opening Time</label>
                           <input
                             type="time"
-                            value={hours.start}
-                            onChange={(e) => handleOperatingHoursUpdate(day, 'start', e.target.value)}
+                            value={hours.opening_time}
+                            onChange={(e) => handleOperatingHoursUpdate(day, 'opening_time', e.target.value)}
                             className="w-full px-3 py-2 rounded-lg transition-all text-sm border-2"
                             style={{
                               background: '#ffffff',
@@ -2572,11 +3131,11 @@ const ClinicProfile = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>End Time</label>
+                          <label className="block text-sm font-semibold mb-2" style={{ color: '#111827' }}>Closing Time</label>
                           <input
                             type="time"
-                            value={hours.end}
-                            onChange={(e) => handleOperatingHoursUpdate(day, 'end', e.target.value)}
+                            value={hours.closing_time}
+                            onChange={(e) => handleOperatingHoursUpdate(day, 'closing_time', e.target.value)}
                             className="w-full px-3 py-2 rounded-lg transition-all text-sm border-2"
                             style={{
                               background: '#ffffff',
@@ -2597,7 +3156,7 @@ const ClinicProfile = () => {
                       </div>
                     )}
                     
-                    {!hours.available && (
+                    {!hours.is_available && (
                       <div className="text-center py-4">
                         <p className="text-sm" style={{ color: '#6B7280' }}>Not Available</p>
                       </div>
@@ -2634,30 +3193,72 @@ const ClinicProfile = () => {
               </button>
               <button
                 type="button"
-                onClick={() => setShowOperatingHoursModal(false)}
-                className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl"
+                onClick={handleSaveOperatingHours}
+                disabled={updatingWorkingHours}
+                className="flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
-                  background: 'linear-gradient(135deg, #0F1ED1, #1B56FD)',
+                  background: updatingWorkingHours ? '#6B7280' : 'linear-gradient(135deg, #0F1ED1, #1B56FD)',
                   color: '#ffffff',
                   border: 'none',
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.transform = 'translateY(-1px)';
-                  e.target.style.boxShadow =
-                    '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                  if (!updatingWorkingHours) {
+                    e.target.style.transform = 'translateY(-1px)';
+                    e.target.style.boxShadow =
+                      '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow =
-                    '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                  if (!updatingWorkingHours) {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow =
+                      '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                  }
                 }}
               >
-                Save Changes
+                {updatingWorkingHours ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteConfirmModal}
+        type="danger"
+        title="Confirm Deletion"
+        message="Delete Accreditation"
+        itemName={accreditationToDelete ? (typeof accreditationToDelete === 'string' ? accreditationToDelete : (accreditationToDelete.name || accreditationToDelete)) : ''}
+        itemType="accreditation"
+        confirmText="Delete Accreditation"
+        cancelText="Cancel"
+        onConfirm={confirmDeleteAccreditation}
+        onCancel={cancelDeleteAccreditation}
+      />
+
+      {/* Amenity Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showAmenityDeleteConfirmModal}
+        type="danger"
+        title="Confirm Deletion"
+        message="Delete Patient Amenity"
+        itemName={amenityToDelete ? (typeof amenityToDelete === 'string' ? amenityToDelete : (amenityToDelete.patient_amenities || amenityToDelete.name || amenityToDelete)) : ''}
+        itemType="patient amenity"
+        confirmText="Delete Amenity"
+        cancelText="Cancel"
+        onConfirm={confirmDeleteAmenity}
+        onCancel={cancelDeleteAmenity}
+      />
+
+      {/* Result Modal */}
+      <ResultModal
+        isOpen={showResultModal}
+        type={resultModal.type}
+        title={resultModal.title}
+        message={resultModal.message}
+        onClose={closeResultModal}
+      />
     </div>
   );
 };
