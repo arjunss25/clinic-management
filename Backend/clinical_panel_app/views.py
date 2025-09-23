@@ -1,4 +1,5 @@
 from pyexpat import expat_CAPI
+from tkinter import N
 from django.shortcuts import render
 from superadmin_app.models import *
 from rest_framework.views import APIView
@@ -8,7 +9,7 @@ import pyotp
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import get_object_or_404
 from superadmin_app.serializers import *
-from . serializers import *
+from .serializers import *
 from superadmin_app.utils import *
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
@@ -22,10 +23,11 @@ from rest_framework import status
 from django.core.mail import send_mail
 from django.conf import settings
 from superadmin_app.models import Patient, ProfileUser
-from .serializers import PatientRegisterSerializer
+from .serializers import *
 from .utils import generate_random_password
 from django.shortcuts import get_object_or_404
-
+from rest_framework import status, permissions
+from .utils import *
 
 class PatientRegisterAPI(APIView):
     def get(self, request, patient_id, *args, **kwargs):
@@ -114,7 +116,7 @@ class PatientRegisterAPI(APIView):
         return custom_404(serializer.errors)
 
 
-class PatientUserDeleteAPI(APIView):
+class UserDeleteAPI(APIView):
     def delete(self, request, pk, *args, **kwargs):
         print('----------',pk)
         # find the user by primary key (id)
@@ -126,6 +128,43 @@ class PatientUserDeleteAPI(APIView):
             return custom_404('This patient profile not found.')
 
 
+# Custom permission: Only Doctors and Clinics can access.
+class IsDoctorOrClinic(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role in ["Doctor", "Clinic"]
+
+class AddPatientVitalsAPI(APIView):
+    permission_classes = [IsDoctorOrClinic]
+    def post(self, request, patient_id, *args, **kwargs):
+        """Add vitals for a patient"""
+        try:
+            patient = Patient.objects.get(id=patient_id)
+        except Patient.DoesNotExist:
+            return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = PatientVitalsSerializer(data=request.data,context={'patient': patient})
+        
+        if serializer.is_valid():
+            serializer.save(patient=patient)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UpdatePatientVitalsAPI(APIView):
+    # permission_classes = [IsDoctorOrClinic]
+    def patch(self, request, vital_id, *args, **kwargs):
+        """Update an existing vitals record"""
+        try:
+            vitals = PatientVitals.objects.get(id=vital_id)
+        except PatientVitals.DoesNotExist:
+            return Response({"error": "Vitals record not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = PatientVitalsSerializer(vitals, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 # get login clinic profile
 class ClinicProfileAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -133,7 +172,6 @@ class ClinicProfileAPIView(APIView):
     def get(self, request):
         if request.user.role != "Clinic":
             return custom_404("Only Clinic users can access this endpoint")
-
         try:
             clinic = Clinic.objects.get(user=request.user)
         except Clinic.DoesNotExist:
@@ -416,7 +454,6 @@ class DoctorAvailabilityListAPIView(APIView):
             "date": selected_date.strftime("%Y-%m-%d"),
             "slots": all_slots
         })
-    
 
 
 # Block or unblock doctor slots
@@ -534,4 +571,46 @@ class DoctorSlotBlockUnblockAPIView(APIView):
         })
 
 
-#booking appointment by clinic or patient
+# booking appointment by clinic or patient
+class AppointmentBookingAPI(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self, user):
+        if user.role == "Patient":
+            return PatientAppointmentBookingSerializer
+        elif user.role == "Doctor":
+            return DoctorAppointmentBookingSerializer
+        elif user.role == "Clinic":
+            return ClinicAppointmentBookingSerializer
+        elif user.role == "SuperAdmin":
+            return SuperAdminAppointmentBookingSerializer
+        return BaseAppointmentBookingSerializer
+
+    def post(self, request):
+        user = request.user
+        data = request.data.copy()
+
+        # Patient auto-attach
+        if user.role == "Patient" and hasattr(user, "patient_profile"):
+            data["patient"] = user.patient_profile.id
+        print('----------',data)
+
+        # Doctor auto-attach doctor_id if not provided
+        if user.role == "Doctor" and hasattr(user, "doctor_profile") and not data.get("doctor"):
+            data["doctor"] = user.doctor_profile.id
+
+        serializer_class = self.get_serializer_class(user)
+        serializer = serializer_class(data=data)
+
+        if serializer.is_valid():
+            appointment = serializer.save()
+            send_appointment_email(appointment)
+            return custom_201("Appointment booked successfully", serializer.data)
+
+        # Now you’ll get field-level validation errors like in your example
+        return custom_404(serializer.errors)
+
+
+
+
+ 

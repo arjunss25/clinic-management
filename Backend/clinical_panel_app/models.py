@@ -53,3 +53,46 @@ class AppointmentBooking(models.Model):
 
     def __str__(self):
         return f"Appointment: {self.patient.full_name} with Dr. {self.doctor.doctor_name} on {self.appointment_date} at {self.start_time}"
+
+# ("No-Show", "No-Show") can be done by doctor or clinic.
+class PatientVitals(models.Model):
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="vitals")
+    recorded_by = models.ForeignKey(
+        ProfileUser, 
+        on_delete=models.SET_NULL, 
+        null=True, blank=True,
+        related_name="recorded_vitals"
+    )
+
+    # Cardiovascular
+    blood_pressure = models.CharField(max_length=10, help_text="e.g., 120/80")
+    heart_rate = models.PositiveIntegerField(help_text="beats per minute")
+
+    # Respiratory
+    temperature = models.DecimalField(max_digits=4, decimal_places=1, help_text="°F")
+    oxygen_saturation = models.PositiveIntegerField(help_text="%")
+    respiratory_rate = models.PositiveIntegerField(help_text="breaths per minute")
+
+    # Anthropometric
+    weight = models.DecimalField(max_digits=5, decimal_places=2, help_text="kg")
+    height = models.DecimalField(max_digits=5, decimal_places=2, help_text="cm")
+    bmi = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+
+    # Notes
+    notes = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        # Auto-calculate BMI if weight & height provided
+        if self.weight and self.height:
+            try:
+                height_m = float(self.height) / 100
+                self.bmi = round(float(self.weight) / (height_m ** 2), 2)
+            except ZeroDivisionError:
+                self.bmi = None
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Vitals for {self.patient.full_name} at {self.created_at}"

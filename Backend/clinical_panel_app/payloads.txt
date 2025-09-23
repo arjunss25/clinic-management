@@ -1,0 +1,41 @@
+
+# Appointment booking payloads
+******************************
+# Patient role 
+# {
+#   "doctor": 16,
+#   "appointment_date": "2025-09-20",
+#   "start_time": "10:30:00",
+#   "end_time": "11:00:00",
+#   "reason_for_visit": "General checkup"
+# }
+
+# Doctor role
+# {
+#   "patient": 15,
+#   "appointment_date": "2025-09-20",
+#   "start_time": "10:30:00",
+#   "end_time": "11:00:00",
+#   "reason_for_visit": "Fever and cold"
+# }
+# Clinic Role
+# {
+#   "doctor": 16,
+#   "patient": 15,
+#   "appointment_date": "2025-09-20",
+#   "start_time": "12:00:00",
+#   "end_time": "12:30:00",
+#   "reason_for_visit": "Routine consultation"
+# }
+
+# SuperAdmin Role
+# {
+#   "doctor": 16,
+#   "patient": 15,
+#   "appointment_date": "2025-09-20",
+#   "start_time": "14:00:00",
+#   "end_time": "14:30:00",
+#   "reason_for_visit": "Follow-up appointment"
+# }
+
+*************************************
