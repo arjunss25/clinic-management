@@ -2,16 +2,10 @@ from rest_framework import serializers
 from superadmin_app.models import *
 from .models import *
 from datetime import timedelta, datetime
+from django.contrib.auth import authenticate
+from django.utils import timezone
+import datetime
 
-# class PatientRegisterSerializer(serializers.ModelSerializer):
-#     email = serializers.EmailField(write_only=True)   # will be used for ProfileUser
-#     class Meta:
-#         model = Patient
-#         fields = [
-#             "email", "full_name", "age", "gender", "phone_number",
-#             "blood_group", "emergency_contact_name", "emergency_contact_phone",
-#             "address", "known_allergies"
-#         ]
 
 class PatientRegisterSerializer(serializers.ModelSerializer):
     # email = serializers.EmailField(required=True)
@@ -67,10 +61,46 @@ class PatientRegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"gender": "Invalid gender choice."})
         return data
         
-    
+
+class PatientVitalsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PatientVitals
+        fields = [
+            "id",
+            "patient",
+            "blood_pressure",
+            "heart_rate",
+            "temperature",
+            "oxygen_saturation",
+            "respiratory_rate",
+            "weight",
+            "height",
+            "bmi",
+            "notes",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["bmi", "created_at", "updated_at"]
+
+    def validate(self, data):
+        patient = self.context.get("patient")
+        today = timezone.localdate()
         
-from django.contrib.auth import authenticate
-from  superadmin_app.models import *
+        # Only check for duplicates on create
+        if self.instance is None and patient is not None:
+            exists = PatientVitals.objects.filter(
+                patient=patient,
+                created_at__date=today
+            ).exists()
+            if exists:
+                raise serializers.ValidationError("Vitals for this patient have already been entered today.")
+
+        # Existing realism checks
+        if data.get("oxygen_saturation") and (data["oxygen_saturation"] < 50 or data["oxygen_saturation"] > 100):
+            raise serializers.ValidationError({"oxygen_saturation": "Enter a valid percentage (50–100)."})
+        if data.get("temperature") and (data["temperature"] < 90 or data["temperature"] > 110):
+            raise serializers.ValidationError({"temperature": "Enter a realistic body temperature in °F."})
+        return data
 
 
 
@@ -157,3 +187,82 @@ class DoctorAvailabilitySerializer(serializers.ModelSerializer):
             attrs["end_time"] = end_time
 
         return attrs
+
+# appointment booking serializer
+
+class BaseAppointmentBookingSerializer(serializers.ModelSerializer):
+    def validate(self, data):
+        doctor = data.get("doctor")
+        patient = data.get("patient")
+        date = data.get("appointment_date")
+        start = data.get("start_time")
+        end = data.get("end_time")
+
+        # Combine date + time for full datetime
+        start_datetime = datetime.datetime.combine(date, start)
+        end_datetime = datetime.datetime.combine(date, end)
+
+        # Make them timezone-aware
+        start_datetime = timezone.make_aware(start_datetime, timezone.get_current_timezone())
+        end_datetime = timezone.make_aware(end_datetime, timezone.get_current_timezone())
+
+        now = timezone.now()
+
+        # 1️⃣ Prevent booking for past dates/times
+        if start_datetime < now:
+            raise serializers.ValidationError({
+                "appointment_date": "Cannot book appointment in the past."
+            })
+
+        if end_datetime <= start_datetime:
+            raise serializers.ValidationError({
+                "end_time": "End time must be after start time."
+            })
+
+        # 2️⃣ Prevent overlapping appointments
+        overlapping = AppointmentBooking.objects.filter(
+            doctor=doctor,
+            appointment_date=date,
+            start_time__lt=end,
+            end_time__gt=start
+        )
+        if self.instance:  # exclude self if update
+            overlapping = overlapping.exclude(pk=self.instance.pk)
+
+        if overlapping.exists():
+            raise serializers.ValidationError({
+                "appointment": "This time slot is already booked."
+            })
+
+        return data
+
+
+
+class PatientAppointmentBookingSerializer(BaseAppointmentBookingSerializer):
+    class Meta:
+        model = AppointmentBooking
+        exclude = ['id', 'created_at']
+        read_only_fields = ['patient']
+
+class DoctorAppointmentBookingSerializer(BaseAppointmentBookingSerializer):
+    class Meta:
+        model = AppointmentBooking
+        exclude = ['id', 'created_at']
+        extra_kwargs = {
+            "patient": {"required": True},
+            "appointment_date": {"required": True},
+            "start_time": {"required": True},
+            "end_time": {"required": True},
+            "reason_for_visit": {"required": True},
+        }
+
+class ClinicAppointmentBookingSerializer(BaseAppointmentBookingSerializer):
+    class Meta:
+        model = AppointmentBooking
+        exclude = ['id', 'created_at']
+
+class SuperAdminAppointmentBookingSerializer(BaseAppointmentBookingSerializer):
+    class Meta:
+        model = AppointmentBooking
+        exclude = ['id', 'created_at']
+

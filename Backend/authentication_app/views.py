@@ -8,8 +8,34 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import get_object_or_404
 from . serializers import *
 from superadmin_app.utils import send_otp_via_email, generate_otp
+from rest_framework import status
+from  superadmin_app.models import ProfileUser
+from .serializers import SuperUserCreateSerializer  # Create a serializer for validation
+
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+
 # Create your views he
 
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SuperUserCreateAPIView(APIView):
+    authentication_classes = [] 
+    def post(self, request):
+        serializer = SuperUserCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            # Create the superuser using your custom user manager
+            user = ProfileUser.objects.create_superuser(
+                email=serializer.validated_data['email'],
+                password=serializer.validated_data['password'],
+                first_name=serializer.validated_data.get('first_name', ''),
+                last_name=serializer.validated_data.get('last_name', ''),
+                phone=serializer.validated_data.get('phone', ''),
+            )
+            user.role = 'SuperAdmin'
+            user.save()
+            return Response({"message": "Superuser created successfully."}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # login  and verify otp

@@ -81,6 +81,7 @@ class Patient(models.Model):
     emergency_contact_phone = models.CharField(max_length=20)
     address = models.TextField()
     known_allergies = models.TextField(blank=True, help_text="Enter allergies separated by commas (e.g., Penicillin, Peanuts)")
+    # known_allergies = models.JSONField(blank=True, help_text="Enter allergies separated by commas (e.g., Penicillin, Peanuts)")
 
     def __str__(self):
         return f"{self.full_name} ({self.user.email})"

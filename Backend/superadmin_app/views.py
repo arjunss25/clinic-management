@@ -11,9 +11,8 @@ from rest_framework.permissions import IsAuthenticated
 # clinical registration by superadmin
 class ClinicRegisterAPIView(APIView):
     permission_classes = [IsAuthenticated]  
-
     def post(self, request):
-       
+
         if request.user.role != "SuperAdmin":
             return custom_404( "Only SuperAdmin can register clinics" )
 
